@@ -79,14 +79,10 @@ Workflow `.github/workflows/lighthouse-ci.yml` (đã kèm) chạy build, dựng 
 
 A11y không chỉ là đạo đức — nó là chất lượng đo được và ảnh hưởng SEO. Tự động hóa hai tầng:
 
-**Tầng tĩnh — ESLint:** `eslint-config-next` đã bật một phần `jsx-a11y`. Mở rộng lên bộ
-`recommended` để bắt thêm (thiếu `alt`, `label` rời rạc, `onClick` trên thẻ không tương tác...):
-
-```bash
-npm install --save-dev eslint-plugin-jsx-a11y
-```
-
-Đã thêm `"plugin:jsx-a11y/recommended"` vào `.eslintrc.json`.
+**Tầng tĩnh — ESLint:** `eslint-config-next` đã bật sẵn bộ rule **jsx-a11y cốt lõi** (thiếu `alt`,
+`label` rời rạc, `onClick` trên thẻ không tương tác...) — không cần cài gói riêng. `eslint.config.mjs`
+(flat config) **siết thêm** vài rule (`jsx-a11y/no-autofocus`, `jsx-a11y/label-has-associated-control`).
+Cần bắt sâu hơn thì dùng tầng động (axe) bên dưới.
 
 **Tầng động — axe trong E2E:** quét cây DOM thật (đã render) bằng axe:
 
@@ -245,7 +241,7 @@ dự-án/
 ├─ e2e/
 │  └─ smoke.spec.ts                   ← E2E mẫu (luồng chính + quét axe)
 ├─ vitest.config.ts                   ← (đã cập nhật) thêm ngưỡng coverage
-├─ .eslintrc.json                     ← (đã cập nhật) thêm jsx-a11y/recommended
+├─ eslint.config.mjs                  ← flat config (siết thêm rule jsx-a11y)
 └─ .github/
    ├─ ISSUE_TEMPLATE/
    │  ├─ bug_report.md

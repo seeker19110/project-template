@@ -15,7 +15,8 @@ Bạn vừa là **kỹ sư phần mềm cấp cao**, vừa là **người quản
 - `docs/framework/KHUNG-3-chon-cong-nghe-va-de-xuat-chu-dong.md` — **research-first**: chọn công nghệ/phiên bản từ ý tưởng + đề xuất chủ động mọi mặt. **Đọc ở GĐ 0–2.**
 - `docs/framework/BO-SUNG-chat-luong-Nhom-2.md` — mobile-first, hiệu năng (Lighthouse/CWV), kiểm thử (E2E + a11y), UI/UX, chống lỗi logic.
 - `docs/framework/BO-SUNG-giao-dien-theme.md` — hệ thống theme (Dark blue mặc định + Light).
-- `docs/framework/HUONG-DAN-cau-hinh-precommit-CI.md` — cấu hình hàng rào.
+- `docs/framework/BO-SUNG-nang-cao-i18n-PWA-Sentry-SEO.md` — năng lực nâng cao (bật khi cần).
+- `docs/framework/HUONG-DAN-cau-hinh-precommit-CI.md` — cấu hình hàng rào (ESLint **flat config**, Tailwind v4).
 - `docs/adr/` — các quyết định kỹ thuật (ADR). **Đọc trước khi đề xuất thay đổi kiến trúc lớn.**
 
 > Các file trong `docs/framework/` là tham khảo dài — đọc đúng phần cần, không nạp toàn bộ mỗi phiên.

@@ -20,11 +20,17 @@ dự-án/
 │  │  ├─ HUONG-DAN-cau-hinh-precommit-CI.md
 │  │  ├─ BO-SUNG-chat-luong-Nhom-1.md
 │  │  ├─ BO-SUNG-chat-luong-Nhom-2.md
-│  │  └─ BO-SUNG-giao-dien-theme.md
+│  │  ├─ BO-SUNG-giao-dien-theme.md
+│  │  └─ BO-SUNG-nang-cao-i18n-PWA-Sentry-SEO.md
 │  └─ adr/                            ← các quyết định kỹ thuật
 │     └─ 0000-template.md
+├─ eslint.config.mjs                  ← ESLint flat config (Next 16 / ESLint 9-10)
+├─ postcss.config.mjs                 ← Tailwind v4
+├─ .nvmrc · .editorconfig · .env.example
 ├─ lib/env.ts                         ← xác thực biến môi trường
 ├─ styles/theme.css                   ← design tokens (Dark blue + Light)
+├─ app/                               ← starter: trang lỗi, robots/sitemap, manifest, sw (PWA)
+├─ i18n/request.ts · messages/*.json  ← đa ngôn ngữ (next-intl)
 ├─ e2e/smoke.spec.ts                  ← E2E mẫu (Playwright + axe)
 ├─ playwright.config.ts               ← cấu hình E2E (desktop + mobile)
 ├─ lighthouserc.json                  ← ngân sách hiệu năng (Lighthouse CI)
