@@ -141,6 +141,7 @@ Sau PHẦN A–C, AI sản xuất:
 
 1. **Bản đề xuất công nghệ** (đưa vào `PROJECT.md` mục 4): mỗi lựa chọn + phiên bản + *ngày xác minh* + 1 câu lý do.
 2. **ADR cho mỗi quyết định lớn** (`docs/adr/000X-...`): ứng viên đã cân nhắc, tiêu chí, vì sao chọn/loại.
+   → Xem **ví dụ đã điền: `docs/adr/0001-chon-stack.md`** (áp dụng đúng phương pháp PHẦN B cho stack mặc định).
 3. **Danh sách góp ý chủ động** (từ bảng PHẦN A): các mặt người dùng nên quyết trước khi code.
 
 **Thứ tự chạy trong quy trình KHUNG 1:**
