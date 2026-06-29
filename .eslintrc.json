@@ -1,5 +1,5 @@
 {
-  "extends": ["next/core-web-vitals", "next/typescript"],
+  "extends": ["next/core-web-vitals", "next/typescript", "plugin:jsx-a11y/recommended"],
   "rules": {
     "no-console": ["warn", { "allow": ["warn", "error"] }],
     "@typescript-eslint/no-explicit-any": "error",

@@ -13,11 +13,17 @@ phải tuân thủ gì. Đó là kim chỉ nam chính.
 - `PROJECT.md` — mẫu đặc tả dự án (điền trước khi code).
 - `PROGRESS.md` — mẫu theo dõi trạng thái.
 - `lib/env.ts` — xác thực biến môi trường (đổi tên biến cho khớp dự án).
+- `styles/theme.css` — design tokens: nền **Dark blue** mặc định + chế độ **Light**.
+- `playwright.config.ts`, `e2e/smoke.spec.ts` — E2E (desktop + mobile) + quét a11y axe.
+- `lighthouserc.json` — ngân sách hiệu năng (Lighthouse CI).
+- `CHANGELOG.md` — lịch sử thay đổi (Keep a Changelog).
 - `.prettierrc`, `.prettierignore`, `.eslintrc.json`, `commitlint.config.js`,
   `.lintstagedrc.json`, `vitest.config.ts`, `vitest.setup.ts`, `.gitignore`
 - `.husky/pre-commit`, `.husky/commit-msg` — hook (cần chạy `npx husky init` trước, xem dưới).
-- `.github/pull_request_template.md`, `.github/dependabot.yml`, `.github/workflows/ci.yml`
-- `docs/framework/` — 5 tài liệu khung (quy trình, luật AI, mẫu dự án, cấu hình, runbook).
+- `.github/pull_request_template.md`, `.github/ISSUE_TEMPLATE/`, `.github/dependabot.yml`,
+  `.github/workflows/ci.yml`, `.github/workflows/lighthouse-ci.yml`
+- `docs/framework/` — 7 tài liệu khung (quy trình, luật AI, **chọn công nghệ research-first**,
+  cấu hình, runbook, bổ sung chất lượng Nhóm 1 & 2, theme).
 - `docs/adr/0000-template.md` — mẫu ghi quyết định kỹ thuật.
 
 ## 2 việc phải làm tay
