@@ -149,6 +149,7 @@
 - [ ] Mọi đầu vào người dùng/API được validate (ví dụ Zod) trước khi dùng.
 - [ ] Mọi thao tác có thể fail đều có nhánh xử lý lỗi.
 - [ ] Không "số/chuỗi ma thuật"; hàm nhỏ làm một việc; tên tự giải thích; không lặp logic.
+- [ ] Trước khi đóng một mảng lớn: rà **checklist tối ưu mã nguồn** — gỡ dead code, giảm trùng lặp/độ phức tạp, tỉa dependency, thu nhỏ bundle (Nhóm 2 mục 9). Refactor không đổi hành vi, đi PR riêng.
 
 **Bảo mật khi code:**
 - [ ] Truy vấn tham số hóa (chống SQL injection).
