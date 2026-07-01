@@ -179,8 +179,20 @@ Chức năng nền của Claude Code chạy bằng alias `haiku`; cấu hình qu
 Repo đã có sẵn cấu hình để tự tối ưu chi phí — ai mở repo bằng Claude Code đều nhận:
 - **`.claude/settings.json`** → `"model": "opusplan"` (mặc định: Opus khi plan, **Sonnet 5 khi code**) + `"fallbackModel": ["claude-sonnet-5", "claude-haiku-4-5"]`.
 - **`.claude/agents/tra-cuu.md`** → subagent `model: haiku`, **chỉ nhận việc Haiku 4.5 xuất sắc** (tìm file, grep symbol, định vị định nghĩa/tham chiếu, trích dữ kiện cụ thể — read-only). Không giao review/kiến trúc/sửa file cho subagent này.
+- **`.claude/agents/kiem-tra-phien-ban.md`** → subagent `model: haiku`, **xác minh phiên bản bằng nguồn sống** cho bước research-first (KHUNG-3): trả về số/dữ kiện thô + nguồn + ngày kiểm tra; không chọn/đề xuất công nghệ.
 
-> Muốn đổi mặc định về Sonnet 5 thuần (không dùng opusplan): sửa `"model"` trong `.claude/settings.json`. Muốn tắt subagent Haiku: xóa `.claude/agents/tra-cuu.md`. Cá nhân override tạm thời bằng `/model` mà không cần đổi file.
+> Muốn đổi mặc định về Sonnet 5 thuần (không dùng opusplan): sửa `"model"` trong `.claude/settings.json`. Muốn tắt subagent Haiku: xóa file tương ứng trong `.claude/agents/`. Cá nhân override tạm thời bằng `/model` mà không cần đổi file.
+
+### Tối đa hóa tự động — checklist opt-in THEO TỪNG DỰ ÁN
+Các mục dưới **cố ý KHÔNG bake sẵn** vào template (vì khung hỗ trợ **mọi loại dự án** — bake lệnh `npm` vào đây sẽ sai với mobile/backend/CLI/data…). Bật chúng **sau khi đã chọn stack** ở GĐ 0–2:
+
+1. **Hook tự chạy format/lint sau mỗi lần sửa file** (`PostToolUse` trên `Edit|Write`) → giảm việc tay ở cổng §5. Điền đúng lệnh của dự án (vd `npm run format`, `ruff format`, `gofmt`), nên bọc guard để no-op khi thiếu công cụ.
+2. **Hook chạy cổng trước khi commit** (`PreToolUse` khớp `git commit`) → tự chặn commit khi build/lint/test đỏ (đồng bộ `/cong`).
+3. **`availableModels` + `enforceAvailableModels`** trong `settings.json` → chặn trần chi phí toàn dự án (chỉ cho phép tập model đã chọn). Lưu ý: nếu loại Opus thì `opusplan` sẽ ở lại Sonnet — cân nhắc trước khi siết.
+4. **`CLAUDE_CODE_SUBAGENT_MODEL`** (env) → khi cần **ép tạm** toàn bộ subagent về một model (vd chạy rẻ đồng loạt bằng `sonnet`), không phải sửa từng frontmatter. Bỏ trống để tôn trọng routing per-agent.
+5. **Thêm subagent Haiku cho đúng việc cơ học khác** khi phát sinh (đọc log/git history, trích cấu hình…) — luôn giữ nguyên tắc: chỉ giao Haiku việc **phạm vi rõ, ít lý luận**; việc phán đoán để opusplan.
+
+> **Ranh giới tự động (trung thực):** phần tự động hóa cao nhất mà **không cần chọn stack** đã bật sẵn (opusplan + 2 subagent Haiku). Các mục 1–2 (hooks) là **automation mạnh nhất còn lại** nhưng phụ thuộc lệnh cụ thể của dự án → chỉ bật được sau GĐ chọn công nghệ. Đây là giới hạn có chủ đích, không phải thiếu sót.
 
 > **Lưu ý bản chất:** `opusplan` đổi model theo **chế độ (plan ⇄ execution)**, không phải "đoán độ khó từng câu". Việc phân tách main (đắt) ↔ subagent (rẻ) mới là cơ chế tự động thực sự. Kết hợp `opusplan` + subagent Haiku là cách "tự động tối ưu chi phí" sát nhất hiện có, không cần bạn đổi tay mỗi lần.
 
