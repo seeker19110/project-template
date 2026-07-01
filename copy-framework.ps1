@@ -133,6 +133,7 @@ Copy-IfAbsent ".env.example"
 Write-Host ""
 Write-Host "[2/3] File cấu hình (Lớp 2 — KHÔNG đè; để bạn tự merge cái khớp stack):"
 $dropins = @(
+  '.claude/settings-shared-opusplan.json', '.claude/hooks', '.claude/agents',
   'eslint.config.mjs', 'postcss.config.mjs',
   '.prettierrc', '.prettierignore', '.lintstagedrc.json', 'commitlint.config.cjs',
   'vitest.config.ts', 'vitest.setup.ts', 'playwright.config.ts', 'lighthouserc.json',
