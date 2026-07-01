@@ -15,6 +15,33 @@
 - Muốn **quét dần theo nhiều phiên** (dự án lớn, một phiên không quét hết) — có thể dừng giữa chừng
   và **tiếp tục đúng chỗ** ở phiên sau, thay vì phải quét lại từ đầu mỗi lần.
 
+## Bước -1 — Xác nhận đây là DỰ ÁN CỤ THỂ, không phải khung/template còn trống
+
+**Bắt buộc chạy trước cả Bước 0.** `/audit-toan-dien` audit một **dự án cụ thể đã phát triển**
+(đã chọn tính năng + công nghệ, có code nghiệp vụ thật) — không audit được một bộ khung/template
+còn trống, vì lúc đó chưa có gì để lập kế hoạch chi tiết (đúng nguyên tắc chống ảo giác,
+`CLAUDE.md` §4: không bịa ra phát hiện cho tính năng chưa tồn tại).
+
+Dấu hiệu **vẫn là khung/template trống** (chưa phải dự án cụ thể):
+- `PROJECT.md` mục 1–8 (Vấn đề & người dùng, Phạm vi MVP, Tech stack, Thiết kế dữ liệu, API, DoD…)
+  còn trống hoặc chỉ có placeholder mẫu, chưa mô tả một sản phẩm thật.
+- `app/`/thư mục nguồn chỉ có file hệ thống mặc định của scaffold (vd `error.tsx`, `not-found.tsx`,
+  `sitemap.ts`, `robots.ts`, `manifest.ts`, `sw.ts`) — **chưa có route/page/module nghiệp vụ nào**.
+- ADR chọn stack (`docs/adr/0001-...`) vẫn ghi rõ là "stack tham chiếu mặc định" minh họa của
+  khung, chưa phải quyết định cho một ý tưởng cụ thể của người dùng.
+- `PROGRESS.md` không có giai đoạn phát triển tính năng nào (GĐ 0–2 của KHUNG-1) đã hoàn thành.
+
+**Nếu rơi vào tình huống này:** DỪNG NGAY, không quét, không tạo báo cáo audit. Báo cho người
+dùng đúng ý: *"Đây hiện là repo khung/template, chưa có dự án cụ thể để audit toàn diện. Audit
+này cần tính năng + công nghệ đã chọn/triển khai thật thì mới lập được kế hoạch chi tiết — làm khi:
+(a) mở phiên mới trên một dự án ĐÃ phát triển từ khung này (qua `copy-framework.sh`/`.ps1`), hoặc
+(b) nếu đang phát triển ngay trong repo này, hoàn thành GĐ 0–2 của KHUNG-1 (ý tưởng → điền đủ
+`PROJECT.md` → thiết kế) trước, rồi quay lại `/audit-toan-dien`."* Gợi ý chạy `/tu-van` hoặc
+`/khoi-tao` nếu người dùng muốn bắt đầu phát triển ngay.
+
+**Nếu KHÔNG rơi vào tình huống trên** (đã có tính năng/code nghiệp vụ thật, dù còn thiếu/dở dang)
+→ tiếp tục Bước 0 bên dưới như bình thường.
+
 ## Cơ chế quét lại / tiếp tục (bắt buộc đọc trước khi bắt đầu)
 
 Trạng thái quét được lưu trong file **`docs/ops/AUDIT-TOAN-DIEN-TRANG-THAI.md`** tại dự án đích

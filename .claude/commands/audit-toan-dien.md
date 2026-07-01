@@ -13,7 +13,14 @@ từng giai đoạn):
   chống lỗi logic, test/coverage, hiệu năng, accessibility/UI-UX, dependency & chuỗi cung ứng,
   CI/CD & vận hành, tài liệu có đồng bộ code thật không, dữ liệu/migration, cấu hình & bí mật.
 
-- **BƯỚC 0 — bắt buộc trước khi quét bất cứ gì:** kiểm tra `docs/ops/AUDIT-TOAN-DIEN-TRANG-THAI.md`.
+- **BƯỚC -1 — bắt buộc TRƯỚC CẢ Bước 0:** xác nhận đây là **dự án cụ thể đã phát triển** (có
+  tính năng + công nghệ đã chọn/triển khai thật), không phải bộ khung/template còn trống (xem
+  dấu hiệu nhận biết trong `audit-toan-dien-prompt.md`). Nếu vẫn là khung trống → **DỪNG NGAY**,
+  giải thích cho người dùng rằng audit toàn diện cần một dự án cụ thể mới lập được kế hoạch chi
+  tiết, gợi ý `/tu-van` hoặc `/khoi-tao` để bắt đầu phát triển — **không** tự bịa phát hiện/kế
+  hoạch audit cho tính năng chưa tồn tại.
+
+- **BƯỚC 0 — bắt buộc trước khi quét bất cứ gì (chỉ khi đã qua Bước -1):** kiểm tra `docs/ops/AUDIT-TOAN-DIEN-TRANG-THAI.md`.
   - **Chưa có** → đây là lần quét đầu; tạo file mới (mẫu trong `audit-toan-dien-prompt.md`), bắt đầu Nhóm 1.
   - **Đã có** → đọc trạng thái, tóm tắt cho người dùng (nhóm nào xong/đang dở/chưa quét), rồi
     **DÙNG `AskUserQuestion` hỏi rõ**: quét lại từ đầu (reset) hay chỉ tiếp tục các nhóm
@@ -31,4 +38,4 @@ Nếu **không tìm thấy** `docs/ops/audit-toan-dien-prompt.md` (repo chưa á
 dùng biết file chưa có để cân nhắc chạy `copy-framework.sh`, rồi vẫn tiến hành theo đúng ràng buộc
 tóm tắt trên bằng cách tự suy ra 11 nhóm audit từ tên gọi.
 
-Bắt đầu **BƯỚC 0** ngay.
+Bắt đầu **BƯỚC -1** ngay.
