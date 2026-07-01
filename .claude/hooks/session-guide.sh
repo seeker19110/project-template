@@ -4,6 +4,8 @@
 # CHỈ trong dự án dùng khung/template này. Tự nhận biết trạng thái để gợi ý đúng:
 #   • Chưa có tiến độ  → hướng bắt đầu (mô tả ý tưởng / /tu-van / /khoi-tao / /tu-dong)
 #   • Đang làm dở      → hướng tiếp tục ('tiếp tục' / /tu-dong / /cong)
+# Đồng thời XÁC NHẬN model phiên (đọc trường "model" từ stdin): ✅ nếu opusplan,
+#   ⚠️ CẢNH BÁO nếu bị picker/UI chọn đè, 🔎 nếu không đọc được → hướng /model opusplan.
 # Không đổi gì (chỉ đọc). No-op nếu thiếu jq hoặc không phải dự án của khung.
 set -uo pipefail
 
@@ -27,9 +29,18 @@ if command -v git >/dev/null 2>&1 && git -C "$ROOT" rev-parse --git-dir >/dev/nu
   dirty="$(git -C "$ROOT" status --short 2>/dev/null | head -1)"
 fi
 
+# XÁC NHẬN model hiện tại (SessionStart stdin có trường "model"; không luôn có).
+payload="$(cat 2>/dev/null || true)"
+model_id="$(printf '%s' "$payload" | jq -r '.model // empty' 2>/dev/null || true)"
+case "$model_id" in
+  *opusplan*) mnote="✅ Model: đang ở opusplan (Opus lập kế hoạch → Sonnet viết code) — đúng." ;;
+  "")         mnote="🔎 Model: chưa đọc được từ phiên → XÁC NHẬN bằng /model (cần thấy opusplan). Nếu chưa phải: /model opusplan (tránh Opus thuần, Pro ~1h hết quota)." ;;
+  *)          mnote="⚠️ CẢNH BÁO — model phiên = ${model_id}, KHÔNG phải opusplan: có thể GIAO DIỆN/PICKER đã CHỌN ĐÈ lên mặc định repo. Hệ quả: chạy 1 model cho mọi việc (nếu Opus thuần → Pro ~1h hết quota; nếu Sonnet/Haiku thuần → mất pha Opus lập kế hoạch). SỬA: gõ /model opusplan → xác nhận lại bằng /model." ;;
+esac
+
 if [ -z "$phase" ] && [ -z "$dirty" ]; then
   msg="🧭 Dự án dùng KHUNG (template). Chưa có tiến độ ghi nhận.
-⚙️ Model: chọn 'Default' (theo repo = opusplan) — hoặc gõ /model opusplan. TRÁNH Opus thuần (Pro ~1h hết quota; opusplan tự dùng Sonnet khi code).
+${mnote}
 Bắt đầu thế nào:
 • Mô tả ý tưởng/yêu cầu dự án — hoặc gõ /tu-van (chọn công nghệ, research-first)
 • /khoi-tao (dựng nền dự án mới)  •  /tu-dong (Opus lập kế hoạch → chạy tự động)
@@ -39,7 +50,7 @@ else
   [ -n "$phase" ] && extra=" — GĐ hiện tại: ${phase}"
   [ -n "$dirty" ] && extra="${extra} (có thay đổi chưa commit)"
   msg="🧭 Dự án dùng KHUNG${extra}.
-⚙️ Model: chọn 'Default' (theo repo = opusplan) — hoặc gõ /model opusplan. TRÁNH Opus thuần (Pro ~1h hết quota; opusplan tự dùng Sonnet khi code).
+${mnote}
 Tiếp theo nên:
 • Gõ 'tiếp tục' để nối việc dở (PROGRESS.md đã được nạp) — xem mục 'Đang làm'/'Tiếp theo'/'Bàn giao phiên'
 • /tu-dong để tự động điều phối  •  /cong trước khi commit  •  /su-co nếu có sự cố"
