@@ -99,6 +99,8 @@ cp .claude/project-commands.example.sh .claude/project-commands.sh
 ```
 Rồi mở phiên Claude Code trong repo và gõ `/tu-dong`. Xong.
 
+> **Chọn model lúc mở phiên:** picker thường **không** có `opusplan` (là alias chế độ). Chọn **"Default"** để repo tự áp `opusplan` (Opus plan → Sonnet code), hoặc gõ **`/model opusplan`** trong phiên. **Tránh chọn Opus thuần** — chạy Opus cho mọi thứ sẽ đốt hết quota 5h (Pro ~1h).
+
 ---
 
 ## 6. Ranh giới & sự thật kỹ thuật (trung thực)

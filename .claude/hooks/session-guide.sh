@@ -29,6 +29,7 @@ fi
 
 if [ -z "$phase" ] && [ -z "$dirty" ]; then
   msg="🧭 Dự án dùng KHUNG (template). Chưa có tiến độ ghi nhận.
+⚙️ Model: chọn 'Default' (theo repo = opusplan) — hoặc gõ /model opusplan. TRÁNH Opus thuần (Pro ~1h hết quota; opusplan tự dùng Sonnet khi code).
 Bắt đầu thế nào:
 • Mô tả ý tưởng/yêu cầu dự án — hoặc gõ /tu-van (chọn công nghệ, research-first)
 • /khoi-tao (dựng nền dự án mới)  •  /tu-dong (Opus lập kế hoạch → chạy tự động)
@@ -38,6 +39,7 @@ else
   [ -n "$phase" ] && extra=" — GĐ hiện tại: ${phase}"
   [ -n "$dirty" ] && extra="${extra} (có thay đổi chưa commit)"
   msg="🧭 Dự án dùng KHUNG${extra}.
+⚙️ Model: chọn 'Default' (theo repo = opusplan) — hoặc gõ /model opusplan. TRÁNH Opus thuần (Pro ~1h hết quota; opusplan tự dùng Sonnet khi code).
 Tiếp theo nên:
 • Gõ 'tiếp tục' để nối việc dở (PROGRESS.md đã được nạp) — xem mục 'Đang làm'/'Tiếp theo'/'Bàn giao phiên'
 • /tu-dong để tự động điều phối  •  /cong trước khi commit  •  /su-co nếu có sự cố"
