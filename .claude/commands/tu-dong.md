@@ -26,7 +26,9 @@ Sau khi duyệt, chạy **tự động** theo kế hoạch, không hỏi lại t
 ## WIND-DOWN ở ~70% giới hạn 5h + RESUME phiên sau
 > **Sự thật kỹ thuật (đã xác minh):** Claude Code **KHÔNG** cấp % giới hạn 5h cho hook/agent (không env var, không field). Nên **không có cổng máy móc** đọc đúng "70% của 5h". Thực thi bằng **hành vi wind-down + hạ tầng resume** dưới đây.
 
-**Khi ước lượng đã dùng ~70% cửa sổ 5h** (dựa vào cảnh báo limit của CLI `/usage`, hoặc phán đoán theo khối lượng đã chạy):
+**Tín hiệu tự động:** nếu đã khai báo `.claude/usage-budget.sh`, **Stop hook** (`usage-guard.sh`) sau mỗi lượt tự ước tính % quota 5h (token thật từ transcript ÷ budget của bạn) và **tự nhắc wind-down khi ≥ ngưỡng** (mặc định 70%). Chưa khai báo budget → tín hiệu tắt, dùng phán đoán tay.
+
+**Khi ước lượng đã dùng ~70% cửa sổ 5h** (theo tín hiệu tự động ở trên, hoặc cảnh báo `/usage` của CLI, hoặc phán đoán theo khối lượng):
 1. **KHÔNG bắt đầu** đơn vị công việc mới cần commit/merge; **hoàn tất gọn** đơn vị đang dở.
 2. **Commit** phần đã xong (qua cổng — không commit code đỏ). Đây là "dừng commit/merge" hiểu đúng: **ngừng khởi động chu kỳ mới**, không phải chặn lệnh commit (near-limit thì càng phải commit để không mất việc).
 3. **Cập nhật `PROGRESS.md`** — nhất là mục **"Bàn giao phiên"**: việc vừa xong, việc DỞ ở đâu, **bước kế tiếp cụ thể**.

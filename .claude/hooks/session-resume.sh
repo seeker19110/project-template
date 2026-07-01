@@ -6,6 +6,10 @@
 set -uo pipefail
 
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
+
+# Phiên mới → xóa marker đã-nhắc-wind-down để usage-guard nhắc lại được ở phiên này.
+rm -f "$ROOT/.claude/.winddown-nudged" 2>/dev/null || true
+
 command -v jq >/dev/null 2>&1 || exit 0
 
 ctx="$(

@@ -194,6 +194,14 @@ Các mục dưới **cố ý KHÔNG bake sẵn** vào template (vì khung hỗ t
 4. **`CLAUDE_CODE_SUBAGENT_MODEL`** (env) → khi cần **ép tạm** toàn bộ subagent về một model (vd chạy rẻ đồng loạt bằng `sonnet`), không phải sửa từng frontmatter. Bỏ trống để tôn trọng routing per-agent.
 5. **Thêm subagent Haiku cho đúng việc cơ học khác** khi phát sinh (đọc log/git history, trích cấu hình…) — luôn giữ nguyên tắc: chỉ giao Haiku việc **phạm vi rõ, ít lý luận**; việc phán đoán để opusplan.
 
+### Ước tính % quota 5h + tự nhắc wind-down (tương đối, tự hiệu chỉnh)
+Claude Code **không** cấp % giới hạn 5h cho hook/agent → mình ước tính:
+- **Tử số (thật):** `scripts/usage-estimate.sh` đọc **token thật từ transcript phiên** (`message.usage`: input+output+cache_creation+0.1·cache_read), chỉ tính **5 giờ gần nhất**, gộp theo model.
+- **Mẫu số (ước tính):** budget token/5h bạn khai báo ở `.claude/usage-budget.sh` (copy từ `.example.sh`) — vì Anthropic không công bố số này dạng máy đọc, và nó tùy **gói** (Pro/Max). **Tự hiệu chỉnh** từ thực tế (auto mode ~1h chạm trần → hạ số tới khi % chạm ~100% đúng lúc bị giới hạn).
+- **% = MAX theo model** (model nào chạm trần trước là ràng buộc). **Stop hook** `usage-guard.sh` tự nhắc **wind-down** khi ≥ ngưỡng (mặc định 70%), nhắc 1 lần/phiên.
+- **Chưa khai báo budget → tự tắt** (OVERALL=NA), không báo động sai.
+- **Giới hạn trung thực:** chỉ đếm token của **phiên hiện tại** (1 transcript); phiên/khác song song trong cùng 5h không được cộng → là **ước tính**, không phải số chính thức.
+
 ### "Mọi dự án đều khác nhau" — giải quyết bằng LỚP TRUNG GIAN (đã bake)
 Vấn đề: template hỗ trợ **mọi loại dự án**, nên **không được hardcode** lệnh (`npm`/`ruff`/`go`…) vào hook/settings. Giải pháp tổng quát: **không nhúng lệnh — nhúng một điểm vào ổn định**, phần khác-nhau nằm sau nó.
 
