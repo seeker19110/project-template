@@ -28,6 +28,11 @@ Từ repo khung, chạy `copy-framework.sh` trỏ tới dự án đích:
 ```bash
 bash copy-framework.sh /đường-dẫn/tới/dự-án
 ```
+Trên **Windows PowerShell** dùng bản `.ps1` tương đương (cùng hành vi 3 lớp):
+```powershell
+pwsh ./copy-framework.ps1 C:\đường-dẫn\tới\dự-án
+# hoặc: powershell -ExecutionPolicy Bypass -File .\copy-framework.ps1 C:\đường-dẫn\tới\dự-án
+```
 Script **không đè** file đang chạy: tài liệu khung + `CLAUDE.md` (nếu chưa có) copy thẳng; file cấu hình
 theo stack được đưa vào `_framework-dropins/` để bạn tự merge. Sau đó **mở phiên Claude Code trong dự án đích**
 → AI tự đọc `CLAUDE.md` và chạy Bước 0 (tự dò stack). *Vì sao phải copy chứ không "đưa link": một phiên
