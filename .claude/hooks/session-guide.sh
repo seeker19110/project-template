@@ -46,7 +46,7 @@ ${mnote}
 Bắt đầu thế nào:
 • Mô tả ý tưởng/yêu cầu dự án — hoặc gõ /tu-van (chọn công nghệ, research-first)
 • /khoi-tao (dựng nền dự án mới)  •  /tu-dong (Opus lập kế hoạch → chạy tự động)
-• Bản đồ chế độ tự động: docs/framework/TU-DONG-tong-quan.md"
+• Model & chế độ tự động: docs/framework/MODEL-va-TU-DONG.md"
 else
   extra=""
   [ -n "$phase" ] && extra=" — GĐ hiện tại: ${phase}"
