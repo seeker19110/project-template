@@ -18,11 +18,16 @@
       (viết test theo spec, boilerplate, cập nhật docs, sửa cơ học nhiều file) để rút tải khỏi main Opus.
       Đồng bộ mô tả trong CHON-MODEL, TU-DONG-tong-quan, CONG-CU-OPUSPLAN, copy-framework.sh/.ps1, /tu-dong.
 
+- ✅ **Gộp 3 doc model/tự động → 1** (`docs/framework/MODEL-va-TU-DONG.md`): gộp CHON-MODEL +
+      CONG-CU-OPUSPLAN + TU-DONG-tong-quan, khử trùng lặp (594→~360 dòng, −2 file). Cập nhật mọi
+      tham chiếu: CLAUDE.md, `/adr` `/su-co` `/tu-van` `/tu-dong`, session-guide.sh.
+- ✅ **Quyết định giữ scaffold web** (Next.js+Supabase) làm hồ sơ mặc định — không tách/xóa.
+
 ## Đang làm
 - (xong)
 
 ## Tiếp theo
-- Đợi review/merge PR #19; push nhánh `claude/opusplan-optimization-150yp1` (subagent thuc-thi)
+- Merge PR #21 vào main
 
 ## Quyết định quan trọng (trỏ tới ADR nếu có)
 - Cấu hình Opusplan được thêm vào `_framework-dropins/` (an toàn, không đè cấu hình cũ)
@@ -38,4 +43,4 @@
 > Chế độ tự động ghi ở đây trước khi dừng: việc vừa xong, việc DỞ ở đâu, bước kế tiếp cụ thể.
 - Lần cập nhật: 2026-07-01
 - Việc DỞ / bước tiếp theo: Commit tất cả thay đổi & push lên nhánh `claude/opusplan-shared-config-rm5ru6`
-- Cần lưu ý khi chạy tiếp: Kiểm tra 3 file vừa tạo/sửa: `.claude/settings-shared-opusplan.json`, `copy-framework.sh`, `copy-framework.ps1`, `docs/framework/CONG-CU-OPUSPLAN-CHO-DU-AN.md`
+- Cần lưu ý khi chạy tiếp: Doc model/tự động nay gộp ở `docs/framework/MODEL-va-TU-DONG.md` (thay 3 file cũ). Subagent Sonnet: `.claude/agents/thuc-thi.md`.
