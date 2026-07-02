@@ -16,6 +16,9 @@
 - Dự án **mới** trước mốc lớn (ra mắt, bàn giao, gọi vốn) — rà tổng + đóng mọi lỗ hổng còn mở.
 - **KHÔNG dùng** cho khung/template còn trống — đúng Bước -1 của `comprehensive-audit-prompt.md`:
   chưa có tính năng thật thì không có gì để hoàn thiện (chống ảo giác, `CLAUDE.md` §4).
+- Người dùng chỉ nói ngắn gọn "tối ưu"/"kiểm tra lỗi" **không tự động** rơi vào đây — đây là lựa
+  chọn "toàn diện nhất" trong nhiều lựa chọn nhẹ hơn (`/audit-optimize`, `/gate`, `code-review`,
+  `/audit-full`). Xem `CLAUDE.md` mục 1b để hỏi rõ trước khi chọn đúng playbook này.
 
 ## Nguyên tắc (vi phạm = sai)
 1. **Kế hoạch trước, sửa sau.** Mọi việc sửa phải nằm trong kế hoạch đã được người dùng duyệt.
