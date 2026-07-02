@@ -11,9 +11,10 @@ cd "$(git rev-parse --show-toplevel)"
 
 fail=0
 
-# Hai file này CỐ Ý chứa tên cũ/đường dẫn chưa-tồn-tại: PROGRESS.md ghi lại lịch sử
-# (tên gọi đúng lúc viết), docs/framework/README.md là bảng ánh xạ tên cũ → tên mới.
-EXCLUDE_SOURCE=("PROGRESS.md" "docs/framework/README.md")
+# Các file này CỐ Ý chứa tên cũ/đường dẫn chưa-tồn-tại trong repo này: PROGRESS.md ghi lại
+# lịch sử (tên gọi đúng lúc viết), docs/framework/README.md là bảng ánh xạ tên cũ → tên mới,
+# case-study-*.md tường thuật đường dẫn của một dự án demo tạm thời (không phải repo này).
+EXCLUDE_SOURCE=("PROGRESS.md" "docs/framework/README.md" "docs/framework/case-study-greenfield-dry-run.md")
 
 # Đường dẫn được nhắc tới trong docs nhưng KHÔNG đóng gói sẵn trong repo khung này:
 # sinh ra tại dự án đích (`/completion`, `/audit-full`), hoặc người dùng tự tạo từ
