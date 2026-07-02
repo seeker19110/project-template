@@ -68,11 +68,17 @@
       - CLAUDE.md §1 thêm TRIGGER `/completion`; cập nhật session-guide.sh, copy-framework.sh/.ps1,
         README.md, consult.md, models-and-automation.md (bảng model thêm `/audit-full` + `/completion`).
 
+- ✅ PR #24 (tái cấu trúc tên file) và PR #25 (hỏi rõ phạm vi "tối ưu"/"kiểm tra lỗi") đã merge vào `main`.
+- ✅ **Rà hoàn thiện chính bộ khung (đợt 2026-07-02):** sửa 1 tham chiếu mồ côi "HUONG-DAN Bước 11"
+      (không khớp file nào hiện có) trong `new-project-runbook.md`; cập nhật lại mục Đang làm/Tiếp theo
+      của chính PROGRESS.md cho khớp thực tế (trước đó bị stale so với PR đã merge — vi phạm CLAUDE.md §2).
+
 ## Đang làm
-- (xong — chờ tạo PR cho nhánh `claude/project-planning-refinement-ujgfiy`)
+- (không có việc dở)
 
 ## Tiếp theo
-- Theo dõi CI của PR tái cấu trúc, merge khi xanh (CLAUDE.md §8: FIFO, quay về `main` sau merge).
+- Cân nhắc thêm script kiểm tra tự động tính nhất quán tài liệu (link gãy/tên file cũ) chạy trong CI của
+  chính repo khung, để không phải rà tay sau mỗi lần đổi tên file.
 - Cân nhắc: dự án đã copy khung bản cũ → dùng bảng ánh xạ trong `docs/framework/README.md` khi cập nhật.
 
 ## Quyết định quan trọng (trỏ tới ADR nếu có)

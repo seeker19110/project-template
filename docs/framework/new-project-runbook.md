@@ -657,7 +657,7 @@ Các phần còn lại (Dependabot, Lighthouse CI...) thêm dần sau.
 
 ## 4. Cấu hình GitHub repository (Settings — không đóng gói được trong code)
 
-- [ ] **Branch protection** cho `main` (KHOI-TAO Bước 6 / HUONG-DAN Bước 11): yêu cầu PR + status checks xanh +
+- [ ] **Branch protection** cho `main` (Bước 6 ở trên): yêu cầu PR + status checks xanh +
       nhánh cập nhật + review từ Code Owners. Chọn các check bắt buộc: `quality`, `e2e`, `lighthouse`,
       `analyze` (CodeQL), `gitleaks`.
 - [ ] **Code scanning**: Settings → Code security & analysis → bật (CodeQL cần để upload kết quả; nếu không
