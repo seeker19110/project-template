@@ -111,7 +111,7 @@ Write-Host "Đích:   $Target"
 Write-Host ""
 
 # ── LỚP 1 — Quy trình & tiêu chuẩn (áp mọi stack): copy thẳng ──
-Write-Host "[1/3] Tài liệu khung (Lớp 1 — dùng được ngay, mọi stack):"
+Write-Host "[1/4] Tài liệu khung (Lớp 1 — dùng được ngay, mọi stack):"
 Copy-Into "docs/framework"
 Copy-Into "docs/ops"
 Copy-Into ".claude/commands"                   # slash commands của khung: /consult /bootstrap /auto /gate /adr /ui-ux /audit-optimize /audit-full /completion /incident
@@ -120,7 +120,16 @@ Copy-IfAbsent "docs/adr/0000-template.md"
 # ── File gốc dự án: chỉ copy nếu chưa có ──
 Copy-IfAbsent "CLAUDE.md"
 Copy-IfAbsent "PROJECT.md"
-Copy-IfAbsent "PROGRESS.md"
+# PROGRESS.md: dự án đích nhận bản MẪU SẠCH (PROGRESS.template.md) — KHÔNG nhận
+# nhật ký phát triển của chính repo khung (PROGRESS.md ở repo khung là log của khung).
+$progressDest = Join-Path $Target 'PROGRESS.md'
+if (Test-Path -LiteralPath $progressDest) {
+  Write-Host "  ~ PROGRESS.md đã tồn tại → giữ nguyên"
+}
+else {
+  Copy-Item -LiteralPath (Join-Path $Src 'PROGRESS.template.md') -Destination $progressDest
+  Write-Host "  + PROGRESS.md (từ mẫu sạch PROGRESS.template.md)"
+}
 Copy-IfAbsent "CHANGELOG.md"
 Copy-IfAbsent "CONTRIBUTING.md"
 Copy-IfAbsent "SECURITY.md"
@@ -129,20 +138,29 @@ Copy-IfAbsent ".nvmrc"
 Copy-IfAbsent ".env.example"
 # LICENSE KHÔNG copy: mỗi dự án tự chọn giấy phép + chủ sở hữu riêng.
 
-# ── Cấu hình Claude Code: copy thẳng ──
+# ── Cấu hình Claude Code + script tự động: copy thẳng ──
 Write-Host ""
-Write-Host "[2/3] Cấu hình Claude Code (opusplan — tối ưu token: Opus lập kế hoạch, Sonnet code, Haiku phụ):"
+Write-Host "[2/4] Cấu hình Claude Code (opusplan — tối ưu token) + script tự động (hook gọi qua dev-task.sh):"
 $claudeDir = Join-Path $Target '.claude'
 New-Item -ItemType Directory -Force -Path $claudeDir | Out-Null
 Copy-Tree -SrcFull (Join-Path $Src '.claude/settings-shared-opusplan.json') -DestFull (Join-Path $claudeDir 'settings.json')
 Copy-Tree -SrcFull (Join-Path $Src '.claude/hooks') -DestFull (Join-Path $claudeDir 'hooks')
 Copy-Tree -SrcFull (Join-Path $Src '.claude/agents') -DestFull (Join-Path $claudeDir 'agents')
+# Hook phụ thuộc 2 script này — thiếu thì hook no-op (mất auto-format + cổng chặn commit đỏ + nhắc quota):
+$scriptsDir = Join-Path $Target 'scripts'
+New-Item -ItemType Directory -Force -Path $scriptsDir | Out-Null
+Copy-Tree -SrcFull (Join-Path $Src 'scripts/dev-task.sh') -DestFull (Join-Path $scriptsDir 'dev-task.sh')
+Copy-Tree -SrcFull (Join-Path $Src 'scripts/usage-estimate.sh') -DestFull (Join-Path $scriptsDir 'usage-estimate.sh')
+# 2 file mẫu để dự án tự điền (bản điền thật .claude/*.sh đã nằm trong .gitignore của khung):
+Copy-Tree -SrcFull (Join-Path $Src '.claude/project-commands.example.sh') -DestFull (Join-Path $claudeDir 'project-commands.example.sh')
+Copy-Tree -SrcFull (Join-Path $Src '.claude/usage-budget.example.sh') -DestFull (Join-Path $claudeDir 'usage-budget.example.sh')
 Write-Host "  → .claude/settings.json (opusplan; fallback Sonnet 5 → Haiku 4.5)"
-Write-Host "  → .claude/hooks"
-Write-Host "  → .claude/agents (subagent: lookup, version-check [Haiku]; executor [Sonnet])"
+Write-Host "  → .claude/hooks + .claude/agents (subagent: lookup, version-check [Haiku]; executor [Sonnet])"
+Write-Host "  → scripts/dev-task.sh + scripts/usage-estimate.sh (hook auto-format/gate/usage cần 2 file này)"
+Write-Host "  → .claude/project-commands.example.sh + .claude/usage-budget.example.sh (mẫu tự điền)"
 
 Write-Host ""
-Write-Host "[3/3] File cấu hình khác (Lớp 2 — KHÔNG đè; để bạn tự merge cái khớp stack):"
+Write-Host "[3/4] File cấu hình khác (Lớp 2 — KHÔNG đè; để bạn tự merge cái khớp stack):"
 $dropins = @(
   'eslint.config.mjs', 'postcss.config.mjs',
   '.prettierrc', '.prettierignore', '.lintstagedrc.json', 'commitlint.config.cjs',
@@ -162,6 +180,9 @@ Write-Host @'
 
   1) Cấu hình Claude Code đã sẵn sàng: .claude/settings.json dùng opusplan (tối ưu token).
      → Opus lập kế hoạch, Sonnet code, Haiku (subagent) việc phụ — chỉ trả giá Opus khi thực sự cần.
+     → Hook tự động (auto-format + chặn commit đỏ + nhắc quota) chạy qua scripts/dev-task.sh
+       (tự dò stack). Dự án có lệnh riêng → copy .claude/project-commands.example.sh
+       thành .claude/project-commands.sh rồi điền.
      ✅ Dự án nhỏ muốn rẻ hơn nữa: đổi "model" thành "claude-sonnet-5".
      ✅ Dự án rất phức tạp: nâng riêng lúc cần bằng /model claude-opus-4-8 (hoặc claude-fable-5).
 

@@ -33,11 +33,16 @@ if [ ! -d "$TARGET/.git" ]; then
 fi
 
 # ── Trợ giúp ──────────────────────────────────────────────
-copy_into() {           # copy thẳng (tạo thư mục cha)
+copy_into() {           # copy thẳng (thư mục → copy NỘI DUNG vào đích, không lồng thừa khi chạy lại)
   local rel="$1"
   [ -e "$SRC/$rel" ] || return 0
-  mkdir -p "$TARGET/$(dirname "$rel")"
-  cp -R "$SRC/$rel" "$TARGET/$rel"
+  if [ -d "$SRC/$rel" ]; then
+    mkdir -p "$TARGET/$rel"
+    cp -R "$SRC/$rel/." "$TARGET/$rel/"
+  else
+    mkdir -p "$TARGET/$(dirname "$rel")"
+    cp "$SRC/$rel" "$TARGET/$rel"
+  fi
   echo "  + $rel"
 }
 copy_if_absent() {      # chỉ copy nếu đích chưa có; nếu có thì để bản .framework-new
@@ -55,8 +60,13 @@ copy_if_absent() {      # chỉ copy nếu đích chưa có; nếu có thì đ�
 stage() {               # đưa vào _framework-dropins/ (không đụng file đang chạy)
   local rel="$1"
   [ -e "$SRC/$rel" ] || return 0
-  mkdir -p "$TARGET/_framework-dropins/$(dirname "$rel")"
-  cp -R "$SRC/$rel" "$TARGET/_framework-dropins/$rel"
+  if [ -d "$SRC/$rel" ]; then
+    mkdir -p "$TARGET/_framework-dropins/$rel"
+    cp -R "$SRC/$rel/." "$TARGET/_framework-dropins/$rel/"
+  else
+    mkdir -p "$TARGET/_framework-dropins/$(dirname "$rel")"
+    cp "$SRC/$rel" "$TARGET/_framework-dropins/$rel"
+  fi
   echo "  → _framework-dropins/$rel"
 }
 
@@ -66,7 +76,7 @@ echo "Đích:   $TARGET"
 echo ""
 
 # ── LỚP 1 — Quy trình & tiêu chuẩn (áp mọi stack): copy thẳng ──
-echo "[1/3] Tài liệu khung (Lớp 1 — dùng được ngay, mọi stack):"
+echo "[1/4] Tài liệu khung (Lớp 1 — dùng được ngay, mọi stack):"
 copy_into "docs/framework"
 copy_into "docs/ops"
 copy_into ".claude/commands"                   # slash commands của khung: /consult /bootstrap /auto /gate /adr /ui-ux /audit-optimize /audit-full /completion /incident
@@ -75,7 +85,14 @@ copy_if_absent "docs/adr/0000-template.md"
 # ── File gốc dự án: chỉ copy nếu chưa có ──
 copy_if_absent "CLAUDE.md"
 copy_if_absent "PROJECT.md"
-copy_if_absent "PROGRESS.md"
+# PROGRESS.md: dự án đích nhận bản MẪU SẠCH (PROGRESS.template.md) — KHÔNG nhận
+# nhật ký phát triển của chính repo khung (PROGRESS.md ở repo khung là log của khung).
+if [ -e "$TARGET/PROGRESS.md" ]; then
+  echo "  ~ PROGRESS.md đã tồn tại → giữ nguyên"
+else
+  cp "$SRC/PROGRESS.template.md" "$TARGET/PROGRESS.md"
+  echo "  + PROGRESS.md (từ mẫu sạch PROGRESS.template.md)"
+fi
 copy_if_absent "CHANGELOG.md"
 copy_if_absent "CONTRIBUTING.md"
 copy_if_absent "SECURITY.md"
@@ -84,19 +101,27 @@ copy_if_absent ".nvmrc"
 copy_if_absent ".env.example"
 # LICENSE KHÔNG copy: mỗi dự án tự chọn giấy phép + chủ sở hữu riêng.
 
-# ── Cấu hình Claude Code: copy thẳng ──
+# ── Cấu hình Claude Code + script tự động: copy thẳng ──
 echo ""
-echo "[2/3] Cấu hình Claude Code (opusplan — tối ưu token: Opus lập kế hoạch, Sonnet code, Haiku phụ):"
-mkdir -p "$TARGET/.claude"
-cp -R "$SRC/.claude/settings-shared-opusplan.json" "$TARGET/.claude/settings.json"
-cp -R "$SRC/.claude/hooks" "$TARGET/.claude/hooks" 2>/dev/null || true
-cp -R "$SRC/.claude/agents" "$TARGET/.claude/agents" 2>/dev/null || true
+echo "[2/4] Cấu hình Claude Code (opusplan — tối ưu token) + script tự động (hook gọi qua dev-task.sh):"
+mkdir -p "$TARGET/.claude/hooks" "$TARGET/.claude/agents" "$TARGET/scripts"
+cp "$SRC/.claude/settings-shared-opusplan.json" "$TARGET/.claude/settings.json"
+cp -R "$SRC/.claude/hooks/." "$TARGET/.claude/hooks/"
+cp -R "$SRC/.claude/agents/." "$TARGET/.claude/agents/"
+# Hook phụ thuộc 2 script này — thiếu thì hook no-op (mất auto-format + cổng chặn commit đỏ + nhắc quota):
+cp "$SRC/scripts/dev-task.sh" "$TARGET/scripts/dev-task.sh"
+cp "$SRC/scripts/usage-estimate.sh" "$TARGET/scripts/usage-estimate.sh"
+# 2 file mẫu để dự án tự điền (bản điền thật .claude/*.sh đã nằm trong .gitignore của khung):
+cp "$SRC/.claude/project-commands.example.sh" "$TARGET/.claude/project-commands.example.sh"
+cp "$SRC/.claude/usage-budget.example.sh" "$TARGET/.claude/usage-budget.example.sh"
+chmod +x "$TARGET/scripts/dev-task.sh" "$TARGET/scripts/usage-estimate.sh" "$TARGET/.claude/hooks/"*.sh 2>/dev/null || true
 echo "  → .claude/settings.json (opusplan; fallback Sonnet 5 → Haiku 4.5)"
-echo "  → .claude/hooks"
-echo "  → .claude/agents (subagent: lookup, version-check [Haiku]; executor [Sonnet])"
+echo "  → .claude/hooks + .claude/agents (subagent: lookup, version-check [Haiku]; executor [Sonnet])"
+echo "  → scripts/dev-task.sh + scripts/usage-estimate.sh (hook auto-format/gate/usage cần 2 file này)"
+echo "  → .claude/project-commands.example.sh + .claude/usage-budget.example.sh (mẫu tự điền)"
 
 echo ""
-echo "[3/3] File cấu hình khác (Lớp 2 — KHÔNG đè; để bạn tự merge cái khớp stack):"
+echo "[3/4] File cấu hình khác (Lớp 2 — KHÔNG đè; để bạn tự merge cái khớp stack):"
 for f in \
   eslint.config.mjs postcss.config.mjs \
   .prettierrc .prettierignore .lintstagedrc.json commitlint.config.cjs \
@@ -117,6 +142,9 @@ cat <<'NEXT'
 
   1) Cấu hình Claude Code đã sẵn sàng: .claude/settings.json dùng opusplan (tối ưu token).
      → Opus lập kế hoạch, Sonnet code, Haiku (subagent) việc phụ — chỉ trả giá Opus khi thực sự cần.
+     → Hook tự động (auto-format + chặn commit đỏ + nhắc quota) chạy qua scripts/dev-task.sh
+       (tự dò stack). Dự án có lệnh riêng → copy .claude/project-commands.example.sh
+       thành .claude/project-commands.sh rồi điền.
      ✅ Dự án nhỏ muốn rẻ hơn nữa: đổi "model" thành "claude-sonnet-5".
      ✅ Dự án rất phức tạp: nâng riêng lúc cần bằng /model claude-opus-4-8 (hoặc claude-fable-5).
 
