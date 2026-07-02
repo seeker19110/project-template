@@ -15,6 +15,10 @@
 - Muốn có bức tranh đầy đủ về sức khỏe dự án, không chỉ mỗi tối ưu mã nguồn.
 - Dự án chạy lâu, nhiều người từng đụng vào, không chắc còn khớp `PROJECT.md`/`CLAUDE.md` không.
 - Trước một mốc lớn (ra mắt, gọi vốn, bàn giao) cần rà toàn diện có bằng chứng.
+- Nếu người dùng chỉ nói ngắn gọn **"kiểm tra lỗi"/"rà lỗi"** (không rõ phạm vi) — có thể họ chỉ
+  muốn rà diff hiện tại (`code-review`) hoặc cổng trước commit (`/gate`), nhẹ hơn nhiều so với quét
+  12 nhóm. Xem `CLAUDE.md` mục 1b để hỏi rõ trước khi chạy, trừ khi ngữ cảnh đã đủ rõ (vd người
+  dùng nói thẳng "rà toàn bộ dự án"/"trước khi bàn giao").
 - Muốn **quét dần theo nhiều phiên** (dự án lớn, một phiên không quét hết) — có thể dừng giữa chừng
   và **tiếp tục đúng chỗ** ở phiên sau, thay vì phải quét lại từ đầu mỗi lần.
 
