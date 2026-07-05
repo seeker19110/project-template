@@ -88,6 +88,7 @@ copy_if_absent "docs/adr/0000-template.md"
 
 # ── File gốc dự án: chỉ copy nếu chưa có ──
 copy_if_absent "CLAUDE.md"
+copy_if_absent "AGENTS.md"                     # chuẩn mở agents.md — cho AI agent ngoài Claude Code (Cursor/Codex/Copilot...)
 copy_if_absent "PROJECT.md"
 # PROGRESS.md: dự án đích nhận bản MẪU SẠCH (PROGRESS.template.md) — KHÔNG nhận
 # nhật ký phát triển của chính repo khung (PROGRESS.md ở repo khung là log của khung).

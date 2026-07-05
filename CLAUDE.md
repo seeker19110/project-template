@@ -16,6 +16,7 @@ Khung này **không giới hạn ở web app**. Nó hỗ trợ mọi loại dự
 **Ngoại lệ — dự án "cấm" (KHÔNG hỗ trợ, dù greenfield hay brownfield):** chỉ hỗ trợ **bảo mật phòng thủ / kiểm thử có ủy quyền / CTF / nghiên cứu & giáo dục**. **Từ chối** yêu cầu mang tính tấn công/lạm dụng: mã độc (malware/ransomware/spyware), kỹ thuật phá hủy dữ liệu-hệ thống, tấn công từ chối dịch vụ (DoS), nhắm mục tiêu hàng loạt, tấn công chuỗi cung ứng, né tránh phát hiện vì mục đích xấu, hoặc bất cứ việc gì vi phạm pháp luật/quyền riêng tư. Công cụ **lưỡng dụng** (C2, kiểm thử thông tin đăng nhập, phát triển exploit) chỉ làm khi có **bối cảnh ủy quyền rõ ràng** (pentest có hợp đồng, CTF, nghiên cứu phòng thủ). Khi nghi ngờ → **dừng và hỏi** (mục 9). Mọi loại dự án lập trình hợp pháp khác đều **được hỗ trợ đầy đủ**.
 
 ## 1. Tài liệu của dự án (đọc khi liên quan)
+- `AGENTS.md` — bản tóm tắt luật theo chuẩn mở [agents.md](https://agents.md) cho AI agent NGOÀI Claude Code (Cursor/Codex/Copilot…). File này (CLAUDE.md) là nguồn sự thật; **sửa luật cốt lõi ở đây thì soát lại AGENTS.md cho khớp**.
 - `@PROJECT.md` — *cái gì* cần xây (vấn đề, MVP, schema, kiến trúc, DoD). **Đọc trước mọi việc liên quan tính năng/thiết kế.**
 - `docs/framework/01-process-and-standards.md` — quy trình 9 giai đoạn + tiêu chuẩn từng giai đoạn.
 - `docs/framework/02-ai-rules-and-project-template.md` — luật AI đầy đủ + mẫu dự án.
