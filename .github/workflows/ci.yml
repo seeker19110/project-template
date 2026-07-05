@@ -117,6 +117,41 @@ jobs:
         if: steps.app.outputs.exists == 'true'
         run: npm run build
 
+  # Tối ưu mã nguồn (BO-SUNG Nhóm 2 mục 9) thành kiểm tra MÁY: knip quét dead code,
+  # export không dùng, dependency thừa — KHUNG-1 nguyên tắc 6 (tự động hóa thay vì kỷ luật).
+  # Mặc định BÁO CÁO (continue-on-error) để không chặn oan khi mới áp; dự án muốn biến
+  # thành cổng chặn thật: xóa dòng continue-on-error (+ thêm knip.json nếu cần loại trừ).
+  source-hygiene:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Kiểm tra đã có ứng dụng chưa
+        id: app
+        run: |
+          if [ -f package.json ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Chưa có package.json — bỏ qua knip; sẽ tự chạy khi có dự án thật."
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.app.outputs.exists == 'true'
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Cài đặt
+        if: steps.app.outputs.exists == 'true'
+        run: npm ci
+
+      # knip@6 — xác minh 6.24.0 trên registry npm ngày 2026-07-05 (research-first).
+      - name: knip — dead code / export / dependency thừa (BÁO CÁO, chưa chặn)
+        if: steps.app.outputs.exists == 'true'
+        continue-on-error: true
+        run: npx --yes knip@6
+
   # Cổng E2E: chạy Playwright (desktop + mobile) + quét axe trên app đã build.
   # Đóng đúng cổng GĐ 6 của KHUNG 1: "Toàn bộ test xanh (gồm E2E Playwright)".
   e2e:
