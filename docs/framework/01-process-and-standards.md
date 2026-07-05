@@ -159,6 +159,10 @@
 
 **Trình tự:** CSDL → xác thực người dùng → tính năng lõi (theo ưu tiên) → giao diện → xử lý lỗi/biên.
 
+> **Tùy chọn — thay đổi vừa/lớn (không gói trong một PR nhỏ, kéo dài nhiều phiên):** dùng lớp spec
+> cấp từng thay đổi (proposal → spec → design → tasks lưu trong Git) trước khi code — xem
+> `spec-driven-openspec.md`. Cổng commit/merge của khung vẫn bắt buộc như thường.
+
 **Tiêu chuẩn code:**
 - [ ] Không bỏ qua cảnh báo nào của linter/type-checker.
 - [ ] Mọi đầu vào người dùng/API được validate (ví dụ Zod) trước khi dùng.
