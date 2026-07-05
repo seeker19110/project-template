@@ -34,7 +34,7 @@ jobs:
         run: |
           set -e
           for f in .claude/settings.json .claude/settings-shared-opusplan.json \
-                   .lintstagedrc.json .prettierrc lighthouserc.json; do
+                   .mcp.json .lintstagedrc.json .prettierrc lighthouserc.json; do
             if [ -f "$f" ]; then jq empty "$f" && echo "OK $f"; fi
           done
 

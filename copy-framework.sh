@@ -104,6 +104,7 @@ copy_if_absent "SECURITY.md"
 copy_if_absent ".editorconfig"
 copy_if_absent ".nvmrc"
 copy_if_absent ".env.example"
+copy_if_absent ".mcp.json"                     # MCP Context7 — tài liệu đúng phiên bản cho research-first (KHUNG-3)
 # LICENSE KHÔNG copy: mỗi dự án tự chọn giấy phép + chủ sở hữu riêng.
 
 # ── Cấu hình Claude Code + script tự động: copy thẳng (KHÔNG đè cấu hình đã có) ──

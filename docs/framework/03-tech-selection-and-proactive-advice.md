@@ -24,6 +24,11 @@ có ngày cắt (knowledge cutoff) và **sẽ lỗi thời**. Mọi đề xuất
    - Node LTS: `https://nodejs.org/dist/index.json` hoặc nodejs.org.
 2. **Ghi rõ "đã xác minh ngày nào"** bên cạnh mỗi phiên bản đề xuất — và nhắc xác minh lại nếu dự án bắt đầu sau đó vài tuần.
 3. **Không bịa** khả năng/API của thư viện — đọc tài liệu thật trước khi khẳng định "X làm được Y".
+   Công cụ hỗ trợ: **MCP Context7** (cấu hình sẵn trong `.mcp.json` của khung) trả tài liệu
+   **đúng phiên bản** của thư viện ngay trong phiên — dùng cho cả xác minh API lẫn phiên bản.
+   Tên tool cụ thể xem qua `/mcp` (đổi theo phiên bản server — không đoán). *Lưu ý:* đây là dịch vụ
+   ngoài (Upstash) — chỉ gửi tên thư viện/câu hỏi tài liệu, **không** gửi mã nguồn hay bí mật;
+   dự án không muốn phụ thuộc ngoài thì xóa `.mcp.json` là xong.
 
 > Đây là phần mở rộng của luật chống "ảo giác" (KHUNG 2) áp riêng cho khâu chọn công nghệ.
 
