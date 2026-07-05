@@ -180,6 +180,23 @@
       - Đồng bộ: CLAUDE.md §1 (TRIGGER mới), `docs/framework/README.md` (chỉ mục), KHUNG-1 GĐ 4
         (1 khối trỏ tùy chọn). `copy-framework.sh/.ps1` không cần sửa (copy nguyên `docs/framework/`).
 
+- ✅ PR #32 (OpenSpec) đã merge vào `main` (CI xanh, squash).
+- ✅ **3 nâng cấp tích hợp (đợt 2026-07-05, người dùng chốt từ đề xuất 4 ứng viên — nhánh
+      `claude/process-improvement-agixul` khởi động lại từ `main`):**
+      - **`AGENTS.md` (mới):** chuẩn mở agents.md (Linux Foundation, 30+ công cụ) — bản tóm tắt luật
+        tối thiểu trỏ về CLAUDE.md (nguồn sự thật; §1 ghi quy tắc "sửa luật thì soát AGENTS.md").
+        Dự án đích mở bằng Cursor/Codex/Copilot giờ đọc được luật khung. Copy scripts copy kèm.
+      - **`.mcp.json` + Context7 (mới):** công cụ hóa research-first — tài liệu đúng phiên bản ngay
+        trong phiên (endpoint remote mcp.context7.com). KHUNG-3 Nguyên tắc 1 bổ sung hướng dẫn + lưu ý
+        bảo mật (không gửi mã nguồn/bí mật) + chống ảo giác (tên tool xem `/mcp`). ci.yml jq validate thêm file.
+      - **Job CI `source-hygiene` (knip@6, xác minh 6.24.0 ngày 2026-07-05):** lấp gap §9
+        quality-supplements tự ghi nhận — dead code/export/dep thừa thành kiểm tra máy; mặc định
+        BÁO CÁO (continue-on-error), hướng dẫn bật chặn trong comment ci.yml + §9.
+      - **Đã cân nhắc và LOẠI:** Spec Kit (trùng OpenSpec), Renovate (Dependabot đủ), Biome (churn),
+        chuyển commands→skills (chưa đáng). **Để sau (cần ADR + người dùng):** đóng gói khung thành
+        Claude Code plugin (`/plugin marketplace add`) — kênh phân phối có phiên bản, thay phần
+        `.claude/` của copy-framework.
+
 ## Đang làm
 - (không có — mọi PR đang mở đã được rà và merge hết vào `main`)
 

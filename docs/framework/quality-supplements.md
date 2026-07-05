@@ -434,10 +434,11 @@ gỡ rác, giảm trùng lặp & độ phức tạp, tỉa phụ thuộc, thu nh
 - [ ] Tách động (`next/dynamic` / `import()`) cho phần nặng, ít dùng (modal, biểu đồ, editor).
 - [ ] Giữ vùng `'use client'` nhỏ nhất có thể — đẩy logic về Server Component khi được (giảm JS gửi xuống client).
 
-> **Công cụ gợi ý (tùy chọn — chỉ tài liệu, *chưa* ép trong CI):** `knip` (rác + export/dep thừa),
+> **Công cụ:** `knip` (rác + export/dep thừa) **đã có job CI `source-hygiene`** trong `ci.yml` —
+> mặc định BÁO CÁO (continue-on-error, không chặn oan khi mới áp); dự án muốn thành **cổng chặn thật**
+> thì xóa dòng `continue-on-error` (+ thêm `knip.json` nếu cần loại trừ). Tùy chọn thêm (chỉ tài liệu):
 > `depcheck` (dep thừa), rule `complexity` của ESLint + `eslint-plugin-sonarjs` (độ phức tạp & trùng lặp),
 > `@next/bundle-analyzer` (xem cây bundle). Xác minh phiên bản khi dùng (research-first, KHUNG 3 PHẦN B).
-> Muốn biến các công cụ này thành **cổng CI tự động** là một bước nâng cấp riêng — chưa nằm trong mục này.
 
 ### Khi nào KHÔNG nên refactor
 - Sát ngày ra mắt / đang giữa việc gấp → ghi vào **nợ kỹ thuật** (`PROGRESS.md`), quay lại sau.

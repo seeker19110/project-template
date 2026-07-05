@@ -123,6 +123,7 @@ Copy-IfAbsent "docs/adr/0000-template.md"
 
 # ── File gốc dự án: chỉ copy nếu chưa có ──
 Copy-IfAbsent "CLAUDE.md"
+Copy-IfAbsent "AGENTS.md"                     # chuẩn mở agents.md — cho AI agent ngoài Claude Code (Cursor/Codex/Copilot...)
 Copy-IfAbsent "PROJECT.md"
 # PROGRESS.md: dự án đích nhận bản MẪU SẠCH (PROGRESS.template.md) — KHÔNG nhận
 # nhật ký phát triển của chính repo khung (PROGRESS.md ở repo khung là log của khung).
@@ -140,6 +141,7 @@ Copy-IfAbsent "SECURITY.md"
 Copy-IfAbsent ".editorconfig"
 Copy-IfAbsent ".nvmrc"
 Copy-IfAbsent ".env.example"
+Copy-IfAbsent ".mcp.json"                     # MCP Context7 — tài liệu đúng phiên bản cho research-first (KHUNG-3)
 # LICENSE KHÔNG copy: mỗi dự án tự chọn giấy phép + chủ sở hữu riêng.
 
 # ── Cấu hình Claude Code + script tự động: copy thẳng (KHÔNG đè cấu hình đã có) ──
