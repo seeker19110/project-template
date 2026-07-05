@@ -166,6 +166,20 @@
         (cân đánh đổi giữa 12 nhóm, xếp ưu tiên toàn cục) → nâng `/model claude-opus-4-8` (hoặc
         `fable-5` nếu dự án rất phức tạp) + `/effort xhigh`, xong hạ lại cho GIAI ĐOẠN 2 (xử lý).
 
+- ✅ **Tích hợp OpenSpec (spec-driven, TÙY CHỌN) — đợt 2026-07-05, nhánh `claude/process-improvement-agixul`:**
+      người dùng hỏi "OpenSpec có giúp cải tiến quy trình không". Đánh giá research-first (xác minh
+      nguồn sống: repo Fission-AI/OpenSpec ~59k stars, gói `@fission-ai/openspec` v1.5.0 28/06/2026,
+      Node ≥ 20.19): khung đã có spec cấp DỰ ÁN (PROJECT.md, GĐ 0–2, DoD/DoR, ADR) — OpenSpec KHÔNG
+      thay phần này; khoảng trống thật là **spec cấp TỪNG THAY ĐỔI** ở GĐ 4+ (proposal→spec→design→tasks
+      lưu trong Git, delta spec, archive) — yêu cầu hiện nằm rải trong chat.
+      - **`docs/framework/spec-driven-openspec.md` (mới, SPEC-DRIVEN):** dữ kiện đã xác minh, bản đồ
+        khái niệm OpenSpec ↔ khung, khi nào dùng/không (thay đổi không gói trong 1 PR nhỏ / kéo dài
+        nhiều phiên / nhiều người), quy trình gắn vào GĐ 4–5 (proposal duyệt = cổng DoR, mọi commit
+        vẫn qua `/gate`), thứ tự ưu tiên khi xung đột (CLAUDE.md/KHUNG > PROJECT.md > spec thay đổi),
+        ranh giới trung thực (không tự cài ở `/bootstrap`; AI chỉ đề xuất, người dùng chốt).
+      - Đồng bộ: CLAUDE.md §1 (TRIGGER mới), `docs/framework/README.md` (chỉ mục), KHUNG-1 GĐ 4
+        (1 khối trỏ tùy chọn). `copy-framework.sh/.ps1` không cần sửa (copy nguyên `docs/framework/`).
+
 ## Đang làm
 - (không có — mọi PR đang mở đã được rà và merge hết vào `main`)
 
