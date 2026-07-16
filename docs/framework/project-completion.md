@@ -45,10 +45,10 @@
 
 - [ ] Nếu dự án **chưa áp khung**: chạy trước Bước 0 của `existing-project-adoption.md`
       (AI tự dò stack → "Hồ sơ dự án" + `PROJECT.md` ngược + `PROGRESS.md` + `CLAUDE.md` điền thật).
-- [ ] **Lập `docs/FEATURE-MAP.md`** (mẫu ở cuối file): liệt kê MỌI tính năng/luồng — tên, mục đích,
+- [ ] **Lập `docs/FEATURE-MAP.md`** (mẫu: `docs/framework/templates/FEATURE-MAP.template.md`): liệt kê MỌI tính năng/luồng — tên, mục đích,
       điểm vào (route/endpoint/command), dữ liệu đụng tới, trạng thái (ổn / nghi ngờ / dở dang),
       test hiện có. Đọc code thật để lập (route, menu, controller, command) — không đoán.
-- [ ] **Khởi tạo `docs/CONVENTIONS.md`** (mẫu ở cuối file): với mỗi pattern lặp lại (validate,
+- [ ] **Khởi tạo `docs/CONVENTIONS.md`** (mẫu: `docs/framework/templates/CONVENTIONS.template.md`): với mỗi pattern lặp lại (validate,
       dạng lỗi API, check quyền, trạng thái UI, đặt tên, thời gian/tiền tệ, i18n…) chốt **một cách
       đúng duy nhất** + trỏ tới file ví dụ chuẩn. Chưa chốt được thì ghi "đang có N kiểu — cần hợp nhất".
 - [ ] **Cổng Pha 0:** người dùng xác nhận Hồ sơ dự án + Bản đồ tính năng (đúng/đủ chưa) trước khi quét.
@@ -63,7 +63,7 @@
 
 ## PHA 2 — Lập KẾ HOẠCH HOÀN THIỆN chi tiết (điểm khác biệt của playbook này)
 
-Từ báo cáo audit + Bản đồ tính năng, lập `docs/ops/COMPLETION-PLAN.md` (mẫu ở cuối file):
+Từ báo cáo audit + Bản đồ tính năng, lập `docs/ops/COMPLETION-PLAN.md` (mẫu: `docs/framework/templates/COMPLETION-PLAN.template.md`):
 
 - [ ] **Chốt Definition of Complete (DoC)** — nghiệm thu cấp DỰ ÁN (khác DoD cấp tính năng). Lấy
       mẫu mặc định ở cuối file, chỉnh theo hồ sơ dự án, **người dùng duyệt cùng kế hoạch**.
@@ -122,71 +122,14 @@ Với từng việc trong đợt đang mở (theo đúng thứ tự phụ thuộ
 - [ ] Hiệu năng đạt ngân sách theo hồ sơ (CWV / p95 / thời gian chạy) — đo thật, ghi số.
 - [ ] `PROGRESS.md` phản ánh đúng trạng thái + nợ kỹ thuật còn lại (nếu có) đều có chủ đích.
 
-## Mẫu `docs/FEATURE-MAP.md`
+## Mẫu 3 file làm việc (bản mẫu sạch trong `docs/framework/templates/`)
 
-```markdown
-# FEATURE-MAP — Bản đồ tính năng
+Không chép tay từ tài liệu — copy thẳng file mẫu rồi điền (một nguồn sự thật, không phân kỳ):
 
-> Nguồn sự thật về "dự án này CÓ NHỮNG GÌ". Cập nhật khi thêm/bỏ tính năng.
-> Trạng thái: ✅ ổn · ⚠️ nghi ngờ (có phát hiện audit) · 🚧 dở dang.
+| File cần tạo ở dự án đích | Bản mẫu | Pha dùng |
+|---------------------------|---------|----------|
+| `docs/FEATURE-MAP.md` | `docs/framework/templates/FEATURE-MAP.template.md` | Pha 1 |
+| `docs/CONVENTIONS.md` | `docs/framework/templates/CONVENTIONS.template.md` | Pha 1 |
+| `docs/ops/COMPLETION-PLAN.md` | `docs/framework/templates/COMPLETION-PLAN.template.md` | Pha 3 |
 
-| ID | Tính năng / luồng | Điểm vào (route/endpoint/cmd) | Dữ liệu đụng tới | Trạng thái | Test hiện có |
-|----|-------------------|-------------------------------|------------------|-----------|--------------|
-| FT-01 | (vd) Đăng nhập | `/login`, `POST /api/auth` | users, sessions | ✅ | unit + E2E |
-| FT-02 | … | … | … | ⚠️ (F-003) | thiếu E2E |
-
-## Luồng chính (bắt buộc có E2E — đối chiếu Definition of Complete)
-- (liệt kê 2–5 luồng sống còn của sản phẩm)
-```
-
-## Mẫu `docs/CONVENTIONS.md`
-
-```markdown
-# CONVENTIONS — Sổ quy ước dự án
-
-> Mỗi pattern lặp lại có MỘT cách đúng duy nhất. Tính năng mới & mọi lần sửa phải đối chiếu.
-> Lệch quy ước = phát hiện Nhóm 12 khi audit. Đổi quy ước lớn → ghi ADR.
-
-| Pattern | Cách đúng duy nhất | File ví dụ chuẩn | Ghi chú |
-|---------|--------------------|------------------|---------|
-| Validate đầu vào | (vd) Zod schema tại ranh giới server | `lib/validation/…` | |
-| Dạng lỗi API | (vd) `{ error: { code, message } }` + HTTP status đúng | | |
-| Check quyền | (vd) luôn ở server, một lớp duy nhất | | |
-| Trạng thái UI | đủ 4 trạng thái loading/empty/error/success | | |
-| Thời gian / tiền tệ | UTC · số nguyên đơn vị nhỏ nhất (không float) | | |
-| Đặt tên / cấu trúc thư mục | | | |
-| i18n / theme | | | |
-
-## Đang có NHIỀU KIỂU — cần hợp nhất (đầu vào cho kế hoạch hoàn thiện)
-- (vd) Thông báo lỗi form: 2 kiểu (inline vs toast) → chốt inline, hợp nhất ở W-…
-```
-
-## Mẫu `docs/ops/COMPLETION-PLAN.md`
-
-```markdown
-# COMPLETION-PLAN — Kế hoạch hoàn thiện
-
-> AI đọc/ghi file này để biết làm tới đâu — resume qua nhiều phiên.
-> Trạng thái việc: ⬜ chưa làm · 🔄 đang làm · ✅ xong (kèm bằng chứng) · ➖ hủy (kèm lý do).
-
-- Ngày lập: …  ·  Duyệt bởi người dùng: … (ngày)
-- Nguồn phát hiện: báo cáo audit ngày … (`COMPREHENSIVE-AUDIT-STATUS.md`)
-
-## Definition of Complete (đã chốt với người dùng — bản chỉnh theo dự án)
-- [ ] … (chép từ mẫu mặc định, chỉnh theo hồ sơ)
-
-## Đợt 1 — <tên đợt, vd "Bảo mật & dữ liệu"> (trạng thái: ⬜)
-| ID | Từ phát hiện | Việc | Tiêu chí nghiệm thu | Phụ thuộc | Ước lượng | Trạng thái | PR / bằng chứng |
-|----|--------------|------|---------------------|-----------|-----------|-----------|-----------------|
-| W-101 | F-004 | … | … (đo được) | – | S | ⬜ | |
-
-## Đợt 2 — … (⬜)
-…
-
-## Nhật ký hội tụ (Pha 4)
-| Ngày | Phạm vi quét lại | Kết quả (phát hiện mới? đóng được gì?) |
-|------|------------------|----------------------------------------|
-
-## Phát hiện chấp nhận rủi ro / dời đợt sau (phải có lý do)
-- F-…: … (lý do, người quyết, ngày)
-```
+(`copy-framework.sh`/`.ps1` copy nguyên thư mục `docs/framework/` nên dự án đích luôn có sẵn 3 bản mẫu này.)

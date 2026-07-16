@@ -198,6 +198,18 @@
         Claude Code plugin (`/plugin marketplace add`) — kênh phân phối có phiên bản, thay phần
         `.claude/` của copy-framework.
 
+- ✅ **Rà lại khung (đợt 2026-07-16) + 2 bổ sung** (nhánh `claude/opusplan-mode-check-8j3ney`):
+      chạy lại toàn bộ cổng kiểm tra sẵn có (docs-consistency, copy-framework smoke, jq config,
+      bash -n) — sạch; không PR nào đang mở. Từ gap-analysis người dùng duyệt, làm 2 mục:
+      - **Dấu bản khung:** `copy-framework.sh`/`.ps1` sinh `docs/framework/FRAMEWORK-VERSION`
+        (commit nguồn + ngày, luôn ghi đè) ở dự án đích — trả lời "đang dùng khung bản nào,
+        khi nào nên copy lại" (so `CHANGELOG.md` từ commit đó). Smoke test có assertion mới.
+      - **`docs/framework/templates/`:** tách 3 mẫu inline (FEATURE-MAP/CONVENTIONS/COMPLETION-PLAN)
+        từ `project-completion.md` ra file template thật — copy thẳng thay chép tay, tránh trùng
+        lặp phân kỳ; doc chỉ trỏ tới template. Cập nhật chỉ mục `docs/framework/README.md`.
+      - Đã cân nhắc và HOÃN: đóng gói Claude Code plugin (cần ADR + người dùng chốt);
+        kiểm chứng case-study bước 6–8 (cần tài khoản thật).
+
 ## Đang làm
 - (không có — mọi PR đang mở đã được rà và merge hết vào `main`)
 
@@ -223,4 +235,4 @@
 - Việc DỞ / bước tiếp theo: nhánh `claude/opusplan-token-optimization-ihrkd6` thêm §5 "Kỷ luật vận hành"
   vào `models-and-automation.md` (+ đồng bộ CLAUDE.md §1, framework/README.md, PROGRESS.md) — cần theo dõi
   CI của PR, squash-merge khi xanh, quay về `main`.
-- Cần lưu ý khi chạy tiếp: TOÀN BỘ tên file/lệnh đã sang tiếng Anh — tra bản đồ tên cũ→mới ở `docs/framework/README.md`. Doc model/tự động: `docs/framework/models-and-automation.md`. Subagent Sonnet: `.claude/agents/executor.md`. Copy-framework giờ copy kèm `scripts/` + `PROGRESS.template.md` + KHÔNG đè `.claude/settings.json`/hooks/agents có sẵn (dùng `copy_if_absent`).
+- Cần lưu ý khi chạy tiếp: TOÀN BỘ tên file/lệnh đã sang tiếng Anh — tra bản đồ tên cũ→mới ở `docs/framework/README.md`. Doc model/tự động: `docs/framework/models-and-automation.md`. Subagent Sonnet (Tầng 3, `route:standard`): `.claude/agents/standard-worker.md` (tên cũ `executor.md`). Copy-framework giờ copy kèm `scripts/` + `PROGRESS.template.md` + KHÔNG đè `.claude/settings.json`/hooks/agents có sẵn (dùng `copy_if_absent`).

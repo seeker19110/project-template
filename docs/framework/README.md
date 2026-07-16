@@ -15,6 +15,8 @@
 | `models-and-automation.md` | MODEL | Chọn model (Sonnet/Opus/Fable) + effort + kỷ luật vận hành tối ưu token + bản đồ chế độ chạy tự động | Bắt đầu/đổi quy mô; cân chi phí |
 | `spec-driven-openspec.md` | SPEC-DRIVEN | (Tùy chọn) Lớp spec cấp từng thay đổi với OpenSpec: proposal→spec→design→tasks trong Git, bản đồ khái niệm ↔ khung, khi nào dùng/không | Thay đổi vừa/lớn GĐ 4+; nhiều phiên/nhiều người |
 | `case-study-greenfield-dry-run.md` | — | Chạy thật runbook trên `create-next-app` thật: 3 lỗi tìm được + đã vá, bằng chứng chạy đầu-cuối | Kiểm chứng khung / trước khi tin runbook |
+| `templates/` | — | Bản mẫu sạch cho file làm việc sinh tại dự án đích: `FEATURE-MAP.template.md`, `CONVENTIONS.template.md`, `COMPLETION-PLAN.template.md` | Pha 1/3 của `/completion` |
+| `FRAMEWORK-VERSION` | — | (Chỉ có ở DỰ ÁN ĐÍCH — sinh tự động bởi `copy-framework.sh`/`.ps1`) dấu commit + ngày của bản khung đã copy; so `CHANGELOG.md` repo khung để biết khi nào nên copy lại | Muốn biết dự án đích dùng khung bản nào |
 
 ## Tên cũ (tiếng Việt) → tên mới — cho dự án đã copy khung bản trước
 
