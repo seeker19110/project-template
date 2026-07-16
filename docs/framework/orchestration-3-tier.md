@@ -76,7 +76,7 @@ Hai trục quyết định nhãn:
 
 ## Danh sách việc
 ### T1 — <tên việc>   `route: standard`
-- Điểm chạm: `path/to/file.ts`, `path/to/other.ts`
+- Điểm chạm: `<đường-dẫn-file-1>`, `<đường-dẫn-file-2>`
 - Đặc tả: <cụ thể tới mức worker thi hành không phải đoán>
 - Phụ thuộc: <none | T?>
 - Tiêu chí chấp nhận: <kiểm được: test nào xanh, hành vi nào đúng>
