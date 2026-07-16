@@ -6,6 +6,7 @@
 - GĐ 7 — Hoàn thiện công cụ/khung (tối ưu cấu hình, hướng dẫn tích hợp)
 
 ## Đã xong
+- ✅ **Áp dụng kiến trúc điều phối 3 tầng** (`docs/framework/orchestration-3-tier.md`): Tầng 1 Người lập kế hoạch (phiên chính opusplan) → Tầng 2 `coordinator` (Opus·low) → Tầng 3 workers định tuyến 2 trục: `complex-implementer` (Opus·high), `spec-executor` (Opus·low), `standard-worker` (Sonnet·medium, kế thừa `executor`), `mechanical-worker` (Haiku); `reviewer` (Sonnet) hậu kiểm bằng skill code-review. Đổi `executor.md`→`standard-worker.md`; cập nhật tham chiếu ở README, models-and-automation, auto.md.
 - ✅ Tạo cấu hình Opusplan tiêu chuẩn (`.claude/settings-shared-opusplan.json`) — dùng chung cho mọi dự án
 - ✅ Cập nhật `copy-framework.sh` để copy cấu hình Opusplan vào `_framework-dropins/`
 - ✅ Cập nhật `copy-framework.ps1` tương tự cho Windows

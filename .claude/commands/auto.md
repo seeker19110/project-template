@@ -22,7 +22,8 @@ Trình kế hoạch đầy đủ để người dùng duyệt (ExitPlanMode). Đ
 Sau khi duyệt, chạy **tự động** theo kế hoạch, không hỏi lại từng bước:
 - **Sonnet 5** viết code theo từng phần nhỏ, hoàn chỉnh, kiểm tra được.
 - Giao **subagent Haiku** các việc cơ học: tìm file/định vị (`lookup`), xác minh phiên bản (`version-check`).
-- Giao **subagent Sonnet `executor`** các việc RÕ PHẠM VI đã bóc tách (viết test theo spec, sinh boilerplate, cập nhật docs, sửa cơ học nhiều file) → cô lập ngữ cảnh + chạy song song, rút tải khỏi phiên chính. Việc kiến trúc/bảo mật/breaking change vẫn giữ ở phiên chính.
+- Giao **subagent Sonnet `standard-worker`** các việc RÕ PHẠM VI đã bóc tách (viết test theo spec, sinh boilerplate, cập nhật docs, sửa cơ học nhiều file) → cô lập ngữ cảnh + chạy song song, rút tải khỏi phiên chính. Việc kiến trúc/bảo mật/breaking change vẫn giữ ở phiên chính.
+- Thay đổi đủ lớn cần điều phối nhiều worker song song → dùng **kiến trúc điều phối 3 tầng** (`docs/framework/orchestration-3-tier.md`): Tầng 1 xuất PLAN.md có nhãn `route:` → `coordinator` (Tầng 2) dispatch tới worker đúng nhãn (`complex-implementer`/`spec-executor`/`standard-worker`/`mechanical-worker`) → `reviewer` hậu kiểm.
 - **Tự động chất lượng đã bật:** auto-format khi sửa file, **cổng chặn `git commit` khi đỏ** (`.claude/hooks/`), qua `scripts/dev-task.sh`. Điền `.claude/project-commands.sh` (copy từ `.example.sh`) nếu dự án có lệnh riêng.
 - Cập nhật `PROGRESS.md` sau mỗi mốc; commit theo conventional commits.
 
