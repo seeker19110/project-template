@@ -12,7 +12,12 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
--
+- **Dấu bản khung ở dự án đích:** `copy-framework.sh`/`.ps1` sinh `docs/framework/FRAMEWORK-VERSION`
+  (commit nguồn + ngày copy, luôn ghi đè theo lần copy gần nhất) — dự án đích biết mình đang dùng
+  khung bản nào và so CHANGELOG này để quyết định khi nào copy lại.
+- **`docs/framework/templates/`** — bản mẫu sạch cho 3 file làm việc của `/completion`:
+  `FEATURE-MAP.template.md`, `CONVENTIONS.template.md`, `COMPLETION-PLAN.template.md`
+  (tách từ khối inline trong `project-completion.md` — một nguồn sự thật, copy thẳng thay vì chép tay).
 
 ### Changed (Đổi)
 

@@ -86,6 +86,18 @@ copy_into "docs/ops"
 copy_into ".claude/commands"                   # slash commands của khung: /consult /bootstrap /auto /gate /adr /ui-ux /audit-optimize /audit-full /completion /incident
 copy_if_absent "docs/adr/0000-template.md"
 
+# ── Dấu bản khung (luôn ghi đè — phản ánh LẦN COPY GẦN NHẤT) ──
+# Để dự án đích biết mình đang dùng khung bản nào; muốn cập nhật thì so CHANGELOG.md
+# của repo khung từ commit này trở đi, rồi chạy lại copy-framework.sh.
+FRAMEWORK_COMMIT="$(git -C "$SRC" rev-parse --short HEAD 2>/dev/null || echo 'khong-ro')"
+{
+  echo "# FRAMEWORK-VERSION — dấu bản khung đã copy (sinh tự động bởi copy-framework.sh — đừng sửa tay)"
+  echo "commit-nguon: $FRAMEWORK_COMMIT"
+  echo "ngay-copy: $(date +%F)"
+  echo "# Cách cập nhật: trong repo khung, xem CHANGELOG.md (hoặc git log ${FRAMEWORK_COMMIT}..HEAD) rồi chạy lại copy-framework.sh"
+} > "$TARGET/docs/framework/FRAMEWORK-VERSION"
+echo "  + docs/framework/FRAMEWORK-VERSION (bản khung: $FRAMEWORK_COMMIT)"
+
 # ── File gốc dự án: chỉ copy nếu chưa có ──
 copy_if_absent "CLAUDE.md"
 copy_if_absent "AGENTS.md"                     # chuẩn mở agents.md — cho AI agent ngoài Claude Code (Cursor/Codex/Copilot...)

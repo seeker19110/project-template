@@ -42,6 +42,12 @@ check_structure() {     # check_structure <mô tả> <target>
   [ -f "$target/CLAUDE.md" ] || { echo "  FAIL [$label]: thiếu CLAUDE.md"; ok=0; }
   [ -f "$target/_framework-dropins/eslint.config.mjs" ] || { echo "  FAIL [$label]: thiếu _framework-dropins/eslint.config.mjs"; ok=0; }
   [ ! -e "$target/eslint.config.mjs" ] || { echo "  FAIL [$label]: eslint.config.mjs bị copy thẳng ra gốc (chỉ được nằm trong _framework-dropins/)"; ok=0; }
+  [ -f "$target/docs/framework/templates/FEATURE-MAP.template.md" ] || { echo "  FAIL [$label]: thiếu docs/framework/templates/FEATURE-MAP.template.md"; ok=0; }
+  if [ -f "$target/docs/framework/FRAMEWORK-VERSION" ] && grep -q "^commit-nguon: " "$target/docs/framework/FRAMEWORK-VERSION"; then
+    :
+  else
+    echo "  FAIL [$label]: thiếu/hỏng docs/framework/FRAMEWORK-VERSION (dấu bản khung)"; ok=0
+  fi
   [ "$ok" -eq 1 ] && echo "  ok [$label]: cấu trúc copy đúng kỳ vọng" || fail=1
 }
 
