@@ -41,4 +41,5 @@
 | `/khoi-tao` | `/bootstrap` | | `/su-co` | `/incident` |
 | `/tu-dong` | `/auto` | | *(mới)* | `/completion` |
 
-Subagent: `tra-cuu` → `lookup` · `kiem-tra-phien-ban` → `version-check` · `thuc-thi` → `executor`.
+Subagent: `tra-cuu` → `lookup` · `kiem-tra-phien-ban` → `version-check` · `thuc-thi` → `standard-worker`.
+Điều phối 3 tầng: `coordinator` (Tầng 2) · workers `complex-implementer`/`spec-executor`/`standard-worker`/`mechanical-worker` (Tầng 3) · `reviewer` (hậu kiểm). Xem `orchestration-3-tier.md`.
