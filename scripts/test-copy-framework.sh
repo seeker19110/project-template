@@ -36,11 +36,16 @@ run_logged() {          # run_logged <mô tả> <lệnh...>
 check_structure() {     # check_structure <mô tả> <target>
   local label="$1" target="$2" ok=1
   [ -f "$target/docs/framework/new-project-runbook.md" ] || { echo "  FAIL [$label]: thiếu docs/framework/new-project-runbook.md"; ok=0; }
+  [ -f "$target/docs/framework/standard-delivery.md" ] || { echo "  FAIL [$label]: thiếu Standard Delivery Contract"; ok=0; }
+  [ -f "$target/docs/framework/templates/GOAL.template.md" ] || { echo "  FAIL [$label]: thiếu GOAL template"; ok=0; }
+  [ -f "$target/docs/framework/templates/FEATURE-SPEC.template.md" ] || { echo "  FAIL [$label]: thiếu FEATURE-SPEC template"; ok=0; }
   [ -d "$target/.claude/commands" ] && [ -f "$target/.claude/commands/gate.md" ] || { echo "  FAIL [$label]: thiếu .claude/commands/gate.md"; ok=0; }
   [ -f "$target/.claude/settings.json" ] || { echo "  FAIL [$label]: thiếu .claude/settings.json"; ok=0; }
   [ -d "$target/.claude/agents" ] || { echo "  FAIL [$label]: thiếu .claude/agents/"; ok=0; }
   [ -f "$target/CLAUDE.md" ] || { echo "  FAIL [$label]: thiếu CLAUDE.md"; ok=0; }
   [ -f "$target/_framework-dropins/eslint.config.mjs" ] || { echo "  FAIL [$label]: thiếu _framework-dropins/eslint.config.mjs"; ok=0; }
+  [ -f "$target/_framework-dropins/.github/workflows/pr-policy.yml" ] || { echo "  FAIL [$label]: thiếu PR policy drop-in"; ok=0; }
+  [ -f "$target/_framework-dropins/.github/ISSUE_TEMPLATE/goal.yml" ] || { echo "  FAIL [$label]: thiếu Goal Issue Form"; ok=0; }
   [ ! -e "$target/eslint.config.mjs" ] || { echo "  FAIL [$label]: eslint.config.mjs bị copy thẳng ra gốc (chỉ được nằm trong _framework-dropins/)"; ok=0; }
   [ -f "$target/docs/framework/templates/FEATURE-MAP.template.md" ] || { echo "  FAIL [$label]: thiếu docs/framework/templates/FEATURE-MAP.template.md"; ok=0; }
   if [ -f "$target/docs/framework/FRAMEWORK-VERSION" ] && grep -q "^commit-nguon: " "$target/docs/framework/FRAMEWORK-VERSION"; then
