@@ -45,6 +45,10 @@ check_structure() {     # check_structure <mô tả> <target>
   [ -f "$target/CLAUDE.md" ] || { echo "  FAIL [$label]: thiếu CLAUDE.md"; ok=0; }
   [ -f "$target/_framework-dropins/eslint.config.mjs" ] || { echo "  FAIL [$label]: thiếu _framework-dropins/eslint.config.mjs"; ok=0; }
   [ -f "$target/_framework-dropins/.github/workflows/pr-policy.yml" ] || { echo "  FAIL [$label]: thiếu PR policy drop-in"; ok=0; }
+  [ -f "$target/_framework-dropins/.github/workflows/dependency-review.yml" ] || { echo "  FAIL [$label]: thiếu Dependency Review drop-in"; ok=0; }
+  [ -f "$target/docs/ops/repository-settings.md" ] || { echo "  FAIL [$label]: thiếu repository settings baseline"; ok=0; }
+  [ -f "$target/docs/ops/supply-chain.md" ] || { echo "  FAIL [$label]: thiếu supply-chain guidance"; ok=0; }
+  [ -f "$target/docs/framework/templates/THREAT-MODEL.template.md" ] || { echo "  FAIL [$label]: thiếu threat model template"; ok=0; }
   [ -f "$target/_framework-dropins/.github/ISSUE_TEMPLATE/goal.yml" ] || { echo "  FAIL [$label]: thiếu Goal Issue Form"; ok=0; }
   [ ! -e "$target/eslint.config.mjs" ] || { echo "  FAIL [$label]: eslint.config.mjs bị copy thẳng ra gốc (chỉ được nằm trong _framework-dropins/)"; ok=0; }
   [ -f "$target/docs/framework/templates/FEATURE-MAP.template.md" ] || { echo "  FAIL [$label]: thiếu docs/framework/templates/FEATURE-MAP.template.md"; ok=0; }
