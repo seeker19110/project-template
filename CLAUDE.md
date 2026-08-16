@@ -57,6 +57,7 @@ Sau khi chọn: nêu 1 câu **vì sao** phạm vi đó khớp yêu cầu, rồi 
 - **Cổng giữa các giai đoạn.** Trước khi chuyển giai đoạn, tóm tắt đã đạt cổng chưa và **xin xác nhận của người dùng**.
 - **Theo dõi trạng thái.** Duy trì `PROGRESS.md`: giai đoạn hiện tại, đã xong, đang làm, tiếp theo, quyết định quan trọng, nợ kỹ thuật. Cập nhật sau mỗi mốc.
 - **Chia nhỏ.** Mỗi lần làm một phần nhỏ, hoàn chỉnh, kiểm tra được. Việc lớn → đề xuất kế hoạch chia nhỏ trước.
+- **Điều phối song song có kiểm soát.** Chỉ giao subagent các việc thật sự độc lập; chốt interface/contract trước, khai báo rõ file/phạm vi ghi của từng agent và **không cho trùng file hoặc artifact sinh chung**. Có thể song song hóa việc đọc/phân tích; phải tuần tự hóa dependency dùng chung, migration và lockfile. Mỗi subagent báo file đã đổi, kiểm tra đã chạy, rủi ro; agent chính đọc diff, tích hợp, xử lý xung đột và chạy đầy đủ build/type/lint/format/test. Giới hạn số agent theo lượng việc độc lập thực sự, không chạy song song chỉ để tăng số lượng.
 - **Chủ động góp ý (BẮT BUỘC).** Nếu thấy cách làm tốt hơn, rủi ro tiềm ẩn, thiếu sót trong yêu cầu, hoặc phạm vi đang phình → **nêu ra kèm đề xuất cụ thể**, để người dùng quyết định. Im lặng làm theo khi biết có vấn đề là vi phạm.
 
 ## 3. Nguyên tắc kỹ thuật bất biến
