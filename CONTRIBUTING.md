@@ -1,41 +1,36 @@
-# Đóng góp
+# Contributing
 
-> Dự án vận hành theo bộ khung trong `docs/framework/`. Đọc `CLAUDE.md` (luật vận hành) và
-> `docs/framework/01-process-and-standards.md` (quy trình + cổng) trước khi bắt đầu.
+Read `CLAUDE.md`, then the single entrypoint
+`docs/framework/standard-delivery.md`. It routes to stack/profile-specific guidance.
 
-## Trước khi bắt đầu một việc (Definition of Ready)
+## Canonical flow
 
-Một task chỉ nên BẮT ĐẦU khi: có tiêu chí chấp nhận rõ ràng đo được · không còn câu hỏi mở · đã
-xác định phụ thuộc · thiết kế/luồng đủ rõ · phạm vi gói gọn trong một PR. (Chi tiết: Nhóm 1, mục 7.)
+**Frame → Research → Approve Spec → Plan → Build → Verify → Integrate → Observe → Reconcile.**
 
-## Quy trình Git
+Feature source code must not start before `docs/specs/*` is **Approved for implementation** with
+approver/date. A goal spanning multiple PRs uses `docs/goals/*` and one outcome per iteration/PR.
 
-- Mỗi tính năng/sửa lỗi **một nhánh riêng**: `feat/...`, `fix/...`, `refactor/...`, `docs/...`.
-- Commit nhỏ, mỗi commit một thay đổi logic.
-- **Conventional commits** bắt buộc (commitlint chặn nếu sai): `feat`, `fix`, `refactor`, `docs`,
-  `test`, `chore`, `style`, `perf`. Nêu rõ "cái gì" + "tại sao".
-- **Mọi merge qua Pull Request** (kể cả làm một mình) · **CI xanh mới merge** · **không push thẳng `main`**.
-- **Ưu tiên squash merge** khi gộp PR: lịch sử `main` tuyến tính, mỗi PR = một commit conventional
-  (hợp `release-please`). Đặt tiêu đề squash đúng dạng conventional. Nên cấu hình repo chỉ bật
-  *Allow squash merging* (tắt merge commit) để buộc đúng cách. (Lưu ý: các merge/squash commit do
-  GitHub tạo mang committer `noreply@github.com` nhưng được GitHub ký GPG → hiển thị **Verified**.)
+## Git and PR
 
-## Cổng trước khi commit (chạy và đạt hết)
+- Branch: `docs/spec-...` for research/spec; `feat|fix|refactor/<issue>-<slug>` for implementation.
+- Conventional Commits; small logical commits; no direct push to default branch.
+- Open draft PR early and link Goal/Issue/Spec.
+- Ready only with evidence and profile gates; merge only via authorized reviewed PR.
+- After release, verify health/metric/guardrail and checkpoint the Goal.
 
-```bash
-npm run lint && npm run type-check && npm run format:check && npm run test:coverage && npm run build
-```
+## Definition of Ready/Done
 
-Ngoài ra: tự đọc lại diff · xóa code rác/`console.log` debug · không bí mật trong code · mọi input đã
-validate · mọi thao tác có thể lỗi đã xử lý. Xuất **Báo cáo xác thực** (KHUNG 2) trước khi commit/merge.
+Use the canonical DoR/DoD in `standard-delivery.md`. Project commands come from the project
+`CLAUDE.md`/manifest; never copy Web-specific commands into another profile without verification.
 
-## Cổng trước khi merge (thêm)
+## AI loop limits
 
-Toàn bộ test (gồm **E2E Playwright**) xanh · nhánh đã cập nhật với `main`, không xung đột · đối chiếu đủ
-**tiêu chí chấp nhận** + **Definition of Done** (checklist trong PR template) · smoke test luồng chính trên
-Preview · rà soát bảo mật · nếu đổi schema: migration có phiên bản + đường rollback, RLS đã test.
+One iteration is one outcome and one PR. Reconcile from current default branch, not chat memory.
+Repair the same failure at most three times. Stop WAITING/BLOCKED for approval, product/architecture
+trade-off, destructive/breaking changes, production/secrets/cost/new permission, out-of-scope CI,
+or exceeded guardrail. Never weaken tests or security to pass a gate.
 
-## Hàng rào tự động (đừng vô hiệu hóa)
+## Automation
 
-pre-commit (lint/format/type) · commit-msg (commitlint) · CI (lint/type/format/test+coverage/build/audit/E2E)
-· Lighthouse CI · CodeQL · gitleaks · branch protection trên `main`.
+Do not bypass hooks, CI, PR policy, secret/security scans or branch protection. Configure required
+checks to match the chosen project profile and verify the protection with a deliberately failing PR.

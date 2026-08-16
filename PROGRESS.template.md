@@ -1,28 +1,46 @@
 # PROGRESS.md — Trạng thái dự án
 
-> Cập nhật sau mỗi mốc đáng kể. AI đọc file này để biết đang ở đâu.
-> (Đây là bản mẫu sạch — `copy-framework.sh`/`.ps1` copy nó thành `PROGRESS.md` ở dự án đích.)
+> Tóm tắt toàn dự án; cập nhật sau mỗi mốc. Goal nhiều PR theo dõi chi tiết ở `docs/goals/*`.
+> Không sao chép iteration log vào đây.
 
 ## Giai đoạn hiện tại
-- (vd GĐ 0 — Ý tưởng & Xác thực — xem `docs/framework/01-process-and-standards.md`)
 
-## Đã xong
-- (chưa có)
+- Giai đoạn:
+- Default-branch SHA đã đối chiếu:
+- Ngày cập nhật:
 
-## Đang làm
-- (chưa có)
+## Goal đang active
+
+| Goal | Outcome | State | Current gap | Next slice | Link |
+| --- | --- | --- | --- | --- | --- |
+| | | | | | |
+
+## Đã xong gần đây
+
+-
+
+## Đang làm / chờ
+
+-
 
 ## Tiếp theo
-- (điền việc kế tiếp cụ thể — đủ rõ để phiên sau "tiếp tục" được)
 
-## Quyết định quan trọng (trỏ tới ADR nếu có)
-- (chưa có)
+- (một next action đủ rõ, có owner/dependency)
 
-## Nợ kỹ thuật (chỗ "làm tạm" cần quay lại)
-- (không có)
+## Quyết định quan trọng
 
-## Bàn giao phiên (điền khi wind-down gần chạm giới hạn phiên — để phiên sau "tiếp tục")
-> Ghi trước khi dừng: việc vừa xong, việc DỞ ở đâu, bước kế tiếp cụ thể.
+- (trỏ ADR/spec; không chép lại toàn bộ)
+
+## Rủi ro, blocker và nợ kỹ thuật
+
+| Mục | Severity | Owner | Trigger/next action | Link |
+| --- | --- | --- | --- | --- |
+| | | | | |
+
+## Bàn giao phiên
+
 - Lần cập nhật:
-- Việc DỞ / bước tiếp theo:
-- Cần lưu ý khi chạy tiếp:
+- State: BUILD / VERIFY / WAITING / BLOCKED
+- Việc dở và bằng chứng mới nhất:
+- Bước tiếp theo:
+- Quyền/quyết định cần thêm:

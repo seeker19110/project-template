@@ -23,8 +23,10 @@ blockchain, monorepo** (và loại chưa liệt kê). Cách hoạt động:
 > phần cài gói + sửa `package.json`/`tsconfig` làm theo runbook (Phần D).
 
 ## Bắt đầu từ đâu
-Đọc **`docs/framework/new-project-runbook.md`** — runbook chỉ rõ làm gì theo thứ tự và
-phải tuân thủ gì. Đó là kim chỉ nam chính.
+
+Đọc **`docs/framework/standard-delivery.md`** trước — đây là Standard Delivery Contract và điểm
+vào duy nhất cho mọi dự án. Sau đó contract sẽ định tuyến tới runbook greenfield, brownfield,
+spec-driven hoặc completion phù hợp; không chọn một quy trình song song bằng cảm tính.
 
 ## File đã sẵn sàng (chỉ cần giải nén)
 - `CLAUDE.md` — luật cho AI (Claude Code tự đọc). **Nhớ điền các chỗ `[ĐIỀN: ...]`.**
@@ -49,12 +51,17 @@ phải tuân thủ gì. Đó là kim chỉ nam chính.
 - `.github/pull_request_template.md`, `.github/ISSUE_TEMPLATE/` (gồm mẫu **sự cố**),
   `.github/dependabot.yml`, `.github/CODEOWNERS`, và các workflow:
   `ci.yml` (lint/type/format/test+coverage/build/audit + **E2E** + chặn `[ĐIỀN]`),
-  `lighthouse-ci.yml`, `codeql.yml` (SAST), `secret-scan.yml` (gitleaks), `release.yml` (release-please),
+  `lighthouse-ci.yml`, `codeql.yml` (SAST), `secret-scan.yml` (gitleaks), `pr-policy.yml` (spec/evidence),
+  `release.yml` (release-please),
   `verify-dropins.yml` (chỉ dùng ở **repo khung** — dựng dự án Next.js sạch rồi lint/build thật
   các file dropins; xóa được ở dự án đích).
 - `supabase/migrations/` — **migration MẪU** (bảng + ràng buộc + index + **RLS + policy**); `supabase/README.md`.
 - `LICENSE` (MIT — đổi chủ sở hữu/giấy phép theo dự án), `SECURITY.md`, `CONTRIBUTING.md`.
-- `docs/framework/` — tài liệu khung: **01/02/03** (quy trình · luật AI · chọn công nghệ research-first);
+- `docs/framework/standard-delivery.md` — **nguồn vào chuẩn duy nhất**: artifact, Research/Spec gate,
+  AI Goal Loop, DoR/DoD/Project Complete và stop conditions.
+- `docs/framework/templates/GOAL.template.md` + `FEATURE-SPEC.template.md` — checkpoint nhiều PR và
+  đặc tả capability bắt buộc trước code.
+- `docs/framework/` — tài liệu chuyên sâu: **01/02/03** (quy trình · luật AI · chọn công nghệ research-first);
   **new-project-runbook** (runbook: trình tự + cấu hình hàng rào *Phần D* + checklist dự án thật *Phần E*);
   **existing-project-adoption** (brownfield); **project-completion** (kế hoạch hoàn thiện + vòng hội tụ);
   **quality-supplements** (Nhóm 1+2 + theme + nâng cao i18n/PWA/Sentry/SEO/analytics).

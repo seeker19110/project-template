@@ -7,13 +7,17 @@
 ## Đọc theo thứ tự
 
 1. `CLAUDE.md` — vai trò, quy trình, cổng chất lượng, luật bất biến (bản đầy đủ).
-2. `PROJECT.md` — *cái gì* cần xây (MVP, schema, kiến trúc, Definition of Done).
-3. `PROGRESS.md` — dự án đang ở giai đoạn nào, việc tiếp theo là gì.
-4. `docs/framework/` — tài liệu khung chi tiết (đọc đúng phần cần, theo chỉ mục `docs/framework/README.md`).
+2. `docs/framework/standard-delivery.md` — contract chuẩn duy nhất: Research/Spec, Goal loop, DoR/DoD/Complete.
+3. `PROJECT.md` — *cái gì* cần xây (MVP, schema, kiến trúc, Definition of Done).
+4. `PROGRESS.md` — dự án đang ở giai đoạn nào, việc tiếp theo là gì.
+5. `docs/framework/` — tài liệu chuyên sâu (đọc đúng phần do contract định tuyến).
 
 ## Luật tối thiểu (bản đầy đủ + ngoại lệ: xem `CLAUDE.md`)
 
 - **Theo giai đoạn, không bỏ giai đoạn** — trước khi chuyển giai đoạn phải đạt cổng và được người dùng xác nhận.
+- **Feature gate:** research + `docs/specs/*` phải được **Approved for implementation** trước khi sửa source.
+- **Goal loop:** mục tiêu nhiều PR dùng `docs/goals/*`; mỗi iteration một outcome/PR, reconcile từ `main`,
+  cùng failure tối đa 3 lần, kết thúc chỉ khi Goal/Project DoD có bằng chứng.
 - **Chống ảo giác:** không bịa hàm/thư viện/API — xác minh bằng tài liệu/mã nguồn thật; không đoán kết quả lệnh — chạy thật và đọc output; xác minh phiên bản bằng nguồn sống, không dùng trí nhớ.
 - **Cổng trước khi commit:** build + type-check + lint (0 cảnh báo) + format + test liên quan đều PHẢI xanh; tự đọc lại diff; không bí mật/`console.log` debug trong code. Lệnh cụ thể: xem `CLAUDE.md` §5 / `package.json`.
 - **Cổng trước khi merge:** toàn bộ test xanh, nhánh cập nhật với `main`, đối chiếu tiêu chí chấp nhận trong `PROJECT.md` — xem `CLAUDE.md` §6.
