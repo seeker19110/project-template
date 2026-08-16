@@ -10,7 +10,7 @@ Closes #
 
 ## Research / Spec
 
-<!-- Required for feat: docs/specs/YYYY-MM-DD-slug.md, Approved, approver/date. -->
+<!-- Required for feat: docs/specs/<date>-<slug>.md, Approved, approver/date. -->
 
 - Goal:
 - Spec:
