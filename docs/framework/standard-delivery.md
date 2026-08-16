@@ -18,8 +18,8 @@ research và ghi ADR; mọi quality gate phải có công cụ tương đương 
 | --- | --- | --- |
 | `PROJECT.md` | Outcome/phạm vi/kiến trúc/Project DoD | file gốc |
 | `PROGRESS.md` | Tóm tắt trạng thái toàn dự án | `PROGRESS.template.md` |
-| `docs/goals/<id>.md` | Checkpoint goal nhiều PR | `templates/GOAL.template.md` |
-| `docs/specs/<date>-<slug>.md` | Research + feature contract | `templates/FEATURE-SPEC.template.md` |
+| `docs/goals/<id>.md` | Checkpoint goal nhiều PR | `docs/framework/templates/GOAL.template.md` |
+| `docs/specs/<date>-<slug>.md` | Research + feature contract | `docs/framework/templates/FEATURE-SPEC.template.md` |
 | ADR | Quyết định khó đảo ngược | `docs/adr/0000-template.md` |
 | Issue/PR/CI | Work/evidence/review thực tế | GitHub templates |
 
