@@ -31,7 +31,7 @@ jobs:
             echo "::notice::Chưa có package.json — bỏ qua Lighthouse; sẽ tự chạy khi có dự án thật."
           fi
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: steps.app.outputs.exists == 'true'
         with:
           node-version: 22
