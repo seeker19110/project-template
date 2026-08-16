@@ -1,0 +1,35 @@
+name: PR policy
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  metadata:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate title, evidence and approved feature spec
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const body = pr.body || "";
+            const title = /^(feat|fix|refactor|docs|test|chore|style|perf|build|ci|revert)(\([a-z0-9._/-]+\))?!?: .+/;
+            if (!title.test(pr.title)) core.setFailed("PR title must follow Conventional Commits.");
+            if (pr.draft) return;
+            const headings = ["## Summary", "## Issue / Goal", "## Research / Spec",
+              "## Validation", "## Risk, rollout and rollback", "## Definition of Done"];
+            const missing = headings.filter(h => !body.includes(h));
+            if (missing.length) core.setFailed(`Missing PR sections: ${missing.join(", ")}`);
+            if (/^feat(\(|:)/.test(pr.title)) {
+              if (!/docs\/specs\/\d{4}-\d{2}-\d{2}-[a-z0-9-]+\.md/.test(body)) {
+                core.setFailed("Feature PR must link docs/specs/YYYY-MM-DD-slug.md.");
+              }
+              if (!/Approved for implementation/i.test(body)) {
+                core.setFailed("Feature spec must be Approved for implementation.");
+              }
+            }
