@@ -51,7 +51,8 @@ spec-driven hoặc completion phù hợp; không chọn một quy trình song so
 - `.github/pull_request_template.md`, `.github/ISSUE_TEMPLATE/` (gồm mẫu **sự cố**),
   `.github/dependabot.yml`, `.github/CODEOWNERS`, và các workflow:
   `ci.yml` (lint/type/format/test+coverage/build/audit + **E2E** + chặn `[ĐIỀN]`),
-  `lighthouse-ci.yml`, `codeql.yml` (SAST), `secret-scan.yml` (gitleaks), `pr-policy.yml` (spec/evidence),
+  `lighthouse-ci.yml`, `codeql.yml` (SAST), `secret-scan.yml` (gitleaks), `dependency-review.yml`,
+  `pr-policy.yml` (spec/evidence),
   `release.yml` (release-please),
   `verify-dropins.yml` (chỉ dùng ở **repo khung** — dựng dự án Next.js sạch rồi lint/build thật
   các file dropins; xóa được ở dự án đích).
@@ -65,6 +66,7 @@ spec-driven hoặc completion phù hợp; không chọn một quy trình song so
   **new-project-runbook** (runbook: trình tự + cấu hình hàng rào *Phần D* + checklist dự án thật *Phần E*);
   **existing-project-adoption** (brownfield); **project-completion** (kế hoạch hoàn thiện + vòng hội tụ);
   **quality-supplements** (Nhóm 1+2 + theme + nâng cao i18n/PWA/Sentry/SEO/analytics).
+- `docs/ops/` — repository settings, supply-chain/SBOM/provenance, release readiness, incident response.
 - `docs/ops/incident-response.md` — vận hành GĐ 8: xử lý sự cố + **mẫu post-mortem**.
 - `docs/adr/0000-template.md` — mẫu ghi quyết định kỹ thuật (ví dụ đã điền: `0001-stack-selection.md`).
 
