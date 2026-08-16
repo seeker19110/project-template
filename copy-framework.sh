@@ -149,7 +149,7 @@ for f in \
   vitest.config.ts vitest.setup.ts playwright.config.ts lighthouserc.json \
   .husky/pre-commit .husky/commit-msg \
   .github/workflows/ci.yml .github/workflows/lighthouse-ci.yml \
-  .github/workflows/codeql.yml .github/workflows/secret-scan.yml .github/workflows/pr-policy.yml .github/workflows/release.yml \
+  .github/workflows/codeql.yml .github/workflows/secret-scan.yml .github/workflows/dependency-review.yml .github/workflows/pr-policy.yml .github/workflows/release.yml \
   .github/pull_request_template.md .github/dependabot.yml .github/ISSUE_TEMPLATE .github/CODEOWNERS \
   lib/env.ts styles/theme.css components/theme-toggle.tsx i18n/request.ts messages app \
   supabase \

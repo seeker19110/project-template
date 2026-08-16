@@ -1,0 +1,35 @@
+name: Dependency review
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect project manifest
+        id: project
+        shell: bash
+        run: |
+          manifests=(package.json pyproject.toml requirements.txt go.mod Cargo.toml pom.xml build.gradle build.gradle.kts Gemfile composer.json)
+          for file in "${manifests[@]}"; do
+            if [ -f "$file" ]; then
+              echo "exists=true" >> "$GITHUB_OUTPUT"
+              echo "Found $file"
+              exit 0
+            fi
+          done
+          echo "exists=false" >> "$GITHUB_OUTPUT"
+          echo "::notice::Framework source has no project manifest; dependency review activates after copy into a project."
+
+      - name: Review dependency changes
+        if: steps.project.outputs.exists == 'true'
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
