@@ -106,13 +106,22 @@ security/payment/user data; cần secret/production/chi phí/quyền mới; CI/r
 budget/guardrail; main làm plan mất hiệu lực; hoặc không còn item Ready. `WAITING` khi chỉ chờ
 CI/review/merge. AI không suy ra quyền merge/deploy từ quyền code.
 
-## 9. Quality gate theo profile
+## 9. Governance, data và supply-chain gates
+
+- Public/multi-contributor project: instantiate Governance, Support và Code of Conduct phù hợp.
+- Sensitive/personal/regulated data: tạo Data Governance artifact; review retention/export/delete.
+- Auth/payment/multi-tenant/automation/high-impact change: threat model trước implementation.
+- Release artifact: áp `docs/ops/supply-chain.md` và `docs/ops/release-readiness.md`.
+- Repository settings: cấu hình và lưu evidence theo `docs/ops/repository-settings.md`.
+- Không claim compliance/SLSA/security level nếu chưa audit đủ requirement.
+
+## 10. Quality gate theo profile
 
 Mỗi project phải điền command thật trong `CLAUDE.md`. Tối thiểu có format/lint/type-or-static
 analysis/unit/integration/build-package/security scan; thêm E2E/a11y/performance cho UI/Web,
 migration/data tests cho DB, eval/cost/safety cho AI, platform/device tests cho mobile/desktop.
 
-## 10. Cách dùng tài liệu chuyên sâu
+## 11. Cách dùng tài liệu chuyên sâu
 
 - Greenfield bootstrap: `new-project-runbook.md`.
 - Brownfield: `existing-project-adoption.md`.
