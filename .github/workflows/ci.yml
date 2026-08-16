@@ -25,7 +25,7 @@ jobs:
   framework-lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Cú pháp shell (bash -n — mọi *.sh + hook husky)
         run: |
@@ -54,7 +54,7 @@ jobs:
   docs-consistency:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: bash scripts/check-docs-consistency.sh
 
   # Luôn chạy — chạy THẬT copy-framework.sh/.ps1 vào thư mục scratch để xác nhận: copy
@@ -63,13 +63,13 @@ jobs:
   copy-framework-smoke:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: bash scripts/test-copy-framework.sh
 
   quality:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Repo khung (chưa có app) → bỏ qua các bước build/test để CI vẫn xanh.
       # Khi dự án thật được tạo (có package.json), toàn bộ hàng rào tự kích hoạt.
@@ -135,7 +135,7 @@ jobs:
   source-hygiene:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Kiểm tra đã có ứng dụng chưa
         id: app
@@ -168,7 +168,7 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Kiểm tra đã có ứng dụng chưa
         id: app

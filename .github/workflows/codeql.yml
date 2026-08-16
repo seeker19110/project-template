@@ -28,7 +28,7 @@ jobs:
     outputs:
       exists: ${{ steps.app.outputs.exists }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - id: app
         run: |
           if [ -f package.json ]; then
@@ -52,7 +52,7 @@ jobs:
       matrix:
         language: [javascript-typescript]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Khởi tạo CodeQL
         uses: github/codeql-action/init@v4
