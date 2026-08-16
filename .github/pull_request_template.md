@@ -1,42 +1,65 @@
-<!--
-Checklist này hiện trên MỌI Pull Request → biến "cổng chất lượng" thành thứ
-buộc phải nhìn thấy trước khi merge. Tích đầy đủ trước khi yêu cầu review.
-Nội dung bám theo Definition of Done (KHUNG-1) + cổng commit/merge (KHUNG-2).
--->
+## Summary
 
-## Mô tả
+<!-- What changed, why, and user/developer impact. -->
 
-<!-- Thay đổi gì? TẠI SAO cần thay đổi? Liên kết tới issue/task nếu có. -->
+-
 
-## Loại thay đổi
+## Issue / Goal
 
-- [ ] `feat` — tính năng mới
-- [ ] `fix` — sửa lỗi
-- [ ] `refactor` — cải tổ, không đổi hành vi
-- [ ] `docs` / `test` / `chore` / `style` / `perf`
-- [ ] ⚠️ Breaking change (mô tả ảnh hưởng & cách di trú bên dưới)
+Closes #
 
-## Cổng chất lượng (Definition of Done)
+## Research / Spec
 
-- [ ] Chạy đúng **tiêu chí chấp nhận** của tính năng (đối chiếu `PROJECT.md`)
-- [ ] `lint` 0 cảnh báo · `type-check` sạch · `format:check` đạt · `build` OK
-- [ ] Có **test** cho logic quan trọng (gồm **ca biên**) và **toàn bộ test xanh**
-- [ ] Xử lý đủ trạng thái **lỗi / rỗng / đang tải** trên UI
-- [ ] Chạy được trên **điện thoại lẫn máy tính** (responsive, vùng chạm ≥ 44px)
-- [ ] Đạt **ngân sách hiệu năng** (Lighthouse CI xanh / Core Web Vitals trong ngưỡng)
-- [ ] **Accessibility**: lint `jsx-a11y` sạch, axe không lỗi nghiêm trọng, dùng được bằng bàn phím
-- [ ] Hiển thị đúng ở **cả hai chế độ nền** (Dark blue mặc định + Light)
-- [ ] Không còn **bí mật** hay **code rác** (console.log debug, code chết)
-- [ ] Đã **tự review diff** một lượt (đúng mục tiêu, không sửa nhầm)
+<!-- Required for feat: docs/specs/YYYY-MM-DD-slug.md, Approved, approver/date. -->
 
-## Bảo mật & dữ liệu
+- Goal:
+- Spec:
+- Approval:
+- Deviation from spec:
 
-- [ ] Mọi đầu vào (người dùng/API) được **validate lúc chạy**
-- [ ] Logic nhạy cảm (kiểm tra quyền, tính toán quan trọng) ở **phía server**
-- [ ] Đã rà **lỗi logic**: ca biên/rỗng, `null` vs 0, async race/idempotency, thời gian UTC, tiền không dùng float (xem Nhóm 2 mục 6)
-- [ ] Nếu đổi schema: có **migration có phiên bản** và **đường rollback**; RLS đã test
+## Change type
 
-## Ảnh hưởng & rủi ro
+- [ ] feat
+- [ ] fix
+- [ ] refactor
+- [ ] docs/spec
+- [ ] test
+- [ ] chore/ci
+- [ ] breaking change
 
-<!-- Phần hệ thống nào bị ảnh hưởng? Có phá vỡ tính năng khác không?
-     Đã smoke test luồng chính trên Preview chưa? Góp ý cải tiến (nếu có). -->
+## Validation
+
+<!-- Exact commands and current results; use profile-equivalent gates. -->
+
+- [ ] format/lint/static or type analysis
+- [ ] unit/integration tests
+- [ ] build/package
+- [ ] E2E/a11y/performance/device/eval when applicable
+- [ ] security/dependency/secret scan
+- [ ] manual/UAT:
+
+### Evidence
+
+<!-- Test counts, screenshots, metric/eval delta, migration query. -->
+
+## Risk, rollout and rollback
+
+- Risk level and affected critical flows:
+- Security/privacy/authorization:
+- Data/migration/compatibility:
+- Feature flag/canary/health checks:
+- Rollback/recovery/reconciliation:
+- Residual risks:
+
+## Definition of Done
+
+- [ ] Feature research/spec was approved before source changes.
+- [ ] Implementation matches spec; deviations are reviewed.
+- [ ] Acceptance criteria map to evidence.
+- [ ] Targeted and full profile gates pass.
+- [ ] Inputs/errors/authorization/privacy/concurrency/idempotency handled.
+- [ ] No secrets, production data, debug/dead/generated noise.
+- [ ] Contracts/migrations/docs/ADR/telemetry/runbook updated.
+- [ ] Review threads resolved and required checks pass.
+
+## Reviewer focus
