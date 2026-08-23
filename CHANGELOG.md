@@ -5,13 +5,19 @@ Mọi thay đổi đáng kể của dự án được ghi ở đây.
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/),
 và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
-> Vì commit theo *conventional commits*, phần "Unreleased" có thể được sinh tự động sau
-> (ví dụ `standard-version` / `changesets`). Trước mắt cập nhật tay khi có thay đổi đáng kể.
+> Repo dùng **release-please** (`.github/workflows/release.yml`): vì commit theo *conventional
+> commits*, release PR + ghi chú phát hành được sinh tự động khi phát hành. Phần "Unreleased"
+> dưới đây vẫn cập nhật tay cho thay đổi đáng kể giữa các lần phát hành.
 
 ## [Unreleased]
 
 ### Added (Thêm)
 
+- **Hoàn thiện quản trị OSS (Đợt 4 COMPLETION-PLAN):** thêm `CODE_OF_CONDUCT.md`
+  (Contributor Covenant v2.1 tiếng Việt), `SUPPORT.md` + `GOVERNANCE.md` thật (từ template);
+  dịch `CONTRIBUTING.md` sang tiếng Việt; gộp issue template về một bộ form `.yml`
+  (xóa `bug_report.md`/`feature_request.md` cũ); làm mới `PROGRESS.md` theo
+  `PROGRESS.template.md`; sửa mô tả `ci.yml` trong README và ghi chú release-please ở đây.
 - **`scripts/verify-dropins.sh` + workflow `verify-dropins.yml`** — dựng một dự án Next.js sạch,
   copy khung vào, làm đúng Phần D của runbook rồi chạy lint/type-check/build/test THẬT.
   Trước đây các file dropins (`app/`, `components/`, `lib/`, config) chưa từng được biên dịch

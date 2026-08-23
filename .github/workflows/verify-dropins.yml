@@ -4,7 +4,7 @@ name: Verify dropins
 # copy khung vào, làm đúng Phần D của runbook, rồi lint/type-check/build/test thật.
 #
 # Vì sao cần: repo khung cố ý không có package.json, nên trước job này `app/*.tsx`,
-# `lib/env.ts`, `components/*.tsx`, `eslint.config.mjs`, `vitest.config.ts` chưa từng được
+# `lib/env.ts`, `components/*.tsx`, `eslint.config.mjs`, `vitest.config.mts` chưa từng được
 # biên dịch hay lint lần nào — khung phát đi những file mà chính nó không chứng minh được.
 #
 # Đây cũng là cảm biến VERSION DRIFT: job dùng `create-next-app@latest` nên khi Next/ESLint/
@@ -47,11 +47,31 @@ jobs:
     # trường hợp npm treo mà không đốt runner.
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Dựng dự án thật từ dropins rồi chạy cổng
         run: bash scripts/verify-dropins.sh "$RUNNER_TEMP/verify-dropins"
+
+      # Lịch chạy hằng đêm đỏ = dropins gãy do thượng nguồn (Next/ESLint/Tailwind ra bản mới).
+      # Không ai mở tab Actions thì không ai biết → tự mở issue để nổi lên trước mắt chủ repo.
+      - name: Báo issue khi lịch chạy hằng đêm đỏ
+        if: ${{ failure() && github.event_name == 'schedule' }}
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const title = 'verify-dropins: lịch chạy hằng đêm ĐỎ (nghi version drift)';
+            const { data } = await github.rest.search.issuesAndPullRequests({
+              q: `repo:${context.repo.owner}/${context.repo.repo} is:issue is:open in:title "verify-dropins"`,
+            });
+            const body = `Lượt chạy: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}\n\n`
+              + 'Dropins không còn dựng/build được trên bản mới nhất của thượng nguồn. '
+              + 'Xem log để biết bước nào gãy, rồi cập nhật dropins tương ứng.';
+            if (data.total_count === 0) {
+              await github.rest.issues.create({ ...context.repo, title, body, labels: ['type: bug'] });
+            } else {
+              await github.rest.issues.createComment({ ...context.repo, issue_number: data.items[0].number, body });
+            }

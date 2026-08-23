@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useSyncExternalStore } from 'react';
+import { useTranslations } from 'next-intl';
 
 /**
  * Nút chuyển theme (Dark blue mặc định ↔ Light).
@@ -42,6 +43,8 @@ function getServerSnapshot(): Theme {
 
 export function ThemeToggle() {
   const theme = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  // Nhãn/aria đi qua next-intl (messages/vi.json + messages/en.json, khối "theme").
+  const t = useTranslations('theme');
 
   const toggle = useCallback(() => {
     const next: Theme = theme === 'dark' ? 'light' : 'dark';
@@ -54,10 +57,10 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={toggle}
-      aria-label={theme === 'dark' ? 'Chuyển sang nền sáng' : 'Chuyển sang nền tối'}
+      aria-label={theme === 'dark' ? t('switchToLight') : t('switchToDark')}
       className="border-border text-foreground rounded-lg border px-3 py-2"
     >
-      {theme === 'dark' ? '☀️ Sáng' : '🌙 Tối'}
+      {theme === 'dark' ? `☀️ ${t('light')}` : `🌙 ${t('dark')}`}
     </button>
   );
 }

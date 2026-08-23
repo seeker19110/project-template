@@ -7,12 +7,15 @@ const SUPPORTED = ['vi', 'en'] as const;
 type Locale = (typeof SUPPORTED)[number];
 const DEFAULT_LOCALE: Locale = 'vi';
 
+// Type guard: thu hẹp string | undefined → Locale mà không cần ép kiểu `as`.
+function isLocale(value: string | undefined): value is Locale {
+  return value !== undefined && (SUPPORTED as readonly string[]).includes(value);
+}
+
 export default getRequestConfig(async () => {
   const store = await cookies();
   const fromCookie = store.get('locale')?.value;
-  const locale: Locale = SUPPORTED.includes(fromCookie as Locale)
-    ? (fromCookie as Locale)
-    : DEFAULT_LOCALE;
+  const locale: Locale = isLocale(fromCookie) ? fromCookie : DEFAULT_LOCALE;
 
   return {
     locale,

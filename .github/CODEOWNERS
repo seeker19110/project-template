@@ -7,6 +7,7 @@
 
 # Khu vực nhạy cảm — nên có review kỹ hơn (giữ đồng bộ khi thêm người).
 /.github/                 @seeker19110
+/.claude/                 @seeker19110
 /supabase/                @seeker19110
 /docs/framework/          @seeker19110
 /CLAUDE.md                @seeker19110

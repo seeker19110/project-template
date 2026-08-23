@@ -2,7 +2,7 @@
 name: Sự cố (Incident)
 about: Ghi nhận một sự cố production để điều phối xử lý (xem docs/ops/incident-response.md)
 title: '[INCIDENT] '
-labels: incident
+labels: 'type: incident'
 assignees: ''
 ---
 

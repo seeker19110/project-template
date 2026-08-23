@@ -1,5 +1,6 @@
 /// <reference lib="webworker" />
-// Service worker cho PWA/offline (Serwist). Được build qua @serwist/next (xem next.config).
+// Service worker cho PWA/offline (Serwist). Được build qua @serwist/next — xem file mẫu
+// `next.config.ts` ở gốc repo (dropin, kèm tiền điều kiện `npm i @serwist/next serwist`).
 // LƯU Ý: Serwist chưa hỗ trợ Turbopack — chạy dev PWA bằng `next dev --webpack`.
 // Dòng `reference lib="webworker"` ở trên là BẮT BUỘC: tsconfig của Next chỉ nạp lib DOM,
 // nên `ServiceWorkerGlobalScope` không tồn tại và `tsc --noEmit` sẽ đỏ (TS2552). Khai theo

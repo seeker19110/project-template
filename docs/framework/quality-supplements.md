@@ -317,7 +317,7 @@ Mỗi E2E nên: (a) chạy được độc lập, tự dọn dữ liệu; (b) kh
 
 ### Ngưỡng coverage cho unit test
 
-Đã thêm `coverage` vào `vitest.config.ts`. Coverage là *sàn an toàn tối thiểu*, **không phải mục tiêu** —
+Đã thêm `coverage` vào `vitest.config.mts`. Coverage là *sàn an toàn tối thiểu*, **không phải mục tiêu** —
 một số phủ cao mà toàn assert vô nghĩa thì vô dụng. Đặt sàn vừa phải (vd 70%) để bắt việc "quên viết test",
 và luôn ưu tiên **chất lượng test ở đường đi quan trọng + trường hợp biên** hơn là con số.
 

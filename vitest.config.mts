@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
@@ -9,7 +9,9 @@ export default defineConfig({
     globals: true,
     setupFiles: './vitest.setup.ts',
     // Loại E2E (Playwright) khỏi Vitest — hai bộ chạy riêng.
-    exclude: ['node_modules', 'e2e', '.next'],
+    // Spread configDefaults.exclude để GIỮ các mẫu mặc định (node_modules, dist...)
+    // thay vì ghi đè mất chúng.
+    exclude: [...configDefaults.exclude, 'e2e/**', '.next/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],
