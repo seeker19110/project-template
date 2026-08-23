@@ -7,9 +7,9 @@ on:
   push:
     branches: [main]
 
+# Quyền tối thiểu ở cấp workflow; job `release-please` tự nâng quyền cho riêng nó.
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 # Xếp hàng, KHÔNG hủy: release-please ghi tag/CHANGELOG — hủy giữa chừng có thể
 # để lại trạng thái dở dang. Nhiều commit dồn vào `main` thì chạy lần lượt.
@@ -24,7 +24,7 @@ jobs:
     outputs:
       exists: ${{ steps.app.outputs.exists }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: app
         run: |
           if [ -f package.json ]; then
@@ -38,7 +38,11 @@ jobs:
     needs: check
     if: needs.check.outputs.exists == 'true'
     runs-on: ubuntu-latest
+    # Chỉ job này cần ghi (tạo tag/CHANGELOG/PR release) — job `check` giữ read-only.
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
-      - uses: googleapis/release-please-action@v5
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
           release-type: node

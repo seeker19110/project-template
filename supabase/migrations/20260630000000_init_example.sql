@@ -40,6 +40,8 @@ begin
 end;
 $$;
 
+-- Idempotent: drop trước rồi create — chạy lại migration không lỗi "trigger already exists".
+drop trigger if exists tasks_set_updated_at on public.tasks;
 create trigger tasks_set_updated_at
   before update on public.tasks
   for each row execute function public.set_updated_at();

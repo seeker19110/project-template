@@ -154,6 +154,9 @@ else {
 Copy-IfAbsent "CHANGELOG.md"
 Copy-IfAbsent "CONTRIBUTING.md"
 Copy-IfAbsent "SECURITY.md"
+# Quy tắc ứng xử: bản Contributor Covenant chung (SUPPORT/GOVERNANCE của khung KHÔNG copy —
+# dự án đích tự sinh từ docs/framework/templates/).
+Copy-IfAbsent "CODE_OF_CONDUCT.md"
 Copy-IfAbsent ".editorconfig"
 Copy-IfAbsent ".nvmrc"
 Copy-IfAbsent ".env.example"
@@ -190,12 +193,14 @@ Write-Host "[3/4] File cấu hình khác (Lớp 2 — KHÔNG đè; để bạn t
 $dropins = @(
   'eslint.config.mjs', 'postcss.config.mjs',
   '.prettierrc', '.prettierignore', '.lintstagedrc.json', 'commitlint.config.cjs',
-  'vitest.config.ts', 'vitest.setup.ts', 'playwright.config.ts', 'lighthouserc.json',
+  'vitest.config.mts', 'vitest.setup.ts', 'playwright.config.ts', 'lighthouserc.json',
   '.husky/pre-commit', '.husky/commit-msg',
   '.github/workflows/ci.yml', '.github/workflows/lighthouse-ci.yml',
   '.github/workflows/codeql.yml', '.github/workflows/secret-scan.yml', '.github/workflows/dependency-review.yml', '.github/workflows/pr-policy.yml', '.github/workflows/release.yml',
   '.github/pull_request_template.md', '.github/dependabot.yml', '.github/ISSUE_TEMPLATE', '.github/CODEOWNERS',
   'lib/env.ts', 'styles/theme.css', 'components/theme-toggle.tsx', 'i18n/request.ts', 'messages', 'app',
+  'next.config.ts', 'e2e',
+  '.gitignore', '.gitattributes',
   'supabase'
 )
 foreach ($f in $dropins) { Add-Dropin $f }

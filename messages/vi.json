@@ -6,6 +6,12 @@
     "save": "Lưu",
     "cancel": "Hủy"
   },
+  "theme": {
+    "light": "Sáng",
+    "dark": "Tối",
+    "switchToLight": "Chuyển sang nền sáng",
+    "switchToDark": "Chuyển sang nền tối"
+  },
   "home": {
     "title": "Xin chào",
     "description": "Đây là nội dung mẫu đa ngôn ngữ."

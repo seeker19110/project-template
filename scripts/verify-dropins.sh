@@ -4,7 +4,7 @@
 #
 # Vấn đề nó giải: repo khung cố ý KHÔNG có package.json (nó là drop-in cho một dự án
 # create-next-app), nên `app/*.tsx`, `lib/env.ts`, `components/*.tsx`, `e2e/*.ts`,
-# `eslint.config.mjs`, `vitest.config.ts`... chưa từng được biên dịch hay lint lần nào.
+# `eslint.config.mjs`, `vitest.config.mts`... chưa từng được biên dịch hay lint lần nào.
 # Khung đang phát cho người khác những file mà chính nó không chứng minh được là chạy.
 #
 # Kịch bản: dựng một dự án Next.js sạch trong thư mục tạm → chạy copy-framework.sh vào đó
@@ -83,7 +83,9 @@ const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 pkg.scripts = {
   ...pkg.scripts,
   dev: 'next dev',
-  build: 'next build',
+  // --webpack: dropin next.config.ts nối @serwist/next (PWA) qua webpack; Next 16 mặc định
+  // Turbopack sẽ báo lỗi khi thấy webpack config mà không có turbopack config.
+  build: 'next build --webpack',
   start: 'next start',
   lint: 'eslint . --max-warnings 0',
   'lint:fix': 'eslint . --fix',
@@ -136,7 +138,7 @@ npm run lint
 npm run type-check
 npm run build
 # --passWithNoTests: khung cố ý không kèm test mẫu (test là của dự án thật). Ở đây chỉ cần
-# biết vitest.config.ts + vitest.setup.ts nạp được, không cần có ca test nào.
+# biết vitest.config.mts + vitest.setup.ts nạp được, không cần có ca test nào.
 npx vitest run --passWithNoTests
 
 echo ""

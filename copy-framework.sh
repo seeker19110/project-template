@@ -113,6 +113,10 @@ fi
 copy_if_absent "CHANGELOG.md"
 copy_if_absent "CONTRIBUTING.md"
 copy_if_absent "SECURITY.md"
+# Quy tắc ứng xử: bản Contributor Covenant chung, dự án đích chỉ cần đổi kênh liên hệ.
+# SUPPORT/GOVERNANCE KHÔNG copy bản của khung (nội dung riêng repo này) — dự án đích tự sinh
+# từ docs/framework/templates/SUPPORT.template.md và GOVERNANCE.template.md.
+copy_if_absent "CODE_OF_CONDUCT.md"
 copy_if_absent ".editorconfig"
 copy_if_absent ".nvmrc"
 copy_if_absent ".env.example"
@@ -146,12 +150,14 @@ echo "[3/4] File cấu hình khác (Lớp 2 — KHÔNG đè; để bạn tự me
 for f in \
   eslint.config.mjs postcss.config.mjs \
   .prettierrc .prettierignore .lintstagedrc.json commitlint.config.cjs \
-  vitest.config.ts vitest.setup.ts playwright.config.ts lighthouserc.json \
+  vitest.config.mts vitest.setup.ts playwright.config.ts lighthouserc.json \
   .husky/pre-commit .husky/commit-msg \
   .github/workflows/ci.yml .github/workflows/lighthouse-ci.yml \
   .github/workflows/codeql.yml .github/workflows/secret-scan.yml .github/workflows/dependency-review.yml .github/workflows/pr-policy.yml .github/workflows/release.yml \
   .github/pull_request_template.md .github/dependabot.yml .github/ISSUE_TEMPLATE .github/CODEOWNERS \
   lib/env.ts styles/theme.css components/theme-toggle.tsx i18n/request.ts messages app \
+  next.config.ts e2e \
+  .gitignore .gitattributes \
   supabase \
 ; do
   stage "$f"

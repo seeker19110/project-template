@@ -18,9 +18,10 @@ import { z } from 'zod';
 // Biến CÔNG KHAI (an toàn để lộ ra client)
 // ──────────────────────────────────────────────
 const clientSchema = z.object({
-  NEXT_PUBLIC_SUPABASE_URL: z.string().url('NEXT_PUBLIC_SUPABASE_URL phải là URL hợp lệ'),
+  // Zod 4: dùng z.url() ở cấp cao nhất (z.string().url() đã bị deprecated).
+  NEXT_PUBLIC_SUPABASE_URL: z.url('NEXT_PUBLIC_SUPABASE_URL phải là URL hợp lệ'),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, 'Thiếu NEXT_PUBLIC_SUPABASE_ANON_KEY'),
-  NEXT_PUBLIC_SITE_URL: z.string().url().default('http://localhost:3000'),
+  NEXT_PUBLIC_SITE_URL: z.url().default('http://localhost:3000'),
 });
 
 const clientParsed = clientSchema.safeParse({
@@ -32,7 +33,8 @@ const clientParsed = clientSchema.safeParse({
 
 if (!clientParsed.success) {
   console.error('❌ Biến môi trường CLIENT không hợp lệ:');
-  console.error(clientParsed.error.flatten().fieldErrors);
+  // Zod 4: treeifyError thay cho error.flatten() (đã deprecated) — in lỗi theo từng field.
+  console.error(z.treeifyError(clientParsed.error).properties);
   throw new Error('Cấu hình môi trường client không hợp lệ — xem log ở trên.');
 }
 
@@ -44,7 +46,7 @@ export const clientEnv = clientParsed.data;
 const serverSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'Thiếu SUPABASE_SERVICE_ROLE_KEY'),
   // Tùy chọn — thêm các bí mật khác của dự án ở đây (vd khóa API bên thứ ba).
-  SENTRY_DSN: z.string().url().optional(),
+  SENTRY_DSN: z.url().optional(),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 });
 
@@ -52,7 +54,7 @@ function loadServerEnv() {
   const parsed = serverSchema.safeParse(process.env);
   if (!parsed.success) {
     console.error('❌ Biến môi trường SERVER không hợp lệ:');
-    console.error(parsed.error.flatten().fieldErrors);
+    console.error(z.treeifyError(parsed.error).properties);
     throw new Error('Cấu hình môi trường server không hợp lệ — xem log ở trên.');
   }
   return parsed.data;

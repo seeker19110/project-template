@@ -6,6 +6,12 @@
     "save": "Save",
     "cancel": "Cancel"
   },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode"
+  },
   "home": {
     "title": "Hello",
     "description": "This is sample multilingual content."

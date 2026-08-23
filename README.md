@@ -50,14 +50,18 @@ spec-driven hoặc completion phù hợp; không chọn một quy trình song so
 - `components/theme-toggle.tsx` — nút chuyển theme (Dark blue ↔ Light) dùng ngay.
 - `.github/pull_request_template.md`, `.github/ISSUE_TEMPLATE/` (gồm mẫu **sự cố**),
   `.github/dependabot.yml`, `.github/CODEOWNERS`, và các workflow:
-  `ci.yml` (lint/type/format/test+coverage/build/audit + **E2E** + chặn `[ĐIỀN]`),
+  `ci.yml` (dự án thật: lint/type/format/test+coverage/build/`npm audit` + **E2E** Playwright+axe,
+  cùng cổng chặn placeholder `[ĐIỀN: ...]` còn sót trong `CLAUDE.md`; repo khung chưa có app vẫn chạy
+  `framework-lint`/`docs-consistency`/`copy-framework-smoke` + knip báo cáo),
   `lighthouse-ci.yml`, `codeql.yml` (SAST), `secret-scan.yml` (gitleaks), `dependency-review.yml`,
   `pr-policy.yml` (spec/evidence),
   `release.yml` (release-please),
   `verify-dropins.yml` (chỉ dùng ở **repo khung** — dựng dự án Next.js sạch rồi lint/build thật
   các file dropins; xóa được ở dự án đích).
 - `supabase/migrations/` — **migration MẪU** (bảng + ràng buộc + index + **RLS + policy**); `supabase/README.md`.
-- `LICENSE` (MIT — đổi chủ sở hữu/giấy phép theo dự án), `SECURITY.md`, `CONTRIBUTING.md`.
+- `LICENSE` (MIT — đổi chủ sở hữu/giấy phép theo dự án), `SECURITY.md`, `CONTRIBUTING.md`,
+  `CODE_OF_CONDUCT.md` (Quy tắc ứng xử — Contributor Covenant v2.1 tiếng Việt),
+  `SUPPORT.md` + `GOVERNANCE.md` (kênh hỗ trợ + quản trị dự án).
 - `docs/framework/standard-delivery.md` — **nguồn vào chuẩn duy nhất**: artifact, Research/Spec gate,
   AI Goal Loop, DoR/DoD/Project Complete và stop conditions.
 - `docs/framework/templates/GOAL.template.md` + `FEATURE-SPEC.template.md` — checkpoint nhiều PR và

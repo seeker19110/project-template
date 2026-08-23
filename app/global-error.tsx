@@ -1,5 +1,10 @@
 'use client';
 // Bắt lỗi ở chính root layout (hiếm). Phải tự render <html>/<body>.
+// NGOẠI LỆ CÓ CHỦ ĐÍCH với luật design token (CLAUDE.md §3.10): global-error render
+// một cây <html> riêng khi root layout đã sập — stylesheet (styles/theme.css) có thể
+// CHƯA/KHÔNG được nạp, nên các biến --token không tồn tại. Vì vậy màu ở đây được
+// hard-code (khớp giá trị Dark blue của theme) để trang lỗi vẫn đọc được trong mọi
+// tình huống. Đừng "sửa" lại thành token.
 import { useEffect } from 'react';
 
 export default function GlobalError({

@@ -1,36 +1,39 @@
-# Contributing
+# Đóng góp (Contributing)
 
-Read `CLAUDE.md`, then the single entrypoint
-`docs/framework/standard-delivery.md`. It routes to stack/profile-specific guidance.
+Đọc `CLAUDE.md` trước, rồi đến điểm vào duy nhất
+`docs/framework/standard-delivery.md`. Contract này sẽ định tuyến tới hướng dẫn theo đúng stack/hồ sơ.
 
-## Canonical flow
+Mọi tương tác trong dự án tuân theo [Quy tắc ứng xử](CODE_OF_CONDUCT.md).
+
+## Luồng chuẩn (canonical flow)
 
 **Frame → Research → Approve Spec → Plan → Build → Verify → Integrate → Observe → Reconcile.**
 
-Feature source code must not start before `docs/specs/*` is **Approved for implementation** with
-approver/date. A goal spanning multiple PRs uses `docs/goals/*` and one outcome per iteration/PR.
+**Không được bắt đầu code tính năng** trước khi `docs/specs/*` được đánh dấu **Approved for
+implementation** kèm người duyệt/ngày duyệt. Goal trải qua nhiều PR dùng `docs/goals/*`,
+mỗi iteration/PR đúng một outcome.
 
-## Git and PR
+## Git và PR
 
-- Branch: `docs/spec-...` for research/spec; `feat|fix|refactor/<issue>-<slug>` for implementation.
-- Conventional Commits; small logical commits; no direct push to default branch.
-- Open draft PR early and link Goal/Issue/Spec.
-- Ready only with evidence and profile gates; merge only via authorized reviewed PR.
-- After release, verify health/metric/guardrail and checkpoint the Goal.
+- Nhánh: `docs/spec-...` cho research/spec; `feat|fix|refactor/<issue>-<slug>` cho phần triển khai.
+- Conventional Commits; commit nhỏ theo từng thay đổi logic; không push thẳng nhánh mặc định.
+- Mở draft PR sớm và link tới Goal/Issue/Spec.
+- Chỉ chuyển Ready khi có bằng chứng + đạt các cổng theo hồ sơ; chỉ merge qua PR đã được review và có thẩm quyền.
+- Sau khi release: kiểm chứng health/metric/guardrail và checkpoint lại Goal.
 
-## Definition of Ready/Done
+## Definition of Ready / Done
 
-Use the canonical DoR/DoD in `standard-delivery.md`. Project commands come from the project
-`CLAUDE.md`/manifest; never copy Web-specific commands into another profile without verification.
+Dùng DoR/DoD chuẩn trong `standard-delivery.md`. Lệnh của dự án lấy từ `CLAUDE.md`/manifest của
+chính dự án; **không bao giờ** sao chép lệnh đặc thù hồ sơ Web sang hồ sơ khác khi chưa xác minh.
 
-## AI loop limits
+## Giới hạn vòng lặp AI
 
-One iteration is one outcome and one PR. Reconcile from current default branch, not chat memory.
-Repair the same failure at most three times. Stop WAITING/BLOCKED for approval, product/architecture
-trade-off, destructive/breaking changes, production/secrets/cost/new permission, out-of-scope CI,
-or exceeded guardrail. Never weaken tests or security to pass a gate.
+Một iteration = một outcome = một PR. Reconcile từ nhánh mặc định hiện tại, không từ trí nhớ chat.
+Sửa cùng một lỗi tối đa ba lần. Dừng ở trạng thái WAITING/BLOCKED khi cần: phê duyệt, đánh đổi
+sản phẩm/kiến trúc, thay đổi phá hủy/breaking, đụng production/bí mật/chi phí/quyền mới, CI ngoài
+phạm vi, hoặc vượt guardrail. **Không bao giờ** làm yếu test hay bảo mật để qua cổng.
 
-## Automation
+## Tự động hóa
 
-Do not bypass hooks, CI, PR policy, secret/security scans or branch protection. Configure required
-checks to match the chosen project profile and verify the protection with a deliberately failing PR.
+Không né hook, CI, PR policy, quét bí mật/bảo mật hay branch protection. Cấu hình required checks
+khớp đúng hồ sơ dự án đã chọn và kiểm chứng protection bằng một PR cố tình fail.

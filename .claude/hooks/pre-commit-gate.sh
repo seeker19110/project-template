@@ -15,8 +15,10 @@ cmd=""
 if command -v jq >/dev/null 2>&1; then
   cmd="$(printf '%s' "$payload" | jq -r '.tool_input.command // empty' 2>/dev/null)"
 else
-  # Fallback thô: tìm chuỗi "command" trong JSON.
-  cmd="$payload"
+  # Không có jq → KHÔNG đoán lệnh từ JSON thô (grep trên cả payload sẽ khớp nhầm nội dung
+  # file/mô tả và chạy cổng oan hoặc chặn sai). Fail-open: bỏ qua cổng, chỉ nhắc.
+  echo "[pre-commit-gate] không có jq → không đọc được lệnh, bỏ qua cổng." >&2
+  exit 0
 fi
 
 # Chỉ can thiệp khi thực sự là `git commit` (bỏ qua commit-tree, --help…).
@@ -25,7 +27,9 @@ if ! printf '%s' "$cmd" | grep -Eq '(^|[^-])git[[:space:]]+([^|&;]*[[:space:]])?
 fi
 
 # Người dùng chủ động bỏ qua cổng?
-if printf '%s' "$cmd" | grep -Eq '(--no-verify|-n[[:space:]]|--no-gate)'; then
+# Chỉ nhận đúng cờ git hợp lệ `--no-verify` (`-n` của git commit là --no-verify nhưng cũng là
+# cờ của nhiều lệnh khác trong chuỗi → không nhận, tránh bỏ cổng nhầm).
+if printf '%s' "$cmd" | grep -Eq '(^|[[:space:]])--no-verify([[:space:]]|$)'; then
   echo "[pre-commit-gate] phát hiện --no-verify → bỏ qua cổng." >&2
   exit 0
 fi

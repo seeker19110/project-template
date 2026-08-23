@@ -452,7 +452,7 @@ npx --no-install commitlint --edit "$1"
 
 ## Bước 9 — Kiểm thử với Vitest
 
-Tạo file `vitest.config.ts`:
+Tạo file `vitest.config.mts`:
 
 ```ts
 import { defineConfig } from 'vitest/config';
@@ -720,7 +720,7 @@ Các phần còn lại (Dependabot, Lighthouse CI...) thêm dần sau.
 ## 9. Kiểm thử thật
 
 - [ ] Thay `e2e/smoke.spec.ts` bằng **luồng chính thật** (đăng nhập → thao tác lõi → đạt mục tiêu).
-- [ ] Viết unit test cho logic quan trọng + ca biên; giữ coverage ≥ ngưỡng (`vitest.config.ts`).
+- [ ] Viết unit test cho logic quan trọng + ca biên; giữ coverage ≥ ngưỡng (`vitest.config.mts`).
 
 ## 10. Kiểm chứng hàng rào (cổng "sẵn sàng phát triển")
 

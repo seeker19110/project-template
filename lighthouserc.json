@@ -2,13 +2,12 @@
   "//": "Cấu hình Lighthouse CI — ngân sách hiệu năng (performance budget). Xem docs/framework/quality-supplements.md (Nhóm 2).",
   "ci": {
     "collect": {
-      "//": "Đổi danh sách URL cho khớp các trang quan trọng của dự án. startServerCommand dựng app từ bản build production.",
-      "startServerCommand": "npm run start",
+      "//": "Đổi danh sách URL cho khớp các trang quan trọng của dự án. startServerCommand build rồi dựng app production (chuỗi shell nên nối được build && start).",
+      "startServerCommand": "npm run build && npm run start",
       "url": ["http://localhost:3000/"],
       "numberOfRuns": 3,
       "settings": {
-        "preset": "desktop",
-        "//formFactor": "Bỏ dòng preset trên để đo ở chế độ mobile (mặc định của Lighthouse) — sát người dùng thật hơn."
+        "//": "KHÔNG đặt preset → Lighthouse đo ở chế độ MOBILE (mặc định) — khớp luật mobile-first (CLAUDE.md §3.9). Muốn đo desktop, thêm \"preset\": \"desktop\"."
       }
     },
     "assert": {

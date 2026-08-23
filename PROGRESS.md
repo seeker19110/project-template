@@ -1,261 +1,66 @@
 # PROGRESS.md — Trạng thái dự án
 
-> Cập nhật sau mỗi mốc đáng kể. AI đọc file này để biết đang ở đâu.
+> Tóm tắt toàn dự án; cập nhật sau mỗi mốc. Goal nhiều PR theo dõi chi tiết ở `docs/goals/*`.
+> Không sao chép iteration log vào đây. (Repo này LÀ bộ khung — file này là nhật ký của chính khung,
+> không copy sang dự án đích; dự án đích nhận bản sạch từ `PROGRESS.template.md`.)
 
 ## Giai đoạn hiện tại
-- GĐ 7 — Hoàn thiện công cụ/khung (tối ưu cấu hình, hướng dẫn tích hợp)
 
-## Đã xong
-- ✅ **Áp dụng kiến trúc điều phối 3 tầng** (`docs/framework/orchestration-3-tier.md`): Tầng 1 Người lập kế hoạch (phiên chính opusplan) → Tầng 2 `coordinator` (Opus·low) → Tầng 3 workers định tuyến 2 trục: `complex-implementer` (Opus·high), `spec-executor` (Opus·low), `standard-worker` (Sonnet·medium, kế thừa `executor`), `mechanical-worker` (Haiku); `reviewer` (Sonnet) hậu kiểm bằng skill code-review. Đổi `executor.md`→`standard-worker.md`; cập nhật tham chiếu ở README, models-and-automation, auto.md.
-- ✅ Tạo cấu hình Opusplan tiêu chuẩn (`.claude/settings-shared-opusplan.json`) — dùng chung cho mọi dự án
-- ✅ Cập nhật `copy-framework.sh` để copy cấu hình Opusplan vào `_framework-dropins/`
-- ✅ Cập nhật `copy-framework.ps1` tương tự cho Windows
-- ✅ Viết hướng dẫn chi tiết (`CONG-CU-OPUSPLAN-CHO-DU-AN.md`) về cách sử dụng & tuỳ chỉnh cấu hình
-- ✅ **Copy thẳng:** Cấu hình tự động copy vào `.claude/settings.json` (không cần chọn merge)
-- ✅ **Chốt chiến lược tối ưu token:** giữ **opusplan** (Opus lập kế hoạch, Sonnet code, Haiku phụ)
-      — KHÔNG dùng Fable 5 thuần (đắt, "dao mổ trâu"); Fable/Opus chỉ nâng có chọn lọc lúc cần
-- ✅ Push lên nhánh `claude/opusplan-shared-config-rm5ru6`, PR #19
-- ✅ **Thêm subagent Sonnet `thuc-thi`** (`.claude/agents/thuc-thi.md`) — nhận việc RÕ PHẠM VI đã bóc tách
-      (viết test theo spec, boilerplate, cập nhật docs, sửa cơ học nhiều file) để rút tải khỏi main Opus.
-      Đồng bộ mô tả trong CHON-MODEL, TU-DONG-tong-quan, CONG-CU-OPUSPLAN, copy-framework.sh/.ps1, /tu-dong.
+- Giai đoạn: GĐ 7 — Hoàn thiện bộ khung (thực thi kế hoạch hoàn thiện `/completion`)
+- Default-branch SHA đã đối chiếu: `57c83e1` (`origin/main`)
+- Ngày cập nhật: 2026-08-23
 
-- ✅ **Gộp 3 doc model/tự động → 1** (`docs/framework/MODEL-va-TU-DONG.md`): gộp CHON-MODEL +
-      CONG-CU-OPUSPLAN + TU-DONG-tong-quan, khử trùng lặp (594→~360 dòng, −2 file). Cập nhật mọi
-      tham chiếu: CLAUDE.md, `/adr` `/su-co` `/tu-van` `/tu-dong`, session-guide.sh.
-- ✅ **Quyết định giữ scaffold web** (Next.js+Supabase) làm hồ sơ mặc định — không tách/xóa.
-- ✅ PR #21 đã merge vào `main` (`main` = branch, 0/0).
-- ✅ **Codify quy trình PR → merge tự động** vào CLAUDE.md §8: sau khi tạo PR thì đăng ký theo dõi + đặt lịch 3 phút, CI xanh thì squash-merge vào `main`, luôn quay về `main`, **FIFO không nhảy cóc** (PR tạo trước merge trước).
-- ✅ **Thêm tính năng audit toàn diện** (`/audit-toan-dien`, khác `/audit-toi-uu` chỉ tối ưu mã nguồn):
-      - `docs/ops/audit-toan-dien-prompt.md` — playbook 11 nhóm (kiến trúc, bảo mật, chất lượng mã/
-        chống lỗi logic, test/coverage, hiệu năng, a11y/UI-UX, dependency, CI/CD/vận hành, tài liệu
-        đồng bộ, dữ liệu/migration, cấu hình & bí mật), quy trình 2 giai đoạn (quét → dừng chờ duyệt
-        → xử lý qua `/cong`).
-      - `.claude/commands/audit-toan-dien.md` — slash command, có bước bắt buộc hỏi người dùng
-        "quét lại từ đầu hay tiếp tục" dựa vào `docs/ops/AUDIT-TOAN-DIEN-TRANG-THAI.md` (file trạng
-        thái tạo tại dự án đích, cập nhật ngay sau mỗi nhóm để resume được qua nhiều phiên).
-      - Cập nhật `CLAUDE.md` §1 (TRIGGER mới), `copy-framework.sh`/`.ps1` (liệt kê lệnh mới khi copy khung).
-- ✅ PR #23 tạo (draft) cho nhánh `claude/project-audit-feature-2jyw07`.
-- ✅ **Bổ sung "Bước -1" vào `audit-toan-dien-prompt.md` + slash command:** trước khi quét, AI phải
-      xác nhận đây là **dự án cụ thể đã phát triển** (tính năng + công nghệ đã chọn/triển khai thật),
-      không phải bộ khung/template còn trống — repo `project-template` này hiện chính là khung trống
-      (PROJECT.md chưa điền, `app/` chỉ có file scaffold hệ thống). Nếu vẫn là khung trống → AI phải
-      DỪNG và giải thích rõ, không bịa kế hoạch/phát hiện audit cho tính năng chưa tồn tại (đúng
-      nguyên tắc chống ảo giác CLAUDE.md §4). Ghi nhận từ phản hồi người dùng: khung này dùng để áp
-      lên dự án khác hoặc phát triển tiếp từ đây — audit toàn diện chỉ có ý nghĩa khi đã có dự án cụ thể.
+## Goal đang active
 
-- ✅ **Tái cấu trúc repo — tên file sang TIẾNG ANH** (nội dung vẫn tiếng Việt), người dùng chốt:
-      - `docs/framework/`: KHUNG-1/2/3 → `01-process-and-standards.md` / `02-ai-rules-and-project-template.md`
-        / `03-tech-selection-and-proactive-advice.md`; KHOI-TAO → `new-project-runbook.md`;
-        AP-DUNG → `existing-project-adoption.md`; BO-SUNG → `quality-supplements.md`;
-        MODEL-va-TU-DONG → `models-and-automation.md`. Thêm `docs/framework/README.md` (chỉ mục + bản đồ tên cũ→mới).
-      - `docs/ops/`: audit-toan-dien-prompt → `comprehensive-audit-prompt.md`; audit-toi-uu-prompt →
-        `code-optimization-audit-prompt.md`; file trạng thái sinh tại dự án đích: `COMPREHENSIVE-AUDIT-STATUS.md`.
-      - Slash commands: `/tu-van`→`/consult` · `/cong`→`/gate` · `/khoi-tao`→`/bootstrap` · `/tu-dong`→`/auto`
-        · `/audit-toan-dien`→`/audit-full` · `/audit-toi-uu`→`/audit-optimize` · `/su-co`→`/incident`.
-      - Subagents: `tra-cuu`→`lookup` · `kiem-tra-phien-ban`→`version-check` · `thuc-thi`→`executor`.
-      - ADR: `0001-chon-stack.md` → `0001-stack-selection.md`. Toàn bộ tham chiếu chéo đã cập nhật
-        (đã grep xác minh 0 sót, mọi đường dẫn docs/ được nhắc đều tồn tại).
-- ✅ **Lấp 4 gap "hoàn thiện dự án"** (từ phân tích gap theo yêu cầu người dùng):
-      - **`docs/framework/project-completion.md` + `/completion`** — playbook 5 pha: dò hiện trạng
-        (bản đồ tính năng `docs/FEATURE-MAP.md` + sổ quy ước `docs/CONVENTIONS.md`) → audit 12 nhóm →
-        **kế hoạch hoàn thiện chi tiết** (`docs/ops/COMPLETION-PLAN.md`, truy vết F-xxx→W-xxx→PR→bằng chứng,
-        dừng chờ duyệt) → thực thi từng đợt qua `/gate` (bug có test tái hiện trước khi sửa) →
-        **re-audit hội tụ** (0 phát hiện Cao mở; Trung/Thấp có quyết định ghi nhận) + nghiệm thu theo
-        **Definition of Complete** cấp dự án.
-      - **Nhóm 12 — Thống nhất chéo tính năng** thêm vào `comprehensive-audit-prompt.md` (logic trùng lặp
-        phân kỳ, validation/API/phân quyền/trạng thái UI/quy ước không đồng nhất) + mẫu trạng thái 12 dòng.
-      - `existing-project-adoption.md`: Bước 0 thêm FEATURE-MAP + CONVENTIONS; thêm **Bước 4 — hoàn thiện**
-        (trỏ `/completion`); cổng "áp khung xong" thêm 2 file này.
-      - CLAUDE.md §1 thêm TRIGGER `/completion`; cập nhật session-guide.sh, copy-framework.sh/.ps1,
-        README.md, consult.md, models-and-automation.md (bảng model thêm `/audit-full` + `/completion`).
-- ✅ **Rà toàn diện template + sửa & bổ sung** (nhánh `claude/template-review-k4lpfy`):
-      - **Fix copy-framework.sh/.ps1:** copy kèm `scripts/` (dev-task, usage-estimate) + 2 file
-        `.example.sh` — trước đây hook sang dự án đích bị no-op âm thầm (mất auto-format/gate/quota).
-        Bản `.sh` sửa thêm lỗi copy thư mục LỒNG khi chạy lại lần 2 (`docs/framework/framework`…);
-        đã test đầu-cuối 2 lần chạy trên thư mục scratch.
-      - **PROGRESS.template.md (mới):** dự án đích nhận bản mẫu SẠCH, không nhận nhật ký của khung.
-      - **Sửa 4 tham chiếu lỗi thời:** "CLAUDE.md §3 mục 10/nguyên tắc 10" → mục 7 (3 chỗ);
-        "HUONG-DAN Bước 11" → "Phần D Bước 11" (runbook).
-      - **Đồng bộ:** `settings.json` thêm `effortLevel: medium` (khớp bản shared); cả 2 settings
-        deny thêm `git push --force-with-lease`; KHUNG-2 Phần B thêm mục "0. Loại dự án & Hồ sơ"
-        (khớp PROJECT.md); KHUNG-1 GĐ 1 thêm khối **DoR** cạnh DoD (trả lời ghi chú cũ ở
-        quality-supplements Nhóm 1 mục 7); runbook Phần 0 thêm `.claude/` + `scripts/` vào cây.
-      - **CI cho chính khung (mới):** job `framework-lint` trong `ci.yml` chạy CẢ khi chưa có app —
-        bash -n + shellcheck (error) + jq validate settings/config JSON + `scripts/check-docs-links.sh`
-        (script mới: mọi đường dẫn nhắc trong *.md phải tồn tại; allowlist file sinh tại dự án đích;
-        bỏ qua PROGRESS/CHANGELOG/bảng ánh xạ tên cũ).
-      - models-and-automation.md: ghi chú hook cần Git Bash trên Windows; cập nhật mô tả copy.
+| Goal | Outcome | State | Current gap | Next slice | Link |
+| --- | --- | --- | --- | --- | --- |
+| Hoàn thiện khung theo COMPLETION-PLAN | 0 phát hiện Cao mở; Vừa/Thấp có kết cục ghi nhận; đạt Definition of Complete | BUILD | Đợt 1–4 (W-1xx…W-4xx) đang thực thi | Xong Đợt 4 → Pha 4 re-audit hội tụ | `docs/ops/COMPLETION-PLAN.md` |
 
-- ✅ PR #24 (tái cấu trúc tên file) và PR #25 (hỏi rõ phạm vi "tối ưu"/"kiểm tra lỗi") đã merge vào `main`.
-- ✅ **Rà hoàn thiện chính bộ khung (đợt 2026-07-02):** sửa 1 tham chiếu mồ côi "HUONG-DAN Bước 11"
-      (không khớp file nào hiện có) trong `new-project-runbook.md`; cập nhật lại mục Đang làm/Tiếp theo
-      của chính PROGRESS.md cho khớp thực tế (trước đó bị stale so với PR đã merge — vi phạm CLAUDE.md §2).
+## Đã xong (tóm tắt)
 
-- ✅ **`scripts/check-docs-consistency.sh`** + job `docs-consistency` trong `ci.yml` (luôn chạy, không cần
-      `package.json`): quét link gãy trong backtick + tên file/lệnh cũ còn sót ngoài bảng ánh xạ.
-- ✅ **`scripts/test-copy-framework.sh`** + job `copy-framework-smoke` trong `ci.yml`: chạy THẬT
-      `copy-framework.sh`/`.ps1` vào thư mục scratch, xác nhận cấu trúc copy đúng + KHÔNG đè file đã có.
-      Bắt được **lỗi thật**: bước "[2/3] Cấu hình Claude Code" của cả 2 script ghi đè không điều kiện
-      `.claude/settings.json`/`hooks`/`agents` — trái cam kết "KHÔNG đè" của chính script. Đã vá theo
-      đúng mẫu `copy_if_absent` (như `CLAUDE.md`); có test hồi quy bảo vệ.
-- ✅ **Case-study chạy thật đầu-cuối** (`docs/framework/case-study-greenfield-dry-run.md`): scaffold
-      `create-next-app@latest` thật (Next 16.2.10) → `copy-framework.sh` → cài đủ gói → chạy 5 cổng
-      (lint/type-check/format:check/test/build) → thử hook pre-commit + commit-msg thật. Tìm thêm 2 lỗi
-      thật:
-      - **`eslint.config.mjs` crash hoàn toàn** trên `eslint-config-next` hiện tại (dùng `FlatCompat` cũ,
-        lỗi "Converting circular structure to JSON") — đã vá sang import subpath flat-config trực tiếp
-        (khớp cách `create-next-app@latest` tự sinh), có kiểm chứng lại `npx eslint . --max-warnings 0` = 0 lỗi.
-      - Thiếu bước bắt buộc "chạy `npm run format` một lần" sau khi cài Prettier → `format:check` đỏ ngay
-        từ commit đầu dù không có lỗi thật — đã thêm vào cuối Bước 3 runbook.
-      - Phát hiện cấu trúc: `_framework-dropins/` tự chứa bản sao `.lintstagedrc.json` của chính nó →
-        vá glob từng công cụ (eslint ignore/tsconfig exclude/lint-staged pattern) không triệt để, còn gây
-        crash thật ("Task killed") khi commit. Vá đúng gốc: bắt buộc xoá `_framework-dropins/` trước gate/
-        commit đầu tiên (thêm vào Bước 0 runbook) — xác nhận lại: xoá xong thì toàn bộ chuỗi hook chạy đúng.
+- Dựng trọn bộ khung: quy trình 9 giai đoạn + cổng, luật AI (CLAUDE.md/AGENTS.md), research-first,
+  slash commands (`/consult` `/gate` `/bootstrap` `/auto` `/audit-full` `/audit-optimize` `/incident`
+  `/completion` `/grill` `/debug` `/ui-ux` `/adr`), điều phối 3 tầng + opusplan, drop-ins hồ sơ Web
+  (Next.js/TS/Tailwind/Supabase), `copy-framework.sh`/`.ps1` + smoke test, OpenSpec (tùy chọn).
+- Hàng rào tự kiểm cho chính khung: CI `framework-lint` / `docs-consistency`
+  (`scripts/check-docs-consistency.sh`) / `copy-framework-smoke` / `source-hygiene` (knip) /
+  `verify-dropins.yml`; case-study greenfield chạy thật đầu-cuối (vá eslint flat config, hook, dropins).
+- Tái cấu trúc tên file sang tiếng Anh (nội dung tiếng Việt), bản đồ tên cũ→mới ở `docs/framework/README.md`.
+- PR đã merge gần nhất: **#44** (hợp nhất chuẩn — standard-delivery), **#45** (governance & supply-chain),
+  **#46** (parallel subagent workflow). Các mốc cũ hơn (#19–#32…): xem lịch sử Git của file này + CHANGELOG.
 
-- ✅ **Reconcile PR #27 với `main` sau khi PR #26 merge song song** (cùng đợt rà template, 2 phiên làm
-      độc lập trùng phạm vi): merge `origin/main` vào nhánh `claude/template-review-k4lpfy`, hợp nhất
-      5 file xung đột thay vì chọn một bên:
-      - `ci.yml`: giữ cả 3 job — `framework-lint` (bash -n/shellcheck/jq — thu hẹp lại, bỏ bước kiểm
-        tham chiếu tài liệu vì trùng việc), `docs-consistency` (từ #26, kỹ hơn: còn bắt tên file cũ sót
-        ngoài bảng ánh xạ), `copy-framework-smoke` (từ #26, chạy thật copy script vào scratch dir).
-      - Xoá `scripts/check-docs-links.sh` (của #27) — thừa so với `scripts/check-docs-consistency.sh`
-        (của #26, đã bao phủ + kỹ hơn). Tránh đúng lỗi "logic trùng lặp phân kỳ" mà Nhóm 12 audit-full
-        của chính khung này cảnh báo.
-      - `copy-framework.sh`/`.ps1`: hợp nhất fix "không đè `.claude/settings.json`/hooks/agents có sẵn"
-        (#26) với fix "copy kèm `scripts/dev-task.sh`+`usage-estimate.sh`+2 file `.example.sh`" (#27) —
-        dùng chung helper `copy_if_absent`/`Copy-IfAbsent` sẵn có cho toàn bộ nhóm file cấu hình Claude
-        Code, thay vì hard-code từng nhánh if/else.
-      - `new-project-runbook.md`: giữ bản tham chiếu đủ cả "Phần A Bước 6 / Phần D Bước 11" (đủ thông
-        tin hơn bản chỉ ghi "Bước 6 ở trên" của #26 — cả 2 đều sửa đúng cùng một tham chiếu mồ côi).
-      - `PROGRESS.md`: hợp nhất nhật ký cả 2 nhánh, viết lại mục Đang làm/Tiếp theo cho khớp thực tế.
+## Đang làm / chờ
 
-- ✅ PR #27 (`claude/template-review-k4lpfy`) đã merge vào `main` (CI 3 job mới xanh).
-- ✅ **Xác minh opusplan đúng tài liệu nền (đợt 2026-07-02, nhánh `claude/opusplan-token-optimization-ihrkd6`):**
-      `settings.json` ≡ `settings-shared-opusplan.json` (diff trống); hooks/agents/scripts/copy-framework/
-      mọi chỗ nhắc opusplan đều khớp `models-and-automation.md`; đối chiếu nguồn sống docs chính thức
-      Claude Code — alias `opusplan` (Opus plan → Sonnet execution; API Anthropic: Opus 4.8/Sonnet 5),
-      `fallbackModel` dạng MẢNG, `effortLevel` đều chuẩn. **Không có drift — không sửa config.**
-- ✅ **Thêm §5 "Kỷ luật vận hành" vào `models-and-automation.md`** (tối ưu token thứ 3, theo yêu cầu người dùng):
-      plan MỘT LẦN cho cả khối việc (tránh re-plan lắt nhắt; ghi kết quả suy nghĩ ra PROGRESS/ADR làm
-      "cache chất lượng"), ngữ cảnh gọn (subagent gánh output dài; đóng mảng việc → `/gate` → commit →
-      phiên mới), checklist một phiên chuẩn, bảng 2 lỗi ngược nhau về plan mode. Đánh lại số mục cũ
-      §5–§8 → §6–§9 (tham chiếu ngoài chỉ trỏ §4 — không gãy; đã grep xác minh). Cập nhật mô tả file ở
-      CLAUDE.md §1 + `docs/framework/README.md`.
-
-- ✅ PR #29 (`claude/opusplan-token-optimization-ihrkd6`, §5 "Kỷ luật vận hành") đã merge vào `main`
-      (CI xanh, squash). Không còn PR nào đang mở trên repo (đã rà lại 2026-07-03).
-- ✅ **Rà lại opusplan sau khi người dùng hỏi "còn việc gì Sonnet làm tốt mà chưa vào hook":** xác nhận
-      `settings.json` không lệch bản shared, 3 subagent (executor/lookup/version-check) + 4 hook đã phủ
-      đủ vòng đời. Gap thật tìm được: cổng `pre-commit-gate.sh` chỉ chạy cổng MÁY MÓC (build/lint/test),
-      không bắt được lỗi logic/trùng lặp/hiệu năng — đúng việc Sonnet làm tốt qua `/code-review`,
-      `/simplify` nhưng chưa có gì nhắc chạy trước khi commit.
-      - **Vá:** thêm nudge (không chặn) vào `pre-commit-gate.sh` — khi diff staged ≥ 80 dòng đổi hoặc
-        ≥ 5 file, in gợi ý stderr đề nghị chạy `/code-review`/`/simplify` trước khi commit. Đã test tay:
-        diff nhỏ (2 file, hook change) → im lặng đúng như kỳ vọng; logic đếm dòng qua
-        `git diff --cached --numstat` đã kiểm chứng chạy được.
-      - Cập nhật bảng hook ở `docs/framework/models-and-automation.md` §6 khớp hành vi mới.
-- ✅ **Rà tiếp theo yêu cầu người dùng "việc Sonnet làm tốt để Sonnet làm, việc khác đẩy Opus/Fable":**
-      soát 8 slash command (`adr, audit-full, audit-optimize, auto, bootstrap, completion, consult,
-      gate, incident, ui-ux`) đối chiếu bảng năng lực §3 `models-and-automation.md`. 5/8 lệnh lý luận
-      sâu (`adr, auto, completion, consult, incident`) đã có dòng nhắc 💡 nâng model đúng pha. `gate`,
-      `ui-ux`, `bootstrap`, `audit-optimize` không cần nhắc (Sonnet ✅/✅✅ đã đủ theo bảng).
-      **Gap tìm được:** `audit-full.md` — bảng §3 xếp Sonnet chỉ ✅ cho *quét* nhưng mục "Đọc theo
-      nhóm" liệt `/audit-full` vào nhóm "audit lớn" cần nâng Opus cho *tổng hợp/xếp ưu tiên toàn cục*
-      — command file lại không có nhắc nào, 2 việc khác thế mạnh bị gộp chung một model.
-      - **Vá:** thêm dòng 💡 vào `audit-full.md` tách rõ 2 pha: GIAI ĐOẠN 1 quét từng nhóm (cơ học,
-        đối chiếu checklist) → Sonnet/`opusplan` giữ nguyên; bước tổng hợp báo cáo cuối GIAI ĐOẠN 1
-        (cân đánh đổi giữa 12 nhóm, xếp ưu tiên toàn cục) → nâng `/model claude-opus-4-8` (hoặc
-        `fable-5` nếu dự án rất phức tạp) + `/effort xhigh`, xong hạ lại cho GIAI ĐOẠN 2 (xử lý).
-
-- ✅ **Tích hợp OpenSpec (spec-driven, TÙY CHỌN) — đợt 2026-07-05, nhánh `claude/process-improvement-agixul`:**
-      người dùng hỏi "OpenSpec có giúp cải tiến quy trình không". Đánh giá research-first (xác minh
-      nguồn sống: repo Fission-AI/OpenSpec ~59k stars, gói `@fission-ai/openspec` v1.5.0 28/06/2026,
-      Node ≥ 20.19): khung đã có spec cấp DỰ ÁN (PROJECT.md, GĐ 0–2, DoD/DoR, ADR) — OpenSpec KHÔNG
-      thay phần này; khoảng trống thật là **spec cấp TỪNG THAY ĐỔI** ở GĐ 4+ (proposal→spec→design→tasks
-      lưu trong Git, delta spec, archive) — yêu cầu hiện nằm rải trong chat.
-      - **`docs/framework/spec-driven-openspec.md` (mới, SPEC-DRIVEN):** dữ kiện đã xác minh, bản đồ
-        khái niệm OpenSpec ↔ khung, khi nào dùng/không (thay đổi không gói trong 1 PR nhỏ / kéo dài
-        nhiều phiên / nhiều người), quy trình gắn vào GĐ 4–5 (proposal duyệt = cổng DoR, mọi commit
-        vẫn qua `/gate`), thứ tự ưu tiên khi xung đột (CLAUDE.md/KHUNG > PROJECT.md > spec thay đổi),
-        ranh giới trung thực (không tự cài ở `/bootstrap`; AI chỉ đề xuất, người dùng chốt).
-      - Đồng bộ: CLAUDE.md §1 (TRIGGER mới), `docs/framework/README.md` (chỉ mục), KHUNG-1 GĐ 4
-        (1 khối trỏ tùy chọn). `copy-framework.sh/.ps1` không cần sửa (copy nguyên `docs/framework/`).
-
-- ✅ PR #32 (OpenSpec) đã merge vào `main` (CI xanh, squash).
-- ✅ **3 nâng cấp tích hợp (đợt 2026-07-05, người dùng chốt từ đề xuất 4 ứng viên — nhánh
-      `claude/process-improvement-agixul` khởi động lại từ `main`):**
-      - **`AGENTS.md` (mới):** chuẩn mở agents.md (Linux Foundation, 30+ công cụ) — bản tóm tắt luật
-        tối thiểu trỏ về CLAUDE.md (nguồn sự thật; §1 ghi quy tắc "sửa luật thì soát AGENTS.md").
-        Dự án đích mở bằng Cursor/Codex/Copilot giờ đọc được luật khung. Copy scripts copy kèm.
-      - **`.mcp.json` + Context7 (mới):** công cụ hóa research-first — tài liệu đúng phiên bản ngay
-        trong phiên (endpoint remote mcp.context7.com). KHUNG-3 Nguyên tắc 1 bổ sung hướng dẫn + lưu ý
-        bảo mật (không gửi mã nguồn/bí mật) + chống ảo giác (tên tool xem `/mcp`). ci.yml jq validate thêm file.
-      - **Job CI `source-hygiene` (knip@6, xác minh 6.24.0 ngày 2026-07-05):** lấp gap §9
-        quality-supplements tự ghi nhận — dead code/export/dep thừa thành kiểm tra máy; mặc định
-        BÁO CÁO (continue-on-error), hướng dẫn bật chặn trong comment ci.yml + §9.
-      - **Đã cân nhắc và LOẠI:** Spec Kit (trùng OpenSpec), Renovate (Dependabot đủ), Biome (churn),
-        chuyển commands→skills (chưa đáng). **Để sau (cần ADR + người dùng):** đóng gói khung thành
-        Claude Code plugin (`/plugin marketplace add`) — kênh phân phối có phiên bản, thay phần
-        `.claude/` của copy-framework.
-
-- ✅ **Rà lại khung (đợt 2026-07-16) + 2 bổ sung** (nhánh `claude/opusplan-mode-check-8j3ney`):
-      chạy lại toàn bộ cổng kiểm tra sẵn có (docs-consistency, copy-framework smoke, jq config,
-      bash -n) — sạch; không PR nào đang mở. Từ gap-analysis người dùng duyệt, làm 2 mục:
-      - **Dấu bản khung:** `copy-framework.sh`/`.ps1` sinh `docs/framework/FRAMEWORK-VERSION`
-        (commit nguồn + ngày, luôn ghi đè) ở dự án đích — trả lời "đang dùng khung bản nào,
-        khi nào nên copy lại" (so `CHANGELOG.md` từ commit đó). Smoke test có assertion mới.
-      - **`docs/framework/templates/`:** tách 3 mẫu inline (FEATURE-MAP/CONVENTIONS/COMPLETION-PLAN)
-        từ `project-completion.md` ra file template thật — copy thẳng thay chép tay, tránh trùng
-        lặp phân kỳ; doc chỉ trỏ tới template. Cập nhật chỉ mục `docs/framework/README.md`.
-      - Đã cân nhắc và HOÃN: đóng gói Claude Code plugin (cần ADR + người dùng chốt);
-        kiểm chứng case-study bước 6–8 (cần tài khoản thật).
-
-- ✅ **Nghiên cứu `mattpocock/skills` (GitHub) + bổ sung 7 mục ưu tiên cao vào khung** (nhánh
-      `claude/project-enhancement-research-hosp8u`), sau khi người dùng duyệt danh sách đề xuất:
-      - `.claude/commands/grill.md` — skill mới **`/grill`**: kỹ thuật phỏng vấn dồn dập (cây quyết
-        định, hỏi theo đợt/"frontier", mỗi câu kèm đề xuất) — thực thi cụ thể cho CLAUDE.md §9/mục 2.
-      - `.claude/commands/debug.md` — skill mới **`/debug`**: vòng chẩn đoán bug khó 6 pha (dựng
-        feedback loop đỏ-được trước tiên → tái hiện+thu nhỏ → giả thuyết xếp hạng → đo đạc → sửa+test
-        hồi quy → dọn dẹp), khác `/incident` (production) và `/audit-full` (quét toàn diện).
-      - `docs/framework/quality-supplements.md`: thêm Nhóm 1 mục 8 (sổ tay thuật ngữ `CONTEXT.md`,
-        tạo lười khi thuật ngữ đầu tiên chốt) + subsection "Kỷ luật viết test" trong Nhóm 2 mục 6
-        (3 anti-pattern: test ăn khớp cài đặt, test tự-đúng-vì-tính-lại-công-thức, viết test hàng loạt).
-      - `CLAUDE.md` §8: thêm kỷ luật giải xung đột merge/rebase (theo ý định, không bao giờ `--abort`).
-      - `.claude/settings.json` + `settings-shared-opusplan.json`: bổ sung 2 pattern deny còn thiếu
-        (`git checkout .`, `git restore .`) cạnh các pattern đã có (`push --force`/`reset --hard`/`clean`).
-      - `.husky/pre-commit`: đổi từ hardcode `npm run type-check` sang gọi `scripts/dev-task.sh gate`
-        (đã stack-agnostic, có build+typecheck+lint+test) — cổng con người commit tay giờ đủ mạnh
-        như cổng Claude Code chạy qua hook.
-      - Đã cân nhắc và HOÃN (nhóm giá trị vừa, người dùng chọn để sau): vocabulary "deep module"
-        (codebase-design), `/prototype`, `/wizard`, phase-boundary decision tree, `writing-for-agents`.
-      - Đã NGHIÊN CỨU nhưng KHÔNG áp dụng: `rohitg00/agentmemory` (server bộ nhớ xuyên phiên chạy
-        nền, phụ thuộc engine bên thứ ba "iii") — lệch triết lý minh bạch-qua-git của khung; ghi nhận
-        làm lựa chọn ngoài khung, không tích hợp mặc định.
-      - `bash scripts/check-docs-consistency.sh` sạch sau khi sửa 1 tham chiếu path giả trong ví dụ.
-
-## Đang làm
-- (không có — mọi PR đang mở đã được rà và merge hết vào `main`)
+- Thực thi `docs/ops/COMPLETION-PLAN.md` (4 đợt W-1xx→W-4xx) trên nhánh
+  `claude/software-dev-standards-jc776c` — hiện ở Đợt 4 (quản trị OSS & tài liệu đồng bộ).
 
 ## Tiếp theo
-- Case-study mới chạy phần D (hàng rào cục bộ). Phần Bước 6–8 (branch protection, Supabase, Vercel) cần
-  tài khoản thật, chưa kiểm chứng được — nếu có dịp áp khung vào dự án thật, nên kiểm nốt phần này.
-- Dự án đã copy khung bản cũ → dùng bảng ánh xạ trong `docs/framework/README.md` khi cập nhật; chạy lại
-  `copy-framework.sh` bản mới để nhận `scripts/` + hook hoạt động thật + fix không-đè-cấu-hình-có-sẵn.
 
-## Quyết định quan trọng (trỏ tới ADR nếu có)
-- Cấu hình Opusplan được thêm vào `_framework-dropins/` (an toàn, không đè cấu hình cũ)
-- `.claude/` (hooks + agents) cũng được copy vào `_framework-dropins/` để dự án cũ tự merge nếu cần
-- **opusplan là điểm ngọt, không đổi**; tối ưu token thêm bằng CHIA VIỆC (subagent) chứ không "route theo độ khó"
-  (Claude Code không có bộ định tuyến model per-query). `thuc-thi` cùng Sonnet với pha-code opusplan —
-  lợi ích là **cô lập ngữ cảnh + song song**, không phải model rẻ hơn.
+- Xong Đợt 4 → **Pha 4 re-audit hội tụ** (quét lại theo danh mục F-xxx, ghi Nhật ký hội tụ trong
+  COMPLETION-PLAN, nghiệm thu theo Definition of Complete). Owner: AI + người dùng duyệt.
 
-## Nợ kỹ thuật (chỗ "làm tạm" cần quay lại)
-- (không có)
+## Quyết định quan trọng
 
-## Bàn giao phiên (điền khi WIND-DOWN gần chạm limit 5h — để phiên sau "tiếp tục")
-> Chế độ tự động ghi ở đây trước khi dừng: việc vừa xong, việc DỞ ở đâu, bước kế tiếp cụ thể.
-- Lần cập nhật: 2026-07-02 (đợt 2 — sau khi PR #27 đã merge)
-- Việc DỞ / bước tiếp theo: nhánh `claude/opusplan-token-optimization-ihrkd6` thêm §5 "Kỷ luật vận hành"
-  vào `models-and-automation.md` (+ đồng bộ CLAUDE.md §1, framework/README.md, PROGRESS.md) — cần theo dõi
-  CI của PR, squash-merge khi xanh, quay về `main`.
-- Cần lưu ý khi chạy tiếp: TOÀN BỘ tên file/lệnh đã sang tiếng Anh — tra bản đồ tên cũ→mới ở `docs/framework/README.md`. Doc model/tự động: `docs/framework/models-and-automation.md`. Subagent Sonnet (Tầng 3, `route:standard`): `.claude/agents/standard-worker.md` (tên cũ `executor.md`). Copy-framework giờ copy kèm `scripts/` + `PROGRESS.template.md` + KHÔNG đè `.claude/settings.json`/hooks/agents có sẵn (dùng `copy_if_absent`).
+- **opusplan là điểm ngọt, không đổi** — tối ưu token bằng CHIA VIỆC (subagent, cô lập ngữ cảnh),
+  không "route theo độ khó". Chi tiết: `docs/framework/models-and-automation.md`.
+- Giữ scaffold Web (Next.js+Supabase) làm hồ sơ mặc định; loại khác thay công cụ tương đương (KHUNG-3 PHẦN C).
+- Copy-framework KHÔNG đè file có sẵn ở dự án đích (`copy_if_absent`); cấu hình stack vào `_framework-dropins/`.
+- ADR: `docs/adr/` (vd `0001-stack-selection.md`).
+
+## Rủi ro, blocker và nợ kỹ thuật
+
+| Mục | Severity | Owner | Trigger/next action | Link |
+| --- | --- | --- | --- | --- |
+| F-011 `--theme-transition` dead token | Thấp | AI | Chấp nhận rủi ro (chờ người dùng xác nhận khi duyệt kế hoạch) | `docs/ops/COMPLETION-PLAN.md` |
+| F-014 usage-guard số thập phân | Thấp | AI | Chấp nhận rủi ro (như trên) | `docs/ops/COMPLETION-PLAN.md` |
+| F-309 `dev-task.sh` fallback grep | Thấp | AI | Chấp nhận rủi ro (như trên) | `docs/ops/COMPLETION-PLAN.md` |
+| Case-study Bước 6–8 (branch protection/Supabase/Vercel) chưa kiểm chứng | Thấp | Người dùng | Kiểm khi áp khung vào dự án thật có tài khoản | `docs/framework/case-study-greenfield-dry-run.md` |
+
+## Bàn giao phiên
+
+- Lần cập nhật: 2026-08-23
+- State: BUILD
+- Việc dở và bằng chứng mới nhất: đang thực thi Đợt 4 COMPLETION-PLAN (W-401…W-405: CODE_OF_CONDUCT,
+  gộp issue template, dịch CONTRIBUTING, làm mới PROGRESS, sửa README/CHANGELOG + SUPPORT/GOVERNANCE).
+- Bước tiếp theo: hoàn tất Đợt 4, chạy `/gate`, cập nhật trạng thái W-xxx trong COMPLETION-PLAN, rồi Pha 4 re-audit.
+- Quyền/quyết định cần thêm: người dùng xác nhận 3 mục chấp nhận rủi ro (F-011/F-014/F-309) khi duyệt kế hoạch.

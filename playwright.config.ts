@@ -23,9 +23,10 @@ export default defineConfig({
     { name: 'mobile', use: { ...devices['Pixel 5'] } },
   ],
 
-  // Tự dựng app trước khi chạy test (bỏ nếu bạn tự chạy server riêng).
+  // Tự BUILD rồi dựng app trước khi chạy test (bỏ nếu bạn tự chạy server riêng).
+  // `command` là chuỗi shell nên nối được `build && start` — không cần build tay trước.
   webServer: {
-    command: 'npm run start',
+    command: 'npm run build && npm run start',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
