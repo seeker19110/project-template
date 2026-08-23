@@ -83,7 +83,9 @@ const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 pkg.scripts = {
   ...pkg.scripts,
   dev: 'next dev',
-  build: 'next build',
+  // --webpack: dropin next.config.ts nối @serwist/next (PWA) qua webpack; Next 16 mặc định
+  // Turbopack sẽ báo lỗi khi thấy webpack config mà không có turbopack config.
+  build: 'next build --webpack',
   start: 'next start',
   lint: 'eslint . --max-warnings 0',
   'lint:fix': 'eslint . --fix',

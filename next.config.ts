@@ -7,8 +7,15 @@
 // CHƯA có next.config.* (không đè cấu hình sẵn có). Nếu dự án đã có next.config
 // riêng, hãy tự bọc config bằng withSerwist như dưới đây.
 //
-// Cặp với `app/sw.ts` (mã nguồn service worker). LƯU Ý: Serwist chưa hỗ trợ
-// Turbopack — chạy dev PWA bằng `next dev --webpack`.
+// Cặp với `app/sw.ts` (mã nguồn service worker).
+//
+// ⚠ TURBOPACK: từ Next.js 16, Turbopack là mặc định, còn Serwist vẫn nối qua webpack.
+//   Có config webpack mà không có config turbopack → `next build` BÁO LỖI và dừng.
+//   Vì vậy dự án dùng PWA phải chạy webpack tường minh trong package.json:
+//       "dev":   "next dev --webpack"
+//       "build": "next build --webpack"
+//   KHÔNG dùng PWA thì xóa file này (hoặc bỏ withSerwist) để dùng Turbopack mặc định.
+//   Theo dõi hỗ trợ Turbopack: https://github.com/serwist/serwist/issues/54
 import type { NextConfig } from 'next';
 import withSerwistInit from '@serwist/next';
 

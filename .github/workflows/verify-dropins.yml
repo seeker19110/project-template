@@ -43,6 +43,10 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Cần cho bước "Báo issue khi lịch chạy hằng đêm đỏ" ở cuối job.
+      issues: write
     # Cài Next + toolchain rồi build; rộng tay hơn mặc định 6h là thừa, nhưng 30' đủ chặn
     # trường hợp npm treo mà không đốt runner.
     timeout-minutes: 30
