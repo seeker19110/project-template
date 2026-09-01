@@ -6,15 +6,15 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 7 — Hoàn thiện bộ khung (thực thi kế hoạch hoàn thiện `/completion`)
-- Default-branch SHA đã đối chiếu: `57c83e1` (`origin/main`)
-- Ngày cập nhật: 2026-08-23
+- Giai đoạn: GĐ 8 — Khung đã hoàn thiện (Definition of Complete đã nghiệm thu), sẵn sàng dùng cho dự án đích
+- Default-branch SHA đã đối chiếu: `151de56` (`origin/main`, PR #52 đã merge)
+- Ngày cập nhật: 2026-09-01
 
 ## Goal đang active
 
 | Goal | Outcome | State | Current gap | Next slice | Link |
 | --- | --- | --- | --- | --- | --- |
-| Hoàn thiện khung theo COMPLETION-PLAN | 0 phát hiện Cao mở; Vừa/Thấp có kết cục ghi nhận; đạt Definition of Complete | BUILD | Đợt 1–4 (W-1xx…W-4xx) đang thực thi | Xong Đợt 4 → Pha 4 re-audit hội tụ | `docs/ops/COMPLETION-PLAN.md` |
+| Hoàn thiện khung theo COMPLETION-PLAN | 0 phát hiện Cao mở; Vừa/Thấp có kết cục ghi nhận; đạt Definition of Complete | ✅ ĐÓNG (2026-09-01) | — | Không còn goal mở; theo dõi bằng audit định kỳ nếu cần | `docs/ops/COMPLETION-PLAN.md` |
 
 ## Đã xong (tóm tắt)
 
@@ -26,18 +26,20 @@
   (`scripts/check-docs-consistency.sh`) / `copy-framework-smoke` / `source-hygiene` (knip) /
   `verify-dropins.yml`; case-study greenfield chạy thật đầu-cuối (vá eslint flat config, hook, dropins).
 - Tái cấu trúc tên file sang tiếng Anh (nội dung tiếng Việt), bản đồ tên cũ→mới ở `docs/framework/README.md`.
-- PR đã merge gần nhất: **#44** (hợp nhất chuẩn — standard-delivery), **#45** (governance & supply-chain),
-  **#46** (parallel subagent workflow). Các mốc cũ hơn (#19–#32…): xem lịch sử Git của file này + CHANGELOG.
+- PR đã merge gần nhất: **#52** (hoàn thiện khung theo COMPLETION-PLAN, 4 đợt/22 việc W-101→W-406,
+  Pha 4 re-audit hội tụ + nghiệm thu Definition of Complete PASS), **#46** (parallel subagent workflow),
+  **#45** (governance & supply-chain), **#44** (hợp nhất chuẩn — standard-delivery). Mốc cũ hơn
+  (#19–#32…): xem lịch sử Git của file này + CHANGELOG.
 
 ## Đang làm / chờ
 
-- Thực thi `docs/ops/COMPLETION-PLAN.md` (4 đợt W-1xx→W-4xx) trên nhánh
-  `claude/software-dev-standards-jc776c` — hiện ở Đợt 4 (quản trị OSS & tài liệu đồng bộ).
+- Không có việc dở. `docs/ops/COMPLETION-PLAN.md` đã đóng (22/22 việc ✅, Pha 4 nghiệm thu PASS,
+  3 mục Thấp F-011/F-014/F-309 đã được người dùng xác nhận chấp nhận rủi ro 2026-09-01).
 
 ## Tiếp theo
 
-- Xong Đợt 4 → **Pha 4 re-audit hội tụ** (quét lại theo danh mục F-xxx, ghi Nhật ký hội tụ trong
-  COMPLETION-PLAN, nghiệm thu theo Definition of Complete). Owner: AI + người dùng duyệt.
+- Chờ yêu cầu tiếp theo của người dùng: bắt đầu dự án đích mới bằng khung này (`/consult` hoặc
+  `/auto`), hoặc audit định kỳ khác (`/audit-full`) nếu phát sinh nhu cầu.
 
 ## Quyết định quan trọng
 
@@ -51,16 +53,16 @@
 
 | Mục | Severity | Owner | Trigger/next action | Link |
 | --- | --- | --- | --- | --- |
-| F-011 `--theme-transition` dead token | Thấp | AI | Chấp nhận rủi ro (chờ người dùng xác nhận khi duyệt kế hoạch) | `docs/ops/COMPLETION-PLAN.md` |
-| F-014 usage-guard số thập phân | Thấp | AI | Chấp nhận rủi ro (như trên) | `docs/ops/COMPLETION-PLAN.md` |
-| F-309 `dev-task.sh` fallback grep | Thấp | AI | Chấp nhận rủi ro (như trên) | `docs/ops/COMPLETION-PLAN.md` |
+| F-011 `--theme-transition` dead token | Thấp | AI | **Chấp nhận rủi ro (xác nhận 2026-09-01)** — không sửa | `docs/ops/COMPLETION-PLAN.md` |
+| F-014 usage-guard số thập phân | Thấp | AI | **Chấp nhận rủi ro (xác nhận 2026-09-01)** — không sửa | `docs/ops/COMPLETION-PLAN.md` |
+| F-309 `dev-task.sh` fallback grep | Thấp | AI | **Chấp nhận rủi ro (xác nhận 2026-09-01)** — không sửa | `docs/ops/COMPLETION-PLAN.md` |
 | Case-study Bước 6–8 (branch protection/Supabase/Vercel) chưa kiểm chứng | Thấp | Người dùng | Kiểm khi áp khung vào dự án thật có tài khoản | `docs/framework/case-study-greenfield-dry-run.md` |
 
 ## Bàn giao phiên
 
-- Lần cập nhật: 2026-08-23
-- State: BUILD
-- Việc dở và bằng chứng mới nhất: đang thực thi Đợt 4 COMPLETION-PLAN (W-401…W-405: CODE_OF_CONDUCT,
-  gộp issue template, dịch CONTRIBUTING, làm mới PROGRESS, sửa README/CHANGELOG + SUPPORT/GOVERNANCE).
-- Bước tiếp theo: hoàn tất Đợt 4, chạy `/gate`, cập nhật trạng thái W-xxx trong COMPLETION-PLAN, rồi Pha 4 re-audit.
-- Quyền/quyết định cần thêm: người dùng xác nhận 3 mục chấp nhận rủi ro (F-011/F-014/F-309) khi duyệt kế hoạch.
+- Lần cập nhật: 2026-09-01
+- State: DONE (khung) — chờ việc tiếp theo
+- Việc dở và bằng chứng mới nhất: không còn việc dở của COMPLETION-PLAN. Bằng chứng: `scripts/check-docs-consistency.sh`
+  PASS (chạy lại 2026-09-01); nghiệm thu Pha 4 trong `docs/ops/COMPLETION-PLAN.md` (5 cổng PASS, 22/22 việc ✅).
+- Bước tiếp theo: không có; chờ người dùng chọn hướng kế tiếp (dự án đích mới hoặc audit định kỳ).
+- Quyền/quyết định cần thêm: không.

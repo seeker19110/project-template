@@ -64,7 +64,7 @@
 
 ## Phát hiện chấp nhận rủi ro / dời đợt sau (phải có lý do)
 - F-011 (`--theme-transition` dead token), F-014 (usage-guard số thập phân), F-309 (`dev-task.sh` fallback grep): mức Thấp,
-  ảnh hưởng không đáng kể — đề xuất **chấp nhận rủi ro**, chờ người dùng xác nhận khi duyệt kế hoạch.
+  ảnh hưởng không đáng kể — **CHẤP NHẬN RỦI RO, người dùng đã xác nhận 2026-09-01.** Không sửa, không dời.
 - F-006 (`dev-task.sh` eval `project-commands.sh`): escape-hatch có chủ đích; giảm nhẹ bằng W-204 (CODEOWNERS cover `.claude/`).
 
 ## Danh mục phát hiện (F-xxx)
@@ -86,4 +86,6 @@ Bằng chứng chạy thật trên nhánh `claude/software-dev-standards-jc776c`
 
 **Kết luận:** 22/22 việc (W-101…W-406) ✅; 2 phát hiện Cao/Vừa MỚI sinh trong lúc sửa (F-020 Turbopack,
 F-021 quyền issue) đã đóng ngay trong đợt; 0 phát hiện Cao còn mở. Các mục Thấp F-011, F-014, F-309
-để trạng thái **chấp nhận rủi ro** (ghi ở trên) — kế hoạch đóng khi người dùng xác nhận.
+ở trạng thái **chấp nhận rủi ro — người dùng đã xác nhận 2026-09-01.**
+
+**KẾ HOẠCH ĐÃ ĐÓNG (2026-09-01).** Definition of Complete đạt đủ 6/6 mục. Không còn việc mở.
