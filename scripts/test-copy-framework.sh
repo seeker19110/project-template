@@ -5,7 +5,7 @@
 # không lỗi. copy-framework.ps1 chỉ được kiểm nếu máy có `pwsh` (luôn có trên
 # runner ubuntu-latest của GitHub Actions).
 # Chạy: bash scripts/test-copy-framework.sh
-set -uo pipefail
+set -uo pipefail   # cố ý KHÔNG -e: không được làm chết phiên/lượt chạy (xem docs/CONVENTIONS.md §A)
 
 cd "$(git rev-parse --show-toplevel)"
 REPO_ROOT="$(pwd)"
@@ -52,6 +52,14 @@ check_structure() {     # check_structure <mô tả> <target>
   [ -f "$target/_framework-dropins/.github/ISSUE_TEMPLATE/goal.yml" ] || { echo "  FAIL [$label]: thiếu Goal Issue Form"; ok=0; }
   [ ! -e "$target/eslint.config.mjs" ] || { echo "  FAIL [$label]: eslint.config.mjs bị copy thẳng ra gốc (chỉ được nằm trong _framework-dropins/)"; ok=0; }
   [ -f "$target/docs/framework/templates/FEATURE-MAP.template.md" ] || { echo "  FAIL [$label]: thiếu docs/framework/templates/FEATURE-MAP.template.md"; ok=0; }
+  [ -f "$target/docs/framework/templates/TRAPS.template.md" ] || { echo "  FAIL [$label]: thiếu TRAPS template"; ok=0; }
+  [ -f "$target/docs/framework/templates/CODEMAP.template.md" ] || { echo "  FAIL [$label]: thiếu CODEMAP template"; ok=0; }
+  [ -f "$target/docs/framework/templates/GOLDEN-TEST.template.md" ] || { echo "  FAIL [$label]: thiếu GOLDEN-TEST template"; ok=0; }
+  [ -f "$target/_framework-dropins/lib/order-summary.golden.test.ts" ] || { echo "  FAIL [$label]: thiếu golden test ví dụ drop-in"; ok=0; }
+  [ -f "$target/_framework-dropins/lib/__golden__/order-summary.golden.test.ts.snap" ] || { echo "  FAIL [$label]: thiếu golden baseline drop-in"; ok=0; }
+  [ -f "$target/_framework-dropins/scripts/ci-workflow-policy.test.ts" ] || { echo "  FAIL [$label]: thiếu ci-workflow-policy.test.ts drop-in"; ok=0; }
+  [ ! -e "$target/TRAPS.md" ] || { echo "  FAIL [$label]: TRAPS.md của khung (nhật ký riêng) bị copy sang gốc dự án đích"; ok=0; }
+  [ ! -e "$target/CODEMAP.md" ] || { echo "  FAIL [$label]: CODEMAP.md của khung (nhật ký riêng) bị copy sang gốc dự án đích"; ok=0; }
   if [ -f "$target/docs/framework/FRAMEWORK-VERSION" ] && grep -q "^commit-nguon: " "$target/docs/framework/FRAMEWORK-VERSION"; then
     :
   else
@@ -138,11 +146,22 @@ if command -v pwsh >/dev/null 2>&1; then
   check_claude_config_not_overwritten "pwsh / đích có sẵn" "$targetE"
 else
   echo ""
-  echo "  (bỏ qua kiểm thử .ps1 — máy này không có pwsh; CI ubuntu-latest có sẵn)"
+  echo "⚠️  ⚠️  BỎ QUA toàn bộ kiểm thử copy-framework.ps1 — máy này KHÔNG có pwsh."
+  echo "    Nghĩa là lượt chạy này KHÔNG chứng minh gì về bản Windows: danh sách file của"
+  echo "    .sh và .ps1 có thể đã lệch nhau mà không ai thấy (audit 2026-09-12, F-015)."
+  echo "    Bản .ps1 chỉ được kiểm thật trên CI (job copy-framework-smoke, ubuntu-latest có pwsh)."
+  if [ "${REQUIRE_PWSH:-0}" = "1" ]; then
+    echo "::error::REQUIRE_PWSH=1 nhưng không tìm thấy pwsh — CI phải kiểm được bản .ps1."
+    fail=1
+  fi
 fi
 
 echo ""
 if [ "$fail" -eq 0 ]; then
-  echo "OK — copy-framework.sh/.ps1 hoạt động đúng kỳ vọng."
+  if command -v pwsh >/dev/null 2>&1; then
+    echo "OK — copy-framework.sh VÀ copy-framework.ps1 hoạt động đúng kỳ vọng."
+  else
+    echo "OK — copy-framework.sh đúng kỳ vọng (bản .ps1 CHƯA được kiểm ở lượt này — xem cảnh báo trên)."
+  fi
 fi
 exit "$fail"
