@@ -74,7 +74,7 @@ Sau khi chọn: nêu 1 câu **vì sao** phạm vi đó khớp yêu cầu, rồi 
 3. **Xử lý lỗi:** mọi thao tác có thể fail (mạng, CSDL, I/O) đều có nhánh lỗi; nơi có UI thì có trạng thái tải/rỗng/lỗi.
 4. **Rõ ràng & DRY:** không lặp logic; hàm nhỏ làm một việc; tên tự giải thích; không "số/chuỗi ma thuật".
 5. **Không bí mật trong code:** dùng biến môi trường; không commit `.env`.
-6. **Chống lỗi logic:** type-checker không bắt lỗi nghiệp vụ — rà ca biên/rỗng, `null` vs 0, async race/idempotency, thời gian UTC, tiền không dùng float; mỗi nhánh logic phức tạp có ≥ 1 test ca biên (xem Nhóm 2 mục 6). Đọc `TRAPS.md` trước khi chẩn đoán bug lạ — phần lớn lỗi mới là một thể hiện khác của khuôn cũ.
+6. **Chống lỗi logic:** type-checker không bắt lỗi nghiệp vụ — rà ca biên/rỗng, `null` vs 0, async race/idempotency, thời gian UTC, tiền không dùng float; mỗi nhánh logic phức tạp có ≥ 1 test ca biên (xem Nhóm 2 mục 6). Đọc `TRAPS.md` trước khi chẩn đoán bug lạ — phần lớn lỗi mới là một thể hiện khác của khuôn cũ. **Sửa bug (`fix:`) phải có test tái hiện đỏ trước khi sửa** (đỏ → sửa → xanh; test ở lại làm hồi quy) — ngoại lệ: sửa lỗi chính tả/typo, đổi tên cơ học, hoặc thay đổi chỉ chạm tài liệu/scaffolding thì không cần. Vòng đỏ-xanh (TDD) cho code MỚI (chưa có bug) là **khuyến nghị**, không bắt buộc — không ép test-trước lên mọi thay đổi (xem Nhóm 2 mục 6).
 7. **Tối ưu mã nguồn (bắt buộc khi triển khai):** trước khi đóng một mảng/tính năng — và khi áp khung lên dự án có sẵn — rà tối ưu: gỡ dead code, giảm trùng lặp & độ phức tạp, tỉa dependency thừa, thu nhỏ bundle. Refactor **không đổi hành vi**, có test bảo vệ, đo trước–sau, đi PR riêng (playbook & checklist: Nhóm 2 mục 9).
 
 **(B) Đặc thù hồ sơ có UI/web (bỏ qua hoặc thay bằng cổng tương đương nếu không có UI/web):**
@@ -88,7 +88,7 @@ Sau khi chọn: nêu 1 câu **vì sao** phạm vi đó khớp yêu cầu, rồi 
 - Không đoán kết quả lệnh — thực sự chạy và đọc output.
 
 ## 5. Cổng trước khi COMMIT (chạy và đạt hết)
-Build `[ĐIỀN: npm run build]` · Type check `[ĐIỀN: npm run type-check]` · Lint 0 cảnh báo `[ĐIỀN: npm run lint]` · Format `[ĐIỀN: npm run format]` · Test liên quan `[ĐIỀN: npm test]`. Ngoài ra: tự đọc lại diff (đúng mục tiêu, không sửa nhầm); xóa console.log debug/code chết; không bí mật trong code; mọi input đã validate; mọi thao tác có thể lỗi đã xử lý; commit message theo **conventional commits**.
+Build `[ĐIỀN: npm run build]` · Type check `[ĐIỀN: npm run type-check]` · Lint 0 cảnh báo `[ĐIỀN: npm run lint]` · Format `[ĐIỀN: npm run format]` · Test liên quan `[ĐIỀN: npm test]`. Ngoài ra: tự đọc lại diff (đúng mục tiêu, không sửa nhầm); xóa console.log debug/code chết; không bí mật trong code; mọi input đã validate; mọi thao tác có thể lỗi đã xử lý; commit message theo **conventional commits**; commit `fix:` có **test tái hiện đã chạy đỏ trước khi sửa** (§3.6) — không có thì cảnh báo, tự hỏi lại có đúng là `fix:` không; đổi golden test thì diff golden + lý do phải có trong PR, không `-u` phản xạ (xem Nhóm 2 mục 6).
 
 ## 6. Cổng trước khi MERGE (thêm)
 Đạt toàn bộ cổng commit · chạy TOÀN BỘ test (tất cả xanh) · nhánh đã cập nhật với nhánh chính, không xung đột · đối chiếu đủ tiêu chí chấp nhận (trong `PROJECT.md`) + Definition of Done · tự chạy smoke test luồng chính (thật) · rà soát bảo mật (quyền server, không lộ dữ liệu) · không phá vỡ tính năng khác (ghi rõ nếu có breaking change) · nếu đổi schema: có migration có phiên bản, rollback được · **đã rà tối ưu mã nguồn cho mảng vừa xong** (gỡ rác/trùng lặp/dep thừa — Nhóm 2 mục 9) · liệt kê phần hệ thống bị ảnh hưởng.
@@ -96,11 +96,12 @@ Build `[ĐIỀN: npm run build]` · Type check `[ĐIỀN: npm run type-check]` �
 ## 7. Báo cáo xác thực (xuất trước mỗi commit/merge)
 ```
 Build ✅/❌ | Type ✅/❌ (lỗi:..) | Lint ✅/❌ (cảnh báo:..) | Format ✅/❌ | Test ✅/❌ (X/Y)
+Test tái hiện (nếu là fix) ✅/❌/n-a | Golden ✅/n-a
 Tự review diff ✅ | Không bí mật/rác ✅ | Tiêu chí chấp nhận ✅ | DoD ✅
 Rủi ro/ảnh hưởng: .. | Góp ý cải tiến: ..
 KẾT LUẬN: Sẵn sàng  /  Cần xử lý: [..]
 ```
-Bất kỳ mục ❌ → sửa trước, chạy lại toàn bộ, KHÔNG commit/merge.
+Bất kỳ mục ❌ → sửa trước, chạy lại toàn bộ, KHÔNG commit/merge. `n-a` hợp lệ cho commit không phải `fix:` hoặc dự án không có golden test — không phải nợ kỹ thuật.
 
 ## 8. Quy ước Git
 Mỗi tính năng/sửa lỗi một nhánh riêng (`feat/...`, `fix/...`) · commit nhỏ, mỗi commit một thay đổi logic · **conventional commits** (`feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `style`, `perf`) · mọi merge vào nhánh chính qua pull request (kể cả làm một mình) · **ưu tiên squash merge** (lịch sử `main` tuyến tính, mỗi PR = một commit conventional — hợp `release-please`/CHANGELOG; đặt tiêu đề squash đúng dạng conventional) · không push thẳng nhánh chính.

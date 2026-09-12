@@ -414,6 +414,14 @@ test **vô dụng dù vẫn xanh** — rà cả khi viết mới lẫn khi revie
 test đó pass (không đoán trước tính năng chưa cần) → refactor an toàn (có lưới test) → lặp lại
 cho hành vi tiếp theo. Chỉ **1 seam, 1 test, 1 lần sửa tối thiểu** mỗi vòng.
 
+> **Bắt buộc vs khuyến nghị — đừng lẫn hai thứ khác nhau.** Vòng đỏ-xanh ở trên là kỹ thuật để viết
+> code **MỚI** (chưa có bug) — dùng khi có chủ đích, **khuyến nghị**, không bắt buộc cho mọi thay
+> đổi (ép test-trước lên scaffolding/rename/docs là nghi thức rỗng, xem "horizontal slicing" trên).
+> Khác hẳn luật **BẮT BUỘC** ở `CLAUDE.md` §3.6: **sửa bug (`fix:`) phải có test tái hiện chạy đỏ
+> trước khi sửa** — đây không phải TDD "có chủ đích" mà là điều kiện để coi một bug là đã sửa đúng
+> (không có nó, không biết sửa có trúng nguyên nhân hay chỉ trùng hợp hết triệu chứng). `/gate`,
+> `/debug`, `/completion` đều áp dụng luật bắt buộc này.
+
 ---
 
 ## 7. Observability — Sentry (cụ thể hóa GĐ 6)

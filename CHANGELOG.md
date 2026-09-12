@@ -13,6 +13,19 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **TDD "sửa bug phải có test tái hiện đỏ trước khi sửa" nâng từ luật của một lệnh lên luật của
+  khung** (PR-A/3 của spec `docs/specs/2026-09-12-golden-tests-and-tdd.md`, đã Approved for
+  implementation). Trước đây luật này chỉ sống trong `/completion` + `/audit-full`, nên một PR
+  `fix` thường hoặc phiên `/auto` không đi qua nhánh đó. Nay có ở `CLAUDE.md` §3.6/§5, Báo cáo xác
+  thực §7 (dòng `Test tái hiện (nếu là fix) ✅/❌/n-a` + `Golden ✅/n-a` — golden `n-a` cho tới khi
+  PR-B/PR-C của spec dựng cơ chế thật), `.claude/commands/gate.md` (cảnh báo mềm, không chặn cứng —
+  cố ý, vì chặn cứng sẽ dạy người dùng khai sai loại commit) và `AGENTS.md`. Làm rõ trong
+  `docs/framework/quality-supplements.md` ranh giới đang bị đọc lẫn: vòng đỏ-xanh TỔNG QUÁT cho code
+  MỚI là **khuyến nghị**, còn test-tái-hiện-trước cho bug là **bắt buộc** — hai thứ khác nhau.
+  **Sửa nghiên cứu sai của chính spec:** `.claude/commands/debug.md` Pha 5 hoá ra ĐÃ đúng từ trước
+  (đã nói "trước khi sửa... đỏ → sửa → xanh" từ PR #36) — claim ban đầu trong spec (§1) rằng
+  debug.md yêu cầu test "kèm lúc sửa" là research sai lúc viết spec; không sửa file đó, chỉ ghi
+  nhận đúng sự thật ở đây.
 - **`CODEMAP.md` — bảng "muốn đổi X → sửa file nào → rồi chạy lại gì", nối vào `/completion`**
   (PR-3/4 của spec `docs/specs/2026-09-12-traps-codemap-ci-policy.md`, đã Approved for implementation).
   Thêm `docs/framework/templates/CODEMAP.template.md` (mẫu rỗng cho dự án đích) và `CODEMAP.md` ở

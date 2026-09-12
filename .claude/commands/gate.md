@@ -18,14 +18,19 @@ Chạy từng cổng dò được, **đọc kết quả thật** (không suy đo
 ## Bước 3 — Tự rà diff (CLAUDE.md §5)
 `git diff` (đã/ chưa stage): đúng mục tiêu, không sửa nhầm · xóa `console.log` debug/code chết · **không bí mật trong code** · mọi input ngoài đã validate · mọi thao tác có thể lỗi đã xử lý · commit message theo **conventional commits**.
 
+**Nếu commit là `fix:`** (CLAUDE.md §3.6): có test tái hiện đã chạy **đỏ trước khi sửa** trong diff/lịch sử phiên này không? Có → ghi `✅` + dẫn output đỏ. Không, và đây thật sự là sửa lỗi chính tả/đổi tên cơ học/chỉ tài liệu → `n-a` (ngoại lệ hợp lệ, không phải nợ kỹ thuật). Không rơi vào ngoại lệ nào → **CẢNH BÁO, hỏi lại người dùng**: có muốn viết test tái hiện trước khi tiếp tục, hay đây thực ra nên là `chore:`/`docs:`? Không tự động chặn — chỉ `/completion`/`/audit-full` chặn cứng mục này.
+
+**Nếu diff đổi một golden/snapshot test:** diff golden test + lý do thay đổi phải nằm trong PR body (không phải chỉ trong code). Đổi golden mà không giải thích được bằng thay đổi khác trong PR → đó là dấu hiệu hồi quy, không phải "làm xanh" — dừng, chẩn đoán trước khi cập nhật golden (`-u`).
+
 ## Bước 4 — Xuất Báo cáo xác thực (đúng mẫu §7)
 ```
 Build ✅/❌/N/A | Type ✅/❌ (lỗi:..) | Lint ✅/❌ (cảnh báo:..) | Format ✅/❌ | Test ✅/❌ (X/Y)
+Test tái hiện (nếu là fix) ✅/❌/n-a | Golden ✅/n-a
 Tự review diff ✅ | Không bí mật/rác ✅ | Tiêu chí chấp nhận ✅ | DoD ✅
 Rủi ro/ảnh hưởng: .. | Góp ý cải tiến: ..
 KẾT LUẬN: Sẵn sàng  /  Cần xử lý: [..]
 ```
-**Bất kỳ mục ❌ → sửa trước, chạy lại TOÀN BỘ, KHÔNG commit/merge** (CLAUDE.md §7). Lint phải **0 cảnh báo**.
+**Bất kỳ mục ❌ → sửa trước, chạy lại TOÀN BỘ, KHÔNG commit/merge** (CLAUDE.md §7). Lint phải **0 cảnh báo**. `Test tái hiện` là cảnh báo mềm (xem trên) — mọi mục khác vẫn chặn cứng như trước.
 
 ## Chế độ merge (`/gate merge`) — thêm các mục §6
 Toàn bộ test xanh · nhánh đã cập nhật với nhánh chính, không xung đột · đối chiếu **tiêu chí chấp nhận** (`PROJECT.md`) + **DoD** · smoke test luồng chính · rà bảo mật (quyền server, không lộ dữ liệu) · nếu đổi schema: migration có phiên bản + rollback · đã rà tối ưu mã nguồn mảng vừa xong (hoặc `/audit-optimize`) · liệt kê phần hệ thống bị ảnh hưởng.

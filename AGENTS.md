@@ -22,6 +22,7 @@
 - **Chống ảo giác:** không bịa hàm/thư viện/API — xác minh bằng tài liệu/mã nguồn thật; không đoán kết quả lệnh — chạy thật và đọc output; xác minh phiên bản bằng nguồn sống, không dùng trí nhớ.
 - **Sổ bẫy (`TRAPS.md` ở gốc repo, nếu có):** đọc trước khi chẩn đoán bug lạ; sau khi sửa một khuôn lỗi thì ghi mục mới hoặc thêm ngày/PR vào mục cũ nếu tái phát.
 - **Cổng trước khi commit:** build + type-check + lint (0 cảnh báo) + format + test liên quan đều PHẢI xanh; tự đọc lại diff; không bí mật/`console.log` debug trong code. Lệnh cụ thể: xem `CLAUDE.md` §5 / `package.json`.
+- **TDD:** commit `fix:` phải có test tái hiện đã chạy **đỏ trước khi sửa** (ngoại lệ: typo, đổi tên cơ học, chỉ tài liệu). Vòng đỏ-xanh cho code mới là khuyến nghị, không bắt buộc. Đổi golden/snapshot test phải nêu lý do + dán diff trong PR, không `-u` phản xạ.
 - **Cổng trước khi merge:** toàn bộ test xanh, nhánh cập nhật với `main`, đối chiếu tiêu chí chấp nhận trong `PROJECT.md` — xem `CLAUDE.md` §6.
 - **Git:** mỗi tính năng một nhánh (`feat/...`, `fix/...`); conventional commits; mọi thay đổi vào `main` qua PR (ưu tiên squash); KHÔNG push thẳng `main`.
 - **Bảo mật:** không tin client; logic nhạy cảm ở server; truy vấn tham số hóa; không commit `.env`/bí mật.
