@@ -20,8 +20,8 @@
 
 | ID | F gốc | Việc | Tiêu chí nghiệm thu | Phụ thuộc | Sức | Trạng thái |
 | --- | --- | --- | --- | --- | --- | --- |
-| W-106 | F-001 | **(mới — chặn W-101)** Miễn trừ PR bot khỏi yêu cầu mục PR template trong `pr-policy.yml` | PR dependabot có check `metadata` xanh | — | S | ✅ đã sửa; cần merge vào `main` mới có hiệu lực |
-| W-101 | F-001 | Merge 5 PR dependabot theo **FIFO** (#53→#54→#55→#56→#57) | 5 PR MERGED; `main` không còn action Node 20 | **W-106** | S | 🔄 BLOCKED — xem ghi chú dưới |
+| W-106 | F-001 | **(mới — chặn W-101)** Miễn trừ PR bot khỏi yêu cầu mục PR template trong `pr-policy.yml` | PR dependabot có check `metadata` xanh | — | S | ✅ merge ở **PR #64** (`1a2a45f`); bằng chứng: `metadata` chuyển từ đỏ 2/2 lượt → **xanh** trên cả 5 PR dependabot |
+| W-101 | F-001 | Merge 5 PR dependabot theo **FIFO** (#53→#54→#55→#56→#57) | 5 PR MERGED; `main` không còn action Node 20 | **W-106** | S | ✅ 5/5 merged; đo lại trên `main`: **0 action node20** (kèm 1 lỗi tự bắt — xem dưới) |
 | W-102 | F-003 | Pin `actions/cache@v4` → full SHA | `ci.yml:205` có SHA + comment `# v4.x.y` | W-101 | S | ✅ `ci.yml:205` → `actions/cache@caa2961 # v5.1.0` (Node 24, thay vì v4 Node 20 sắp bị xoá khỏi runner) |
 | W-103 | F-003 | Thêm kiểm "mọi `uses:` phải pin SHA" vào `scripts/check-ci-policy.sh` + negative test | Script bắt được action không pin (chứng minh bằng lượt chạy đỏ có chủ đích) | W-102 | S | ✅ `ci.yml:205` → `actions/cache@caa2961 # v5.1.0` (Node 24, thay vì v4 Node 20 sắp bị xoá khỏi runner) |
 | W-104 | F-005 | gitleaks ở pre-commit (dropins `.husky/pre-commit`) | Commit chứa bí mật mẫu bị chặn tại local, trước khi vào lịch sử | — | S | ✅ `.husky/pre-commit` + kiểm 4 nhánh (chặn/cho qua/thiếu gitleaks/cờ bỏ qua) |
@@ -66,7 +66,25 @@ F-012→W-306 · F-016→W-311 · F-017→W-312 · F-013→W-307 · F-014→W-30
 `pr-policy.yml: metadata` **fail trên mọi PR dependabot** từ 24/08 (2/2 lượt chạy của #53 đều đỏ):
 required check này đòi PR body có 6 mục template, dependabot không điền được → không bao giờ xanh.
 Vì vậy 5 PR không thể merge cho tới khi bản sửa `pr-policy.yml` (W-106) có mặt **trên `main`**.
-CI của #53 (`ci.yml`) đã xanh trên head mới `a0edd2f` sau khi update branch — chỉ còn `metadata` chặn.
+
+**Kết quả sau khi W-106 vào `main` (PR #64, `1a2a45f`)** — giả thuyết được chứng minh: `metadata`
+chuyển sang **xanh** trên từng PR dependabot ngay lượt chạy đầu sau `update_pull_request_branch`.
+Merge theo đúng FIFO:
+
+| PR | Nội dung | Squash | Bằng chứng đáng chú ý |
+| --- | --- | --- | --- |
+| #53 | `github-script` 7.0.1 → 9.0.0 | `862aaf5` | v9 có breaking change (`require('@actions/github')`); đã đọc 2 chỗ dùng — chỉ `core`/`github.rest`/`context` → không ảnh hưởng |
+| #54 | `dependency-review-action` 4.9.0 → 5.0.0 | `a76805d` | `verify-dropins` không chạy (paths filter) — đúng, PR không chạm dropins |
+| #55 | `gitleaks-action` 2.3.9 → 3.0.0 | `a528f6f` | job `gitleaks` **xanh bằng chính bản v3** — không chỉ tin release notes |
+| #56 | `codeql-action/init` 4.37.8 → 4.37.9 | `e67e611` | job `analyze` xanh |
+| #57 | `codeql-action/analyze` 4.37.8 → 4.37.9 | `67ce69b` | job `analyze` xanh |
+
+**Nghiệm thu W-101 KHÔNG dựa vào "đã merge 5/5" mà đo lại trên `main`** — và lượt đo bắt được lỗi
+thật: vẫn còn **một** `actions/github-script@v7.0.1` (node20) trong `.github/workflows/stale-pr-alert.yml`,
+tức file do **chính PR #64 thêm vào** một giờ trước đó. PR #53 (tạo 24/08) chỉ phủ các file tồn tại
+lúc nó được tạo. Đã nâng lên v9.0.0 (đã kiểm: script chỉ dùng `core`/`github.rest`/`github.paginate`/
+`context` → không chạm breaking change của v9). Đo lại: **0 action node20 trên `main`**.
+Khuôn bẫy ghi ở `TRAPS.md` mục 7.
 
 **W-105 đã chọn cơ chế:** workflow theo lịch (tuần) thay vì nhắc trong `session-guide.sh` — hook
 không nên gọi mạng (chậm, cần auth, và dự án đích có thể không có `gh`). Workflow đọc PR + check run
@@ -82,6 +100,7 @@ bản shell **buộc** phải khai ở bản vitest — implement, hoặc ghi "k
 | --- | --- |
 | W-202 | Cần chạy thật `verify-dropins.sh` (npm install Next.js, nhiều phút) để kiểm chứng bước commit mới; không đẩy bước CI chưa được chạy thử — nguyên tắc "một push đã kiểm chứng hơn ba push phỏng đoán" |
 | W-303 | Test RLS "thử vượt quyền" cần Supabase local (`supabase start`) trong `verify-dropins.sh` — cùng lý do W-202 |
+| W-107 | ✅ (mới, sinh trong lúc nghiệm thu W-101) Nâng `github-script` trong `stale-pr-alert.yml` v7.0.1 → v9.0.0 — file mới của #64 không nằm trong phạm vi PR #53 |
 | W-306 | Làm cuối cùng, sau khi đợt này merge (SHA `main` chưa cố định) |
 | W-308 | Xoá ~32 nhánh đã merge là thao tác trên remote, không hoàn tác dễ → xin xác nhận người dùng (`CLAUDE.md` §9) |
 | W-310 | Môi trường phiên này chặn đọc `.env*` — cần phiên có quyền |

@@ -6,9 +6,9 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8 — audit toàn diện lượt 2026-09-12 xong (Pha 0→3); đang chờ merge đợt "siết hàng rào"
-- Default-branch SHA đã đối chiếu: `772c949` (`origin/main`, PR #63)
-- Nhánh đang làm: `claude/khung-du-an-mau-upgrade-7aw7n1` @ `0f9d47d` (chưa có PR)
+- Giai đoạn: GĐ 8 — audit toàn diện 2026-09-12 đã qua Pha 3; đợt "siết hàng rào" + 5 PR dependabot đã vào `main`
+- Default-branch SHA đã đối chiếu: `67ce69b` (`origin/main`, PR #57 — 6 PR merge trong phiên: #64, #53, #54, #55, #56, #57)
+- Nhánh đang làm: `claude/khung-du-an-mau-upgrade-7aw7n1` (cập nhật trạng thái + W-107)
 - Ngày cập nhật: 2026-09-12
 
 ## Goal đang active
@@ -16,7 +16,7 @@
 | Goal | Outcome | State | Current gap | Next slice | Link |
 | --- | --- | --- | --- | --- | --- |
 | Gói A+B+C: TRAPS + CODEMAP + cổng CI | 4 PR merge; TRAPS/CODEMAP thật + cổng `check-ci-policy.sh` chạy trong CI | ✅ ĐÓNG (2026-09-12, PR #62) | — | Không còn goal mở | `docs/specs/2026-09-12-traps-codemap-ci-policy.md` |
-| Siết hàng rào (audit 2026-09-12) | 0 phát hiện Cao mở; luật có cơ chế thi hành | 🔄 MỞ | W-101 chặn bởi W-106 (cần merge vào `main`) | Mở PR → merge → merge 5 PR dependabot FIFO | `docs/ops/COMPLETION-PLAN.md` |
+| Siết hàng rào (audit 2026-09-12) | 0 phát hiện Cao mở; luật có cơ chế thi hành | 🔄 MỞ | Còn 5 việc: W-202, W-303 (cần môi trường npm/Supabase thật), W-308 (chờ người dùng), W-310 (chờ quyền đọc `.env*`), W-302 phần còn lại | W-202: cho `verify-dropins.sh` commit thật để husky được chạy | `docs/ops/COMPLETION-PLAN.md` |
 | Golden test + kỷ luật TDD | 3 PR merge; TDD lên cấp CLAUDE.md/gate, golden có luật cập nhật | ✅ ĐÓNG (2026-09-12, PR #62) | — | Không còn goal mở | `docs/specs/2026-09-12-golden-tests-and-tdd.md` |
 | Hoàn thiện khung theo COMPLETION-PLAN | 0 phát hiện Cao mở; Vừa/Thấp có kết cục ghi nhận; đạt Definition of Complete | ✅ ĐÓNG (2026-09-01) | — | Không còn goal mở | `docs/ops/COMPLETION-PLAN.md` |
 
@@ -39,12 +39,14 @@
 
 ## Đang làm / chờ
 
-- **Kế hoạch hoàn thiện lượt 2026-09-12 đang MỞ:** `docs/ops/COMPLETION-PLAN.md` — 13/22 việc ✅
-  (cả 2 phát hiện Cao đã xử lý), 1 việc 🔄 BLOCKED, 8 việc ⬜ có lý do hoãn ghi rõ.
-- **Chờ người dùng:** (a) mở PR cho nhánh trên — bắt buộc để W-106 (`pr-policy.yml` miễn trừ bot)
-  tới được `main`, vì 5 PR dependabot không thể merge trước khi nó có hiệu lực; (b) xác nhận xoá
-  ~32 nhánh đã merge (W-308); (c) chọn cơ chế cho W-105 (phát hiện PR đọng).
-- **Gấp:** GitHub xoá Node 20 khỏi runner **16/09/2026** → 5 PR dependabot phải merge trước đó.
+- **Kế hoạch hoàn thiện lượt 2026-09-12 đang MỞ:** `docs/ops/COMPLETION-PLAN.md` — 18/23 việc ✅
+  (cả 2 phát hiện Cao đã đóng), 5 việc còn lại đều có lý do hoãn ghi rõ.
+- **Rủi ro Node 20 đã đóng:** đo lại trên `main` — **0 action chạy node20** (mốc GitHub xoá node20
+  khỏi runner: 16/09/2026). Lượt đo bắt được 1 lỗi tự gây: `stale-pr-alert.yml` của #64 ghim lại
+  v7.0.1 — đã nâng (W-107, `TRAPS.md` mục 7).
+- **Chờ người dùng:** (a) xác nhận xoá ~32 nhánh đã merge (W-308); (b) **chuyển branch protection
+  sang khoá đúng 1 tên `gate`** thay vì 7 tên job (ADR-0003, `docs/ops/repository-settings.md`) —
+  chỉ chủ repo làm được trên GitHub Settings.
 
 ## Tiếp theo
 
