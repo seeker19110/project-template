@@ -74,12 +74,23 @@ jobs:
       # Không có cờ này, runner mất pwsh sẽ làm test âm thầm bỏ qua nửa phạm vi mà job vẫn xanh.
       - run: REQUIRE_PWSH=1 bash scripts/test-copy-framework.sh
 
+  # CHỈ chạy khi push thẳng vào main (một PR vừa merge) — lúc PR còn mở, nhánh của nó vẫn tồn tại
+  # là bình thường, kiểm lúc đó sẽ báo oan. fetch-depth: 0 bắt buộc để đối chiếu ancestor (PF-1).
+  progress-freshness:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - run: bash scripts/check-progress-freshness.sh
+
   # Job TỔNG HỢP (ADR-0003, audit 2026-09-12 F-010): branch protection chỉ cần khoá MỘT tên là
   # `gate` thay vì liệt kê từng job. `if: always()` là bắt buộc — không có nó, `gate` bị SKIP khi
   # một job cha đỏ, và GitHub coi required check "skipped" là ĐẠT (hỏng im lặng).
   gate:
     if: always()
-    needs: [framework-lint, docs-consistency, copy-framework-smoke]
+    needs: [framework-lint, docs-consistency, copy-framework-smoke, progress-freshness]
     runs-on: ubuntu-latest
     steps:
       - name: Kết luận từ mọi job cổng

@@ -11,16 +11,21 @@
 TẦNG 1 — NGƯỜI LẬP KẾ HOẠCH  (phiên chính · opusplan/Fable 5) — phần "NGHĨ"
    Hiểu yêu cầu → thiếu đặc tả thì HỎI (AskUserQuestion) → viết đặc tả chi tiết
    (schema DDL, API, điểm chạm code, tiêu chí chấp nhận) → gắn nhãn `route:` từng việc
+   → NHÓM việc thành các ĐƠN VỊ PR (1 PR/đơn vị) + khai phụ thuộc giữa đơn vị
    → xuất PLAN.md → (cuối) DUYỆT kết quả.  KHÔNG tự code, KHÔNG babysit worker.
                                   │  PLAN.md (đã người dùng duyệt)
                                   ▼
 TẦNG 2 — NGƯỜI ĐIỀU PHỐI  (coordinator · Opus · low) — phần "CHẠY"
-   Nhận NGUYÊN VĂN PLAN.md → git fetch đồng bộ → tạo nhánh/worktree từng việc
-   → dispatch theo `route:` → nghiệm thu (tiêu chí chấp nhận, gọi `tester` chạy cổng)
-   → gọi `reviewer` soát diff (đụng bảo mật/dữ liệu thật → thêm `security-reviewer`)
-   → tích hợp (số migration, rebase) → báo cáo tổng hợp về Tầng 1.
-   CỨNG: không đổi kế hoạch/đặc tả · không tự code · không merge.
-                                  │  dispatch theo nhãn
+   Nhận NGUYÊN VĂN PLAN.md → git fetch đồng bộ → với MỖI đơn vị PR: tạo nhánh riêng
+   → dispatch việc trong đơn vị theo `route:` (trần effort **medium**, kể cả `route:complex`)
+   → nghiệm thu (tiêu chí chấp nhận, gọi `tester` chạy cổng) → gọi `reviewer` soát diff
+   (đụng bảo mật/dữ liệu thật → thêm `security-reviewer`) → mở PR cho đơn vị → cổng
+   `/gate` xanh thì **bật auto-merge** (CLAUDE.md §8) → đơn vị kế theo đúng phụ thuộc
+   (song song nếu độc lập, tuần tự nếu phụ thuộc) → báo cáo tổng hợp về Tầng 1.
+   CỨNG: không đổi kế hoạch/đặc tả · không tự code · không tự tay merge (chỉ BẬT
+   auto-merge, để CI xanh mới thật sự merge) · gặp §9 (mốc không hoàn tác/breaking
+   lan rộng) thì DỪNG đơn vị đó, không bật auto-merge, báo lên Tầng 1.
+                                  │  dispatch theo nhãn, 1 PR/đơn vị
                                   ▼
 TẦNG 3 — WORKERS  (định tuyến 2 trục: độ phức tạp × độ kín đặc tả)
    route:complex     → complex-implementer  (Opus · high)
@@ -40,14 +45,20 @@ TẦNG 3 — WORKERS  (định tuyến 2 trục: độ phức tạp × độ kí
 
 | `route:` | Agent | Model · effort | Khi nào |
 |---|---|---|---|
-| `complex` | `complex-implementer` | Opus · high | Phức tạp, còn chỗ **tự quyết** trong ranh giới brief (thuật toán, cấu trúc dữ liệu, tổ chức module chưa chốt) |
+| `complex` | `complex-implementer` | Opus · **medium** | Phức tạp, còn chỗ **tự quyết** trong ranh giới brief (thuật toán, cấu trúc dữ liệu, tổ chức module chưa chốt) |
 | `spec` | `spec-executor` | Opus · low | Phức tạp nhưng **đặc tả kín** — chỉ thi hành, zero phán đoán |
 | `standard` | `standard-worker` | Sonnet · medium | Việc **vừa**, có đặc tả cụ thể (test theo spec, boilerplate, cập nhật docs, sửa cơ học nhiều file) |
 | `mechanical` | `mechanical-worker` | Haiku | **Cơ học** theo mẫu/thông báo, khép kín, gần như không phán đoán |
 
 Hai trục quyết định nhãn:
 - **Độ phức tạp** (cần chiều sâu lý luận?) → Opus vs Sonnet/Haiku.
-- **Độ kín đặc tả** (còn chỗ tự quyết?) → effort cao (`complex`) vs effort thấp/chỉ-thi-hành (`spec`).
+- **Độ kín đặc tả** (còn chỗ tự quyết?) → effort vừa (`complex`) vs effort thấp/chỉ-thi-hành (`spec`).
+
+**Trần effort = `medium` cho MỌI worker Tầng 3, kể cả `route:complex`** (chốt 2026-09-12, thay quy
+ước cũ "complex = effort cao"). Model (Opus vs Sonnet vs Haiku) vẫn là trục phân biệt năng lực chính;
+không worker nào được tự nâng `/effort` quá `medium` để tiết kiệm token — việc thật sự cần effort
+cao hơn (`xhigh`/`ultrathink`) không giao worker, giữ lại ở Tầng 1 (đúng CLAUDE.md §9 "nhiều đánh đổi
+lớn/quyết định kiến trúc" — Tầng 1 tự làm, không route xuống).
 
 ## Luật cứng theo tầng
 
@@ -79,6 +90,11 @@ Hai trục quyết định nhãn:
 - API: <chữ ký endpoint/hàm, kiểu vào/ra, mã lỗi>
 - Quy ước: <đặt tên, thư mục, migration>
 
+## Nhóm PR (đơn vị mở PR)
+- **PR-1** (<tên>): gồm việc T1, T2 — độc lập, chạy song song với PR-2
+- **PR-2** (<tên>): gồm việc T3 — độc lập, chạy song song với PR-1
+- **PR-3** (<tên>): gồm việc T4 — phụ thuộc PR-1 (rebase sau khi PR-1 merge), chạy tuần tự
+
 ## Danh sách việc
 ### T1 — <tên việc>   `route: standard`
 - Điểm chạm: `<đường-dẫn-file-1>`, `<đường-dẫn-file-2>`
@@ -90,7 +106,7 @@ Hai trục quyết định nhãn:
 - ... (chừa rõ phần được tự quyết, nêu ranh giới)
 
 ## Thứ tự tích hợp & migration
-<T1 → T2; ai đánh số migration; điểm rebase>
+<PR-1 → PR-3; ai đánh số migration; điểm rebase — khớp phần "Nhóm PR" ở trên>
 
 ## Duyệt cuối (Tầng 1)
 <những gì Tầng 1 sẽ kiểm khi nghiệm thu tổng>

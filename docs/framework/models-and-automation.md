@@ -231,7 +231,7 @@ Model (§2) là cần thứ nhất, effort (§4) là cần thứ hai; **cách v�
 | `lookup.md` | Haiku | Tìm file, grep symbol, định vị định nghĩa/tham chiếu, trích dữ kiện — read-only |
 | `version-check.md` | Haiku | Xác minh phiên bản bằng nguồn sống (npm/pypi/node) cho research-first |
 | `coordinator.md` | Opus · low | **Tầng 2** — điều phối: nhận nguyên văn PLAN.md, tạo nhánh/worktree, dispatch theo `route:`, nghiệm thu, gọi reviewer, tích hợp. Không đổi kế hoạch, không tự code, không merge. |
-| `complex-implementer.md` | Opus · high | **Tầng 3** `route:complex` — việc phức tạp còn chỗ tự quyết trong ranh giới brief. |
+| `complex-implementer.md` | Opus · medium (trần) | **Tầng 3** `route:complex` — việc phức tạp còn chỗ tự quyết trong ranh giới brief. |
 | `spec-executor.md` | Opus · low | **Tầng 3** `route:spec` — việc phức tạp nhưng đặc tả kín, chỉ thi hành. |
 | `standard-worker.md` | Sonnet | **Tầng 3** `route:standard` (kế thừa `executor`) — việc vừa, đặc tả cụ thể (test theo spec, boilerplate, cập nhật docs, sửa cơ học). Cô lập ngữ cảnh + song song, không phải "model rẻ hơn". |
 | `mechanical-worker.md` | Haiku | **Tầng 3** `route:mechanical` — việc cơ học theo mẫu/thông báo, khép kín. |

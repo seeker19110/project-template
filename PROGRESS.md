@@ -6,12 +6,18 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8 — audit toàn diện 2026-09-12 đã đóng (Nhóm 11 xong qua PR #66); **quyết định kiến
-  trúc lớn mới cùng ngày: gỡ hẳn scaffold Web mặc định khỏi repo khung (ADR-0004)**, đang hoàn thiện
-  trên nhánh riêng trước khi mở PR
-- Default-branch SHA đã đối chiếu: `66840fe` (`origin/main`, PR #66)
-- Nhánh đang làm: `claude/remove-web-scaffold-layer2` (ADR-0004 — xoá scaffold Next.js/Supabase, sửa
-  `ci.yml`/`copy-framework.sh`/`.ps1`, cập nhật tài liệu tham chiếu)
+- Giai đoạn: GĐ 8 — ADR-0004 (gỡ scaffold Web mặc định) đã merge qua PR #67; PR #68 tổng quát hoá
+  harness cho mọi AI coding model/provider đã merge. Đang trên nhánh
+  `claude/loving-albattani-rqp49h` (chưa mở PR) với 2 thay đổi cùng lượt: (1) hàng rào chống lỗi
+  thời cho `PROGRESS.md` (`scripts/check-progress-freshness.sh` + job CI `progress-freshness`,
+  commit `a4fdd4d`); (2) quy trình mới "chia đơn vị PR + trần effort medium + auto-merge" chèn sau
+  bước duyệt kế hoạch, áp cho việc đủ lớn cần điều phối 3 tầng (`CLAUDE.md` §2, `AGENTS.md`,
+  `orchestration-3-tier.md`, `.claude/agents/{coordinator,complex-implementer}.md`, `auto.md`,
+  `models-and-automation.md`) — CHƯA commit.
+- Default-branch SHA đã đối chiếu: `08bcc84` (`origin/main`, PR #68) — nhánh làm việc đã đi trước
+  bằng 1 commit cục bộ chưa push (`a4fdd4d`) + thay đổi đang dở.
+- Nhánh đang làm: `claude/loving-albattani-rqp49h` (không phải PR — đã push commit `a4fdd4d`, đang
+  thêm commit thứ hai)
 - Ngày cập nhật: 2026-09-12
 
 ## Goal đang active
@@ -35,7 +41,12 @@
   (`scripts/check-docs-consistency.sh`) / `copy-framework-smoke`; case-study greenfield (lịch sử,
   chạy khi repo còn scaffold — xem `case-study-greenfield-dry-run.md`).
 - Tái cấu trúc tên file sang tiếng Anh (nội dung tiếng Việt), bản đồ tên cũ→mới ở `docs/framework/README.md`.
-- PR đã merge gần nhất: **#62** (TRAPS.md + CODEMAP.md + `check-ci-policy.sh` + golden test/TDD —
+- **(2026-09-12) PR #68 — tổng quát hoá harness cho mọi AI coding model/provider**: AGENTS.md
+  thành entrypoint chung có hàng rào an toàn thủ công cho agent không có hook Claude Code;
+  `.mcp.json.example` + `.claude/settings.local.json.example`; bridge file GEMINI.md/.clinerules/
+  .windsurfrules/Cursor/Copilot trỏ về AGENTS.md; thêm subagent `tester` + `security-reviewer`.
+- PR đã merge gần nhất: **#68** (tổng quát hoá harness), **#67** (ADR-0004 gỡ scaffold Web), **#66**
+  (đóng Nhóm 11 audit), **#62** (TRAPS.md + CODEMAP.md + `check-ci-policy.sh` + golden test/TDD —
   2 spec `docs/specs/2026-09-12-*.md`, 7 PR gộp thành 1, rút từ lượt quét 15 repo dẫn xuất/lân cận),
   **#61** (verify-dropins ERESOLVE), **#52** (hoàn thiện khung theo COMPLETION-PLAN, 4 đợt/22 việc
   W-101→W-406, Pha 4 re-audit hội tụ + nghiệm thu Definition of Complete PASS), **#46** (parallel
@@ -58,8 +69,8 @@
 
 ## Tiếp theo
 
-- **Ngay lập tức:** mở PR cho nhánh `claude/remove-web-scaffold-layer2` (ADR-0004 — gỡ scaffold
-  Web), đăng ký theo dõi, merge khi CI xanh.
+- **Ngay lập tức:** mở PR cho hàng rào `progress-freshness` (script + job CI + cập nhật CLAUDE.md
+  §8/CODEMAP.md/repository-settings.md), đăng ký theo dõi, merge khi CI xanh.
 - Sau đó: chờ yêu cầu tiếp theo của người dùng — bắt đầu dự án đích mới bằng khung này (`/consult`
   hoặc `/auto`), tiếp tục quét thêm repo dẫn xuất khác (gói D–I của lượt quét 2026-09-12: script
   `check-*` của `xboss`, hook `block-dangerous-git.sh`, gitleaks pre-commit, gate-agent `sc-gate-*`,
@@ -88,34 +99,34 @@
 | Case-study Bước 6–8 (branch protection/Supabase/Vercel) chưa kiểm chứng | Thấp | Người dùng | Kiểm khi áp khung vào dự án thật có tài khoản | `docs/framework/case-study-greenfield-dry-run.md` |
 | 31 nhánh đã merge còn tồn trên remote (F-014) | Thấp | Người dùng | Xoá qua GitHub UI hoặc cấp quyền Bash cho `git push --delete` — danh sách đủ ở `docs/ops/repository-settings.md` | `docs/ops/COMPLETION-PLAN.md` W-308 |
 | ~~W-303 test RLS~~ | — | — | ➖ Hết hiệu lực (ADR-0004) — dropins Supabase đã gỡ, không còn gì để test | `docs/ops/COMPLETION-PLAN.md` W-303 |
+| ~~PROGRESS.md lỗi thời (nhánh đã merge #67 nhưng vẫn ghi "chưa mở PR")~~ | Vừa | AI | ✅ Đã sửa 2026-09-12 — thêm `scripts/check-progress-freshness.sh` + job CI `progress-freshness` chặn merge nếu tái phạm; xem `TRAPS.md` | `CLAUDE.md` §8, `CODEMAP.md` |
 
 ## Bàn giao phiên
 
-- Lần cập nhật: 2026-09-12 (phiên tiếp theo — audit định kỳ → quyết định kiến trúc lớn giữa phiên)
-- State: DONE một phần, đang xử lý PR mới — phiên bắt đầu bằng `/audit-full` (đóng Nhóm 11, tra cứu
-  W-308, merge PR #66), rồi người dùng yêu cầu **gỡ hẳn scaffold Web mặc định** khỏi repo khung
-  ("loại bỏ tất cả những cái không phải khung, harness để phát triển dự án") — đã xác nhận qua
-  `AskUserQuestion` (đảo ngược quyết định cũ, ghi ADR-0004) trước khi xoá.
-- Việc đã xong và bằng chứng (đợt audit, PR #66 đã merge): Nhóm 11 đối chiếu `.env.example` ↔
-  `lib/env.ts` (0 phát hiện mới); W-308 tra cứu 61 PR qua GitHub API, xác nhận 31/32 nhánh merged
-  thật, danh sách ghi vào `repository-settings.md`.
-- Việc đã xong (đợt gỡ scaffold, nhánh `claude/remove-web-scaffold-layer2`, CHƯA merge): xoá 38 file
-  (`app/`, `lib/`, `styles/`, `e2e/`, `i18n/`, `messages/`, `components/`, `supabase/`, config
-  ESLint/Prettier/Vitest/Playwright/Lighthouse/commitlint, `.husky/`, `.env.example`, 3 workflow
-  Web-specific, `scripts/verify-dropins.sh`); sửa `ci.yml` (bỏ job `quality`/`source-hygiene`/`e2e`,
-  còn 3 job tự kiểm + `gate`), `copy-framework.sh`/`.ps1` (Lớp 2 chỉ còn CI/GitHub tổng quát, đã đối
-  chiếu khớp nhau bằng `diff`), viết ADR-0004, cập nhật README/SECURITY/CLAUDE.md/CODEMAP.md/
-  FEATURE-MAP.md/existing-project-adoption.md/quality-supplements.md/repository-settings.md/
-  CHANGELOG.md; đóng W-303 (hết hiệu lực — không còn RLS mẫu để test). Bằng chứng: `check-docs-
-  consistency.sh` ✅, `check-ci-policy.sh` ✅, `test-hooks-gate.sh` ✅ (toàn bộ ca xanh),
-  `test-copy-framework.sh` ✅ (bản `.sh`; bản `.ps1` đối chiếu bằng `diff` khớp tuyệt đối, chưa chạy
-  được `pwsh` local — sẽ chạy thật ở CI job `copy-framework-smoke`).
-- Việc CHƯA xong + lý do: PR cho nhánh `remove-web-scaffold-layer2` chưa mở (làm ở bước kế tiếp
-  ngay sau khi ghi file này). W-306 (đồng bộ PROGRESS.md cuối lượt "Siết hàng rào") vẫn chờ W-308
-  (xoá nhánh thật — bị auto-mode chặn `git push --delete`, cần người dùng tự xoá qua GitHub UI hoặc
-  cấp quyền Bash).
-- Bước tiếp theo: mở PR cho `remove-web-scaffold-layer2`, theo dõi tới khi CI xanh (đặc biệt job
-  `copy-framework-smoke` — lần đầu tiên `.ps1` được kiểm thật sau khi sửa), merge, rồi chờ người
-  dùng xoá 31 nhánh hoặc cấp quyền.
-- Quyền/quyết định cần thêm: quyền Bash cho `git push --delete` (nếu muốn AI tự xoá nhánh thay vì
-  người dùng làm thủ công qua GitHub UI).
+- Lần cập nhật: 2026-09-12 (phiên mới — audit toàn diện phát hiện chính `PROGRESS.md` bị lỗi thời)
+- State: DONE, đang mở PR — người dùng chạy `/audit-full`, bị chặn ở Bước -1 (repo khung, không phải
+  dự án cụ thể) nên chuyển sang chạy 3 cổng tự kiểm của khung (đều xanh), rồi quét kỹ hơn thì phát
+  hiện `PROGRESS.md` mô tả nhánh `claude/remove-web-scaffold-layer2` là "đang hoàn thiện, chưa mở
+  PR" trong khi PR #67 (và cả #68 sau đó) **đã merge thật** — file lỗi thời hoàn toàn im lặng. Người
+  dùng hỏi cách chặn tận gốc kiểu lỗi này → đề xuất + viết cổng tự động.
+- Việc đã xong và bằng chứng:
+  - `scripts/check-progress-freshness.sh` (PF-1: SHA đã đối chiếu phải là tổ tiên của HEAD; PF-2:
+    nhánh nêu trong "Nhánh đang làm" phải còn tồn tại trên remote) — chạy thử đã **bắt đúng lỗi thật**
+    (báo PF-2 đỏ với nhánh đã merge) trước khi sửa PROGRESS.md.
+  - Wire vào `.github/workflows/ci.yml`: job `progress-freshness` (chỉ chạy khi push vào `main`,
+    `fetch-depth: 0`), thêm vào `needs:` của `gate`.
+  - Cập nhật `docs/ops/repository-settings.md` (thêm job vào bảng required checks — qua được
+    `check-ci-policy.sh`), `CODEMAP.md` (hàng "Merge một PR xong, quay về main"), `CLAUDE.md` §8 +
+    §10 (bắt buộc cập nhật `PROGRESS.md` ngay sau khi quay về `main`).
+  - Sửa lại chính `PROGRESS.md` cho khớp thực tế (SHA `08bcc84`, nhánh `main`, PR #67/#68 ghi vào
+    "Đã xong", mục Rủi ro ghi nhận lỗi này đã sửa).
+  - Đã chạy lại `check-docs-consistency.sh` ✅, `check-ci-policy.sh` ✅, `test-copy-framework.sh` ✅,
+    `test-hooks-gate.sh` ✅, `check-progress-freshness.sh` ✅ (sau khi sửa PROGRESS.md) — tất cả xanh.
+- Việc CHƯA xong + lý do: chưa mở PR cho đợt sửa này (làm ngay sau khi ghi file); cân nhắc thêm mục
+  vào `TRAPS.md` cho khuôn lỗi "tài liệu trạng thái lỗi thời sau merge" (chưa làm — có thể để phiên
+  sau nếu tái phát).
+- Bước tiếp theo: commit, mở PR, đăng ký theo dõi, merge khi CI xanh (đặc biệt xác nhận job mới
+  `progress-freshness` chạy đúng — job này chỉ kích hoạt SAU khi merge vào `main` nên tự PR của nó
+  sẽ hiện `skipped`, không phải bằng chứng job hoạt động; cần merge xong rồi xem lần push kế tiếp).
+- Quyền/quyết định cần thêm: không có gì mới ngoài các mục tồn đọng cũ (xoá 31 nhánh, đổi branch
+  protection sang khoá `gate`, merge PR dependabot).
