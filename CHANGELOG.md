@@ -11,6 +11,19 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## [Unreleased]
 
+### Removed (Bỏ)
+
+- **Gỡ hẳn scaffold Web mặc định (Next.js + Supabase) khỏi repo khung — ADR-0004.** Xoá `app/`,
+  `lib/`, `styles/`, `e2e/`, `i18n/`, `messages/`, `components/`, `supabase/`, cấu hình
+  ESLint/Prettier/Vitest/Playwright/Lighthouse/commitlint, `.husky/`, `.env.example`,
+  `.github/workflows/{codeql,lighthouse-ci,verify-dropins}.yml`, `scripts/verify-dropins.sh`.
+  Lý do: nhất quán với nguyên tắc "hỗ trợ mọi loại dự án, chọn công nghệ research-first" — không
+  hồ sơ nào xứng "mặc định" hơn hồ sơ khác (`CLAUDE.md` §0b, KHUNG-3 PHẦN C). `ci.yml` chỉ còn 3
+  job tự kiểm của khung (`framework-lint`, `docs-consistency`, `copy-framework-smoke`) + `gate`.
+  `copy-framework.sh`/`.ps1` Lớp 2 giờ chỉ còn CI/quy ước GitHub tổng quát (không đặc thù stack).
+  Không sửa ADR-0001 (luật bất biến: không sửa ADR cũ) — xem quyết định đảo ngược ở
+  `docs/adr/0004-remove-default-web-scaffold.md`.
+
 ### Added (Thêm)
 
 - **Hàng rào thi hành cho các luật trước đây chỉ nằm trên giấy** (audit toàn diện 2026-09-12,

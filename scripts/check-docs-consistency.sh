@@ -14,7 +14,15 @@ fail=0
 # Các file này CỐ Ý chứa tên cũ/đường dẫn chưa-tồn-tại trong repo này: PROGRESS.md ghi lại
 # lịch sử (tên gọi đúng lúc viết), docs/framework/README.md là bảng ánh xạ tên cũ → tên mới,
 # case-study-*.md tường thuật đường dẫn của một dự án demo tạm thời (không phải repo này).
-EXCLUDE_SOURCE=("PROGRESS.md" "docs/framework/README.md" "docs/framework/case-study-greenfield-dry-run.md")
+# CHANGELOG.md/TRAPS.md: nhật ký/append-only — không viết lại lịch sử (ADR-0004: các file scaffold
+# Web mà chúng nhắc tới đã bị xoá khỏi repo khung 2026-09-12, nhưng ghi chép lúc đó là đúng).
+# docs/ops/COMPLETION-PLAN.md, COMPREHENSIVE-AUDIT-STATUS.md: bản ghi audit ĐÃ ĐÓNG của một lượt
+# quét cụ thể — cùng lý do, không viết lại phát hiện đã ghi nhận tại thời điểm quét.
+EXCLUDE_SOURCE=(
+  "PROGRESS.md" "docs/framework/README.md" "docs/framework/case-study-greenfield-dry-run.md"
+  "CHANGELOG.md" "TRAPS.md" "docs/ops/COMPLETION-PLAN.md" "docs/ops/COMPREHENSIVE-AUDIT-STATUS.md"
+  "docs/adr/0004-remove-default-web-scaffold.md"
+)
 
 # Thư mục nguồn được miễn trừ theo TIỀN TỐ. `docs/specs/` là contract HƯỚNG TỚI TƯƠNG LAI: một
 # feature spec mô tả file nó sẽ tạo khi được thực thi, nên tham chiếu tới file chưa tồn tại là
@@ -30,6 +38,12 @@ EXCLUDE_SOURCE_PREFIX=("docs/specs/")
 ALLOW_MISSING_PATH=(
   "app/layout.tsx" "lib/example.test.ts"
   ".claude/project-commands.sh" ".claude/settings-sonnet.json" ".claude/usage-budget.sh"
+  # Ví dụ minh hoạ hồ sơ Web (ADR-0004, 2026-09-12) — scaffold thật đã gỡ khỏi repo khung;
+  # các đường dẫn này chỉ còn xuất hiện trong tài liệu như PATTERN cho dự án đích tự tạo.
+  "app/error.tsx" "app/global-error.tsx" "app/manifest.ts" "app/not-found.tsx" "app/robots.ts" \
+  "app/sitemap.ts" "app/sw.ts" "components/theme-toggle.tsx" "e2e/smoke.spec.ts" \
+  "i18n/request.ts" "lib/env.ts" "messages/en.json" "messages/vi.json" \
+  ".github/workflows/lighthouse-ci.yml" "scripts/verify-dropins.sh"
 )
 
 is_in() { local needle="$1"; shift; for x in "$@"; do [ "$x" = "$needle" ] && return 0; done; return 1; }

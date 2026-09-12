@@ -10,17 +10,14 @@ blockchain, monorepo** (và loại chưa liệt kê). Cách hoạt động:
   chống ảo giác, báo cáo xác thực — áp cho **mọi loại dự án, mọi ngôn ngữ/stack** (`docs/framework/KHUNG-1/2/3`).
 - **Công nghệ chọn theo "hồ sơ loại dự án":** từ ý tưởng, AI **phân loại → chọn hồ sơ → chọn stack** (research-first,
   phiên bản đã xác minh). Bảng hồ sơ C1–C10 + cổng tương đương: `KHUNG-3 PHẦN A0 + PHẦN C`.
-- **Các file cấu hình kèm theo là hồ sơ Web app (mặc định)** — Next.js + TS + Tailwind + Supabase + Vercel. Với loại
-  khác, giữ phương pháp + thay công cụ tương đương (test/đóng gói/CI của loại đó).
+- **Không có scaffold/stack mặc định đóng gói sẵn.** Repo này chỉ chứa tài liệu + quy trình + script tự kiểm
+  của chính khung — không kèm code app của bất kỳ stack nào. Từ ý tưởng, AI **research-first** (KHUNG-3) rồi
+  đề xuất công nghệ hợp lý nhất cho đúng dự án của bạn, không có "hồ sơ mặc định" áp sẵn (xem `docs/adr/0004-remove-default-web-scaffold.md`).
 - **Dự án có sẵn (brownfield):** khung **chỉ tư vấn & nâng cấp** trên stack hiện có, **không áp đặt** stack mặc định
   (`docs/framework/existing-project-adoption.md`).
 - **Ngoại lệ — dự án "cấm" (không hỗ trợ):** mã độc, phá hoại, DoS, nhắm mục tiêu hàng loạt, tấn công chuỗi cung ứng,
   né tránh phát hiện vì mục đích xấu, hay việc phạm pháp/xâm phạm quyền riêng tư. Bảo mật **phòng thủ** / kiểm thử
   **có ủy quyền** / CTF / nghiên cứu thì hỗ trợ (xem `CLAUDE.md` §0b).
-
-> **Hồ sơ Web app — drop-in nhanh:** giải nén bộ này vào **gốc repo** của một dự án Next.js mới (đã tạo bằng
-> `create-next-app` với TypeScript + Tailwind + ESLint). Phần lớn file đã ở đúng chỗ;
-> phần cài gói + sửa `package.json`/`tsconfig` làm theo runbook (Phần D).
 
 ## Bắt đầu từ đâu
 
@@ -33,32 +30,16 @@ spec-driven hoặc completion phù hợp; không chọn một quy trình song so
 - `PROJECT.md` — mẫu đặc tả dự án (điền trước khi code).
 - `PROGRESS.template.md` — mẫu theo dõi trạng thái (script copy tự tạo thành `PROGRESS.md` sạch ở dự án đích;
   `PROGRESS.md` trong repo này là nhật ký phát triển của chính bộ khung, không copy sang).
-- `lib/env.ts` — xác thực biến môi trường (đổi tên biến cho khớp dự án).
-- `styles/theme.css` — design tokens: nền **Dark blue** mặc định + chế độ **Light**.
-- `playwright.config.ts`, `e2e/smoke.spec.ts` — E2E (desktop + mobile) + quét a11y axe.
-- `lighthouserc.json` — ngân sách hiệu năng (Lighthouse CI).
 - `CHANGELOG.md` — lịch sử thay đổi (Keep a Changelog).
-- `eslint.config.mjs` — ESLint **flat config** (ESLint 9/10, Next 16; thay `.eslintrc.json` cũ).
-- `postcss.config.mjs` — Tailwind v4 (`@tailwindcss/postcss`).
-- `.nvmrc` (Node 22), `.editorconfig`, `.env.example` — đồng bộ môi trường/biến.
-- `app/` — starter: `not-found.tsx`, `error.tsx`, `global-error.tsx` (trang lỗi), `robots.ts`,
-  `sitemap.ts` (SEO), `manifest.ts` + `sw.ts` (PWA).
-- `i18n/request.ts`, `messages/{vi,en}.json` — đa ngôn ngữ (next-intl).
-- `.prettierrc`, `.prettierignore`, `commitlint.config.cjs`,
-  `.lintstagedrc.json`, `vitest.config.ts`, `vitest.setup.ts`, `.gitignore`
-- `.husky/pre-commit`, `.husky/commit-msg` — hook (cần chạy `npx husky init` trước, xem dưới).
-- `components/theme-toggle.tsx` — nút chuyển theme (Dark blue ↔ Light) dùng ngay.
+- `.nvmrc`, `.editorconfig` — đồng bộ môi trường cơ bản (dự án chọn stack khác Node thì tự thay).
+- `.gitignore`, `.gitattributes` — vệ sinh Git tối thiểu, không phụ thuộc stack.
 - `.github/pull_request_template.md`, `.github/ISSUE_TEMPLATE/` (gồm mẫu **sự cố**),
   `.github/dependabot.yml`, `.github/CODEOWNERS`, và các workflow:
-  `ci.yml` (dự án thật: lint/type/format/test+coverage/build/`npm audit` + **E2E** Playwright+axe,
-  cùng cổng chặn placeholder `[ĐIỀN: ...]` còn sót trong `CLAUDE.md`; repo khung chưa có app vẫn chạy
-  `framework-lint`/`docs-consistency`/`copy-framework-smoke` + knip báo cáo),
-  `lighthouse-ci.yml`, `codeql.yml` (SAST), `secret-scan.yml` (gitleaks), `dependency-review.yml`,
-  `pr-policy.yml` (spec/evidence),
-  `release.yml` (release-please),
-  `verify-dropins.yml` (chỉ dùng ở **repo khung** — dựng dự án Next.js sạch rồi lint/build thật
-  các file dropins; xóa được ở dự án đích).
-- `supabase/migrations/` — **migration MẪU** (bảng + ràng buộc + index + **RLS + policy**); `supabase/README.md`.
+  `ci.yml` (job `framework-lint`/`docs-consistency`/`copy-framework-smoke`/`gate` tự kiểm chính bộ
+  khung; dự án đích tự thêm job build/test/lint theo stack đã chọn vào cùng file),
+  `secret-scan.yml` (gitleaks), `dependency-review.yml`,
+  `pr-policy.yml` (spec/evidence), `release.yml` (release-please),
+  `stale-pr-alert.yml` (cảnh báo PR kẹt vì required check không thể xanh).
 - `LICENSE` (MIT — đổi chủ sở hữu/giấy phép theo dự án), `SECURITY.md`, `CONTRIBUTING.md`,
   `CODE_OF_CONDUCT.md` (Quy tắc ứng xử — Contributor Covenant v2.1 tiếng Việt),
   `SUPPORT.md` + `GOVERNANCE.md` (kênh hỗ trợ + quản trị dự án).
@@ -103,28 +84,26 @@ pwsh ./copy-framework.ps1 C:\đường-dẫn\tới\dự-án
 > cho đúng lần chạy đó (không đổi cấu hình máy). Nếu muốn nới sẵn cho user hiện tại:
 > `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
 
-### Bước 2 — Merge phần cấu hình
-Soát thư mục `_framework-dropins/` trong dự án đích: chỉ merge file **khớp stack hiện có** (đừng đè cấu hình đang
-chạy). Xong thì xóa `_framework-dropins/`. Với file `*.framework-new`: so với bản gốc rồi gộp phần cần, sau đó xóa.
+### Bước 2 — Merge phần CI/quy ước GitHub
+Soát thư mục `_framework-dropins/` trong dự án đích: so/merge từng workflow, PR template, dependabot,
+CODEOWNERS với cấu hình CI đã có (nếu có) — đừng đè cấu hình đang chạy. Với `ci.yml`: thêm job
+build/lint/type/test theo đúng stack đã chọn (research-first, `/consult`) vào file, giữ nguyên 3 job
+tự kiểm của khung (`framework-lint`, `docs-consistency`, `copy-framework-smoke`) và thêm job mới vào
+`needs:` của `gate`. Xong thì xóa `_framework-dropins/`. Với file `*.framework-new`: so với bản gốc
+rồi gộp phần cần, sau đó xóa.
 
 ### Bước 3 — Mở Claude Code trong dự án đích
-AI tự đọc `CLAUDE.md` và chạy **Bước 0** của `docs/framework/existing-project-adoption.md` (tự dò stack qua
-`package.json`/config — không cần bạn khai). Từ đó áp khung **tăng dần**: Prettier → ESLint → TS strict → hook →
-CI → lấp lỗ hổng test/a11y/hiệu năng. Muốn **hoàn thiện toàn dự án** (hết lỗi đã biết, tính năng thống nhất,
-có bằng chứng) → gõ `/completion` (`docs/framework/project-completion.md`).
+AI tự đọc `CLAUDE.md` rồi **research-first** chọn công nghệ (KHUNG-3, `/consult`) nếu là dự án mới,
+hoặc chạy **Bước 0** của `docs/framework/existing-project-adoption.md` (tự dò stack qua
+`package.json`/config — không cần bạn khai) nếu là dự án có sẵn. Từ đó dựng nền theo đúng hồ sơ đã
+chọn: lint/format → type-check nghiêm → hook → CI → lấp lỗ hổng test/a11y/hiệu năng theo hồ sơ.
+Muốn **hoàn thiện toàn dự án** (hết lỗi đã biết, tính năng thống nhất, có bằng chứng) → gõ
+`/completion` (`docs/framework/project-completion.md`).
 
 > *Vì sao phải copy chứ không "đưa link": một phiên Claude Code chỉ tự nạp luật từ chính repo của nó
 > (và `~/.claude/CLAUDE.md`), không đọc được repo khác qua link.* Chi tiết brownfield: `docs/framework/existing-project-adoption.md`.
 
-## Việc phải làm tay (không đè được file của create-next-app)
-Theo **`docs/framework/new-project-runbook.md` Phần D**: cài gói + thêm khối `scripts` + `npx husky init`;
-thêm các cờ TypeScript `strict` vào `tsconfig.json`.
-
-> Sau đó làm tiếp theo runbook: bật branch protection + Code scanning trên GitHub, kết nối Supabase,
-> deploy thử Vercel, rồi **kiểm chứng hàng rào** (thử commit sai phải bị chặn) trước khi code tính năng.
-> Danh mục đầy đủ việc-dự-án-thật: Phần E của runbook.
-
 ## Lưu ý
-- ESLint dùng **flat config** (`eslint.config.mjs`) cho ESLint 9/10 + Next 16. Nếu phiên bản Next/ESLint
-  của bạn khác, đối chiếu lại cách `eslint-config-next` xuất config (FlatCompat vs flat gốc).
 - README này KHÔNG cần commit vào dự án thật — xóa sau khi setup xong nếu muốn.
+- Repo khung không kèm scaffold của bất kỳ stack nào — mọi lựa chọn công nghệ đến từ research-first
+  (KHUNG-3), không có mặc định để "vừa đủ dùng" thay cho lựa chọn đúng đắn cho dự án của bạn.

@@ -27,13 +27,10 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Cú pháp shell (bash -n — mọi *.sh + hook husky)
+      - name: Cú pháp shell (bash -n — mọi *.sh)
         run: |
           set -e
           find . -name '*.sh' -not -path './node_modules/*' -print0 | xargs -0 -n1 bash -n
-          for f in .husky/pre-commit .husky/commit-msg; do
-            if [ -f "$f" ]; then bash -n "$f"; fi
-          done
           echo "OK: cú pháp shell sạch"
 
       # Cổng chặn phải được CHỨNG MINH là chặn (audit 2026-09-12, F-002) — không chỉ tồn tại.
@@ -51,8 +48,7 @@ jobs:
       - name: JSON cấu hình hợp lệ (jq)
         run: |
           set -e
-          for f in .claude/settings.json .claude/settings-shared-opusplan.json \
-                   .mcp.json .lintstagedrc.json .prettierrc lighthouserc.json; do
+          for f in .claude/settings.json .claude/settings-shared-opusplan.json .mcp.json; do
             if [ -f "$f" ]; then jq empty "$f" && echo "OK $f"; fi
           done
 
@@ -78,184 +74,12 @@ jobs:
       # Không có cờ này, runner mất pwsh sẽ làm test âm thầm bỏ qua nửa phạm vi mà job vẫn xanh.
       - run: REQUIRE_PWSH=1 bash scripts/test-copy-framework.sh
 
-  quality:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      # Repo khung (chưa có app) → bỏ qua các bước build/test để CI vẫn xanh.
-      # Khi dự án thật được tạo (có package.json), toàn bộ hàng rào tự kích hoạt.
-      - name: Kiểm tra đã có ứng dụng chưa
-        id: app
-        run: |
-          if [ -f package.json ]; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Chưa có package.json — đây là repo khung (template). Bỏ qua build/test; hàng rào sẽ tự chạy khi có dự án thật."
-          fi
-
-      # Cổng "sẵn sàng phát triển": dự án thật KHÔNG được còn placeholder [ĐIỀN: ...]
-      # trong CLAUDE.md (KHOI-TAO Phần C). Repo khung (chưa có app) được bỏ qua.
-      - name: Cổng "không còn [ĐIỀN]" trong CLAUDE.md
-        if: steps.app.outputs.exists == 'true'
-        run: |
-          if grep -q "\[ĐIỀN" CLAUDE.md; then
-            echo "::error::CLAUDE.md còn placeholder [ĐIỀN: ...] — điền đầy đủ cho dự án trước khi phát triển."
-            exit 1
-          fi
-
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        if: steps.app.outputs.exists == 'true'
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Cài đặt
-        if: steps.app.outputs.exists == 'true'
-        run: npm ci
-
-      - name: Quét bảo mật phụ thuộc
-        if: steps.app.outputs.exists == 'true'
-        run: npm audit --audit-level=high
-
-      - name: Lint
-        if: steps.app.outputs.exists == 'true'
-        run: npm run lint
-
-      - name: Type check
-        if: steps.app.outputs.exists == 'true'
-        run: npm run type-check
-
-      - name: Kiểm tra format
-        if: steps.app.outputs.exists == 'true'
-        run: npm run format:check
-
-      # Chạy unit test KÈM ngưỡng coverage (vitest.config.mts) → cổng "có test tối thiểu".
-      - name: Test (unit + coverage)
-        if: steps.app.outputs.exists == 'true'
-        run: npm run test:coverage
-
-      - name: Build
-        if: steps.app.outputs.exists == 'true'
-        run: npm run build
-
-  # Tối ưu mã nguồn (BO-SUNG Nhóm 2 mục 9) thành kiểm tra MÁY: knip quét dead code,
-  # export không dùng, dependency thừa — KHUNG-1 nguyên tắc 6 (tự động hóa thay vì kỷ luật).
-  # Mặc định BÁO CÁO (continue-on-error) để không chặn oan khi mới áp; dự án muốn biến
-  # thành cổng chặn thật: xóa dòng continue-on-error (+ thêm knip.json nếu cần loại trừ).
-  source-hygiene:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Kiểm tra đã có ứng dụng chưa
-        id: app
-        run: |
-          if [ -f package.json ]; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Chưa có package.json — bỏ qua knip; sẽ tự chạy khi có dự án thật."
-          fi
-
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        if: steps.app.outputs.exists == 'true'
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Cài đặt
-        if: steps.app.outputs.exists == 'true'
-        run: npm ci
-
-      # knip@6 — xác minh 6.24.0 trên registry npm ngày 2026-07-05 (research-first).
-      - name: knip — dead code / export / dependency thừa (BÁO CÁO, chưa chặn)
-        if: steps.app.outputs.exists == 'true'
-        continue-on-error: true
-        run: npx --yes knip@6
-
-  # Cổng E2E: chạy Playwright (desktop + mobile) + quét axe trên app đã build.
-  # Đóng đúng cổng GĐ 6 của KHUNG 1: "Toàn bộ test xanh (gồm E2E Playwright)".
-  e2e:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Kiểm tra đã có ứng dụng chưa
-        id: app
-        run: |
-          if [ -f package.json ]; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Chưa có package.json — bỏ qua E2E; sẽ tự chạy khi có dự án thật."
-          fi
-
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        if: steps.app.outputs.exists == 'true'
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Cài đặt
-        if: steps.app.outputs.exists == 'true'
-        run: npm ci
-
-      # Cả project desktop (Desktop Chrome) lẫn mobile (Pixel 5) đều dùng Chromium.
-      # Cache Chromium của Playwright (~/.cache/ms-playwright), khoá theo phiên bản @playwright/test
-      # trong package-lock.json: đổi phiên bản là tự miss. Trước đây tải lại mỗi lượt, 29 s/job.
-      - name: Cache trình duyệt Playwright
-        if: steps.app.outputs.exists == 'true'
-        id: pw-cache
-        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-
-      - name: Cài trình duyệt Playwright
-        if: steps.app.outputs.exists == 'true' && steps.pw-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps chromium
-
-      # Cache trúng thì chỉ cần gói hệ thống (không tải trình duyệt).
-      - name: Cài gói hệ thống cho Chromium (cache trúng)
-        if: steps.app.outputs.exists == 'true' && steps.pw-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps chromium
-
-      - name: Build
-        if: steps.app.outputs.exists == 'true'
-        run: npm run build
-        env:
-          # Đặt biến môi trường cần cho build qua GitHub Secrets, không hard-code.
-          # PR từ fork KHÔNG nhận được secrets → dùng giá trị giả để build/E2E không đỏ oan.
-          # Giá trị giả chỉ đủ qua validate schema (lib/env.ts), không truy cập dịch vụ thật.
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'ci-placeholder-anon-key' }}
-
-      # playwright.config.ts tự dựng server (`npm run start`) trước khi chạy test.
-      - name: E2E (Playwright desktop + mobile + axe)
-        if: steps.app.outputs.exists == 'true'
-        run: npm run test:e2e
-        env:
-          # PR từ fork KHÔNG nhận được secrets → dùng giá trị giả để build/E2E không đỏ oan.
-          # Giá trị giả chỉ đủ qua validate schema (lib/env.ts), không truy cập dịch vụ thật.
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'ci-placeholder-anon-key' }}
-
-      - name: Lưu báo cáo Playwright
-        if: ${{ always() && steps.app.outputs.exists == 'true' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 7
-
   # Job TỔNG HỢP (ADR-0003, audit 2026-09-12 F-010): branch protection chỉ cần khoá MỘT tên là
   # `gate` thay vì liệt kê từng job. `if: always()` là bắt buộc — không có nó, `gate` bị SKIP khi
   # một job cha đỏ, và GitHub coi required check "skipped" là ĐẠT (hỏng im lặng).
   gate:
     if: always()
-    needs: [framework-lint, docs-consistency, copy-framework-smoke, quality, source-hygiene, e2e]
+    needs: [framework-lint, docs-consistency, copy-framework-smoke]
     runs-on: ubuntu-latest
     steps:
       - name: Kết luận từ mọi job cổng

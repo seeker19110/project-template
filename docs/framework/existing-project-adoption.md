@@ -4,10 +4,12 @@
 > **dự án đã phát triển** — cách "đắp" khung lên code có sẵn một cách an toàn, **tăng dần, không làm lại từ đầu**.
 
 ## Nguyên tắc cốt lõi
-0. **CHỈ tư vấn & nâng cấp — KHÔNG áp đặt stack.** Với dự án có sẵn, khung **không** thay/ép stack mặc định
-   (Next/Supabase/Vercel) hay "hồ sơ" nào. AI **đọc repo để biết stack thật**, rồi **tư vấn và nâng cấp tăng dần
-   trên chính stack đó** — chỉ đề xuất đổi/thêm công nghệ khi có lý do rõ và được người dùng chốt. Giá trị mang lại
-   là **Lớp 1 (quy trình + cổng + chống lỗi)**, áp cho mọi stack; **Lớp 2 (file cấu hình)** chỉ dùng phần khớp.
+0. **CHỈ tư vấn & nâng cấp — KHÔNG áp đặt stack.** Với dự án có sẵn, khung **không có** stack mặc định
+   để ép (ADR-0004 — repo khung không còn kèm scaffold nào) hay "hồ sơ" nào bị ưu ái. AI **đọc repo để
+   biết stack thật**, rồi **tư vấn và nâng cấp tăng dần trên chính stack đó** — chỉ đề xuất đổi/thêm công
+   nghệ khi có lý do rõ và được người dùng chốt. Giá trị mang lại là **Lớp 1 (quy trình + cổng + chống
+   lỗi)**, áp cho mọi stack; **Lớp 2 (CI/quy ước GitHub tổng quát)** dùng được cho mọi stack, bạn tự thêm
+   job build/test/lint theo đúng công nghệ đã chọn.
 1. **Không "big bang".** Đừng dừng dự án để viết lại. Áp khung theo từng lớp, ưu tiên **giá trị cao / rủi ro thấp** trước.
 2. **Đo trước, sửa sau.** Lập "đường cơ sở" (baseline) hiện trạng rồi cải thiện dần, không đặt ngưỡng tuyệt đối ngay.
 3. **Quy tắc hướng đạo sinh.** Code cũ dọn dần — "đụng đâu dọn đó", không cố dọn cả repo một lần.
@@ -17,9 +19,11 @@
 - **Lớp 1 — Quy trình & tiêu chuẩn (áp cho MỌI stack):** KHUNG 1 (giai đoạn + cổng), KHUNG 2 (luật AI, DoR/DoD,
   báo cáo xác thực), KHUNG 3 (research-first khi thêm/đổi công nghệ), CLAUDE.md, PROGRESS.md, ADR, các checklist
   Nhóm 1 & 2 (mobile, hiệu năng, a11y, UI/UX, **chống lỗi logic**). → **Dùng được ngay, bất kể bạn dùng công nghệ gì.**
-- **Lớp 2 — File cấu hình cụ thể (Next/Tailwind/Supabase/Vercel):** `eslint.config.mjs`, `postcss.config.mjs`,
-  `playwright.config.ts`, `lighthouserc.json`, `lib/env.ts`, `styles/theme.css`, `app/*`, `i18n/*`, workflows...
-  → **Chỉ áp thẳng nếu trùng stack.** Khác stack thì lấy *ý tưởng* và thay bằng công cụ tương đương (xem PHẦN D).
+- **Lớp 2 — CI/quy ước GitHub tổng quát (không đặc thù stack):** `.github/workflows/{ci,pr-policy,
+  secret-scan,dependency-review,release,stale-pr-alert}.yml`, PR template, dependabot, CODEOWNERS,
+  `.gitignore`/`.gitattributes`. → **So/merge với CI đã có** — `ci.yml` chỉ mang sẵn 3 job tự kiểm của
+  khung (`framework-lint`, `docs-consistency`, `copy-framework-smoke`) + `gate`; bạn tự thêm job
+  build/lint/type/test theo đúng stack đã chọn vào cùng file (xem PHẦN D).
 
 ---
 
@@ -134,16 +138,14 @@ Dự án bạn đã có i18n → **đừng thay nếu đang chạy tốt.** Đá
 ---
 
 ## PHẦN C — Bản đồ "dùng ngay vs cần thay" theo stack
-| Bạn đang dùng | Lớp 1 (quy trình) | Lớp 2 (file cấu hình) |
+| Bạn đang dùng | Lớp 1 (quy trình) | Lớp 2 (CI/quy ước GitHub) |
 |---------------|-------------------|------------------------|
-| **Next.js + Tailwind + Supabase** (trùng stack tham chiếu) | Dùng ngay | Áp thẳng gần hết; chỉ chỉnh tên biến/route |
-| **Next.js nhưng CSDL/CSS khác** | Dùng ngay | ESLint/Playwright/theme dùng được; thay phần Supabase/Tailwind |
-| **React SPA (Vite/CRA)** | Dùng ngay | ESLint/Prettier/Vitest/Playwright/theme tokens dùng được; bỏ phần Next (app/*, next-intl plugin) |
-| **Vue/Svelte/khác** | Dùng ngay | Lấy *ý tưởng* (lint/format/hook/CI/budget/a11y) + thay công cụ tương đương của hệ đó |
-| **Không phải web** | Dùng phần lớn (cổng, DoR/DoD, ADR, logic) | Bỏ phần web (Lighthouse/theme/PWA) |
+| **Bất kỳ stack nào** | Dùng ngay | `ci.yml` dùng thẳng 3 job tự kiểm của khung + `gate`; tự thêm job build/lint/type/test theo đúng stack (research-first, KHUNG-3 PHẦN C) vào cùng file. Các workflow còn lại (`pr-policy`, `secret-scan`, `dependency-review`, `release`, `stale-pr-alert`) tổng quát, dùng thẳng. |
+| **Không phải web** | Dùng phần lớn (cổng, DoR/DoD, ADR, logic) | Như trên — thay job build/test bằng lệnh của hệ đó (vd `go test`, `pytest`, `cargo test`) |
 
 > Điểm mấu chốt: **giá trị lớn nhất của khung là Lớp 1 (kỷ luật + cổng + chống lỗi logic) — áp được ngay
-> cho dự án của bạn dù dùng công nghệ gì.** Lớp 2 là tiện ích đi kèm cho stack tham chiếu.
+> cho dự án của bạn dù dùng công nghệ gì.** Lớp 2 chỉ còn khung CI tổng quát — file cấu hình/scaffold
+> thật sự của stack đến từ research-first (KHUNG-3), không có sẵn trong repo khung (ADR-0004).
 
 ---
 
