@@ -5,7 +5,7 @@
 # Cổng no-op (dự án chưa cấu hình lệnh) → exit 0, cho commit chạy bình thường.
 #
 # An toàn đa-loại-dự-án: hook KHÔNG chứa lệnh stack nào; mọi lệnh nằm sau dev-task.sh.
-set -uo pipefail
+set -uo pipefail   # cố ý KHÔNG -e: không được làm chết phiên/lượt chạy (xem docs/CONVENTIONS.md §A)
 
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
 
@@ -21,15 +21,19 @@ else
   exit 0
 fi
 
+# Bỏ phần TRONG DẤU NHÁY trước khi so khớp (audit 2026-09-12): nếu không, một chuỗi mô tả như
+# `echo 'git reset --hard ...'` sẽ bị coi là lệnh git thật và chặn oan.
+cmd_scan="$(printf '%s' "$cmd" | sed "s/'[^']*'//g; s/\"[^\"]*\"//g")"
+
 # Chỉ can thiệp khi thực sự là `git commit` (bỏ qua commit-tree, --help…).
-if ! printf '%s' "$cmd" | grep -Eq '(^|[^-])git[[:space:]]+([^|&;]*[[:space:]])?commit([[:space:]]|$)'; then
+if ! printf '%s' "$cmd_scan" | grep -Eq '(^|[^-])git[[:space:]]+([^|&;]*[[:space:]])?commit([[:space:]]|$)'; then
   exit 0
 fi
 
 # Người dùng chủ động bỏ qua cổng?
 # Chỉ nhận đúng cờ git hợp lệ `--no-verify` (`-n` của git commit là --no-verify nhưng cũng là
 # cờ của nhiều lệnh khác trong chuỗi → không nhận, tránh bỏ cổng nhầm).
-if printf '%s' "$cmd" | grep -Eq '(^|[[:space:]])--no-verify([[:space:]]|$)'; then
+if printf '%s' "$cmd_scan" | grep -Eq '(^|[[:space:]])--no-verify([[:space:]]|$)'; then
   echo "[pre-commit-gate] phát hiện --no-verify → bỏ qua cổng." >&2
   exit 0
 fi

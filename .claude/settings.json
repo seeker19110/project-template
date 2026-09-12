@@ -1,7 +1,10 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "model": "opusplan",
-  "fallbackModel": ["claude-sonnet-5", "claude-haiku-4-5"],
+  "fallbackModel": [
+    "claude-sonnet-5",
+    "claude-haiku-4-5"
+  ],
   "effortLevel": "medium",
   "permissions": {
     "allow": [
@@ -79,6 +82,10 @@
       {
         "matcher": "Bash",
         "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/block-dangerous-git.sh"
+          },
           {
             "type": "command",
             "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/pre-commit-gate.sh"

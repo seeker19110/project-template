@@ -6,8 +6,9 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8 — Khung đã hoàn thiện; 2 spec nâng cấp (traps/codemap/cổng CI, golden+TDD) đã merge vào `main`
-- Default-branch SHA đã đối chiếu: `a6601b7` (`origin/main`, PR #62 đã merge squash — 13/13 check xanh, không review comment)
+- Giai đoạn: GĐ 8 — audit toàn diện lượt 2026-09-12 xong (Pha 0→3); đang chờ merge đợt "siết hàng rào"
+- Default-branch SHA đã đối chiếu: `772c949` (`origin/main`, PR #63)
+- Nhánh đang làm: `claude/khung-du-an-mau-upgrade-7aw7n1` @ `0f9d47d` (chưa có PR)
 - Ngày cập nhật: 2026-09-12
 
 ## Goal đang active
@@ -15,6 +16,7 @@
 | Goal | Outcome | State | Current gap | Next slice | Link |
 | --- | --- | --- | --- | --- | --- |
 | Gói A+B+C: TRAPS + CODEMAP + cổng CI | 4 PR merge; TRAPS/CODEMAP thật + cổng `check-ci-policy.sh` chạy trong CI | ✅ ĐÓNG (2026-09-12, PR #62) | — | Không còn goal mở | `docs/specs/2026-09-12-traps-codemap-ci-policy.md` |
+| Siết hàng rào (audit 2026-09-12) | 0 phát hiện Cao mở; luật có cơ chế thi hành | 🔄 MỞ | W-101 chặn bởi W-106 (cần merge vào `main`) | Mở PR → merge → merge 5 PR dependabot FIFO | `docs/ops/COMPLETION-PLAN.md` |
 | Golden test + kỷ luật TDD | 3 PR merge; TDD lên cấp CLAUDE.md/gate, golden có luật cập nhật | ✅ ĐÓNG (2026-09-12, PR #62) | — | Không còn goal mở | `docs/specs/2026-09-12-golden-tests-and-tdd.md` |
 | Hoàn thiện khung theo COMPLETION-PLAN | 0 phát hiện Cao mở; Vừa/Thấp có kết cục ghi nhận; đạt Definition of Complete | ✅ ĐÓNG (2026-09-01) | — | Không còn goal mở | `docs/ops/COMPLETION-PLAN.md` |
 
@@ -37,7 +39,12 @@
 
 ## Đang làm / chờ
 
-- Không có việc dở. Cả 2 spec đã merge (**#62**). `docs/ops/COMPLETION-PLAN.md` (đợt trước) vẫn đóng.
+- **Kế hoạch hoàn thiện lượt 2026-09-12 đang MỞ:** `docs/ops/COMPLETION-PLAN.md` — 13/22 việc ✅
+  (cả 2 phát hiện Cao đã xử lý), 1 việc 🔄 BLOCKED, 8 việc ⬜ có lý do hoãn ghi rõ.
+- **Chờ người dùng:** (a) mở PR cho nhánh trên — bắt buộc để W-106 (`pr-policy.yml` miễn trừ bot)
+  tới được `main`, vì 5 PR dependabot không thể merge trước khi nó có hiệu lực; (b) xác nhận xoá
+  ~32 nhánh đã merge (W-308); (c) chọn cơ chế cho W-105 (phát hiện PR đọng).
+- **Gấp:** GitHub xoá Node 20 khỏi runner **16/09/2026** → 5 PR dependabot phải merge trước đó.
 
 ## Tiếp theo
 
@@ -61,6 +68,8 @@
 | F-011 `--theme-transition` dead token | Thấp | AI | **Chấp nhận rủi ro (xác nhận 2026-09-01)** — không sửa | `docs/ops/COMPLETION-PLAN.md` |
 | F-014 usage-guard số thập phân | Thấp | AI | **Chấp nhận rủi ro (xác nhận 2026-09-01)** — không sửa | `docs/ops/COMPLETION-PLAN.md` |
 | F-309 `dev-task.sh` fallback grep | Thấp | AI | **Chấp nhận rủi ro (xác nhận 2026-09-01)** — không sửa | `docs/ops/COMPLETION-PLAN.md` |
+| 5 PR dependabot chưa merge (3 major công cụ bảo mật) | **Cao** | Người dùng | Mở PR cho nhánh hiện tại → merge → merge #53→#57 FIFO trước 16/09 | `docs/ops/COMPLETION-PLAN.md` W-101 |
+| Nhóm 11 audit chưa quét xong (`.env.example`) | Thấp | AI | Chạy lại ở phiên có quyền đọc `.env*` | `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md` W-310 |
 | Case-study Bước 6–8 (branch protection/Supabase/Vercel) chưa kiểm chứng | Thấp | Người dùng | Kiểm khi áp khung vào dự án thật có tài khoản | `docs/framework/case-study-greenfield-dry-run.md` |
 
 ## Bàn giao phiên
