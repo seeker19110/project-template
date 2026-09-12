@@ -6,16 +6,14 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69/#70 (hàng rào `progress-freshness` + quy trình chia PR/effort/auto-merge)
-  đã merge. Sau đó chạy `/audit-full` reset (PR #71): 0 Cao, 4 Trung (G-001..G-004). G-001 (thiếu
-  negative-test cho 3 gate chính) đã sửa qua PR #72. Đang trên nhánh
-  `feat/branch-protection-ruleset-guard` (chưa mở PR): mượn cơ chế auto-merge/branch-protection từ
-  repo `seeker19110/Claude-Agents` — ruleset import được (`.github/rulesets/main.json`) + job CI
-  `protection-guard` đối chiếu hai chiều rule khai báo ↔ rule thật trên GitHub (thay `gộp về 2 tên`
-  bằng cơ chế kiểm chứng tự động, không còn "lời hứa" trong tài liệu); cũng cập nhật CLAUDE.md §8 để
-  dùng auto-merge gốc của GitHub thay vì tự canh CI rồi gọi merge tay.
-- Default-branch SHA đã đối chiếu: `4d89105` (`origin/main`, PR #72)
-- Nhánh đang làm: `feat/branch-protection-ruleset-guard`
+- Giai đoạn: GĐ 8. PR #69/#70 (hàng rào `progress-freshness` + quy trình chia PR/effort/auto-merge),
+  #71 (audit reset: 0 Cao, 4 Trung G-001..G-004), #72 (G-001 — negative-test cho 3 gate chính), #73
+  (mượn cơ chế branch-protection/auto-merge từ `seeker19110/Claude-Agents`: ruleset import được
+  `.github/rulesets/main.json` + job CI `protection-guard` đối chiếu hai chiều; `protection-guard`
+  CỐ Ý chưa vào `needs:` của `gate` — chờ ruleset import — xem `CP4_BOOTSTRAP_EXEMPT` ở
+  `check-ci-policy.sh`) đều đã merge. Đã quay về `main`, không còn việc dở.
+- Default-branch SHA đã đối chiếu: `f79a21a` (`origin/main`, PR #73)
+- Nhánh đang làm: `main`
 - Ngày cập nhật: 2026-09-12
 
 ## Goal đang active
