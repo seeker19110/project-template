@@ -6,14 +6,16 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8 — PR #69 đã merge (squash) vào `main`: (1) hàng rào chống lỗi thời cho
-  `PROGRESS.md` (`scripts/check-progress-freshness.sh` + job CI `progress-freshness`); (2) quy
-  trình mới "chia đơn vị PR + trần effort medium + auto-merge" chèn sau bước duyệt kế hoạch, áp cho
-  việc đủ lớn cần điều phối 3 tầng (`CLAUDE.md` §2, `AGENTS.md`, `orchestration-3-tier.md`,
-  `.claude/agents/{coordinator,complex-implementer}.md`, `auto.md`, `models-and-automation.md`).
-  Đã quay về `main`, không còn việc dở.
-- Default-branch SHA đã đối chiếu: `9ab8f4e` (`origin/main`, PR #69)
-- Nhánh đang làm: `main`
+- Giai đoạn: GĐ 8. PR #69/#70 (hàng rào `progress-freshness` + quy trình chia PR/effort/auto-merge)
+  đã merge. Sau đó chạy `/audit-full` reset (PR #71): 0 Cao, 4 Trung (G-001..G-004). G-001 (thiếu
+  negative-test cho 3 gate chính) đã sửa qua PR #72. Đang trên nhánh
+  `feat/branch-protection-ruleset-guard` (chưa mở PR): mượn cơ chế auto-merge/branch-protection từ
+  repo `seeker19110/Claude-Agents` — ruleset import được (`.github/rulesets/main.json`) + job CI
+  `protection-guard` đối chiếu hai chiều rule khai báo ↔ rule thật trên GitHub (thay `gộp về 2 tên`
+  bằng cơ chế kiểm chứng tự động, không còn "lời hứa" trong tài liệu); cũng cập nhật CLAUDE.md §8 để
+  dùng auto-merge gốc của GitHub thay vì tự canh CI rồi gọi merge tay.
+- Default-branch SHA đã đối chiếu: `4d89105` (`origin/main`, PR #72)
+- Nhánh đang làm: `feat/branch-protection-ruleset-guard`
 - Ngày cập nhật: 2026-09-12
 
 ## Goal đang active
@@ -68,12 +70,17 @@
 
 ## Tiếp theo
 
-- **Ngay lập tức:** không có việc dở — chờ yêu cầu tiếp theo của người dùng.
+- **Ngay lập tức:** mở PR cho nhánh `feat/branch-protection-ruleset-guard`, đăng ký theo dõi, merge
+  khi CI xanh — sau đó **import `.github/rulesets/main.json` trên GitHub Settings → Rules →
+  Rulesets** (chỉ chủ repo làm được) để `protection-guard` thật sự có gì để đối chiếu.
+- Còn 3 phát hiện Trung từ audit toàn diện chưa xử lý: G-002 (PROGRESS.md risk table dependabot lỗi
+  thời — đã dọn trong đợt sửa này), G-003 (dòng sơ đồ ASCII `orchestration-3-tier.md` còn "Opus·high"),
+  G-004 (effort/model lặp 6 nơi không cổng đối chiếu).
 - Có thể làm khi được yêu cầu: bắt đầu dự án đích mới bằng khung này (`/consult` hoặc `/auto`), tiếp
   tục quét thêm repo dẫn xuất khác (gói D–I của lượt quét 2026-09-12: script `check-*` của `xboss`,
   hook `block-dangerous-git.sh`, gitleaks pre-commit, gate-agent `sc-gate-*`, `eval-record.yml`),
   hoặc audit định kỳ khác (`/audit-full`). Ngoài ra vẫn còn tồn đọng chờ người dùng ở mục "Rủi ro"
-  bên dưới (xoá 31 nhánh, đổi branch protection sang khoá `gate`, merge PR dependabot).
+  bên dưới (xoá 31 nhánh, import ruleset `.github/rulesets/main.json`).
 
 ## Quyết định quan trọng
 
@@ -94,9 +101,12 @@
 | F-011 `--theme-transition` dead token | Thấp | AI | **Chấp nhận rủi ro (xác nhận 2026-09-01)** — không sửa | `docs/ops/COMPLETION-PLAN.md` |
 | F-014 usage-guard số thập phân | Thấp | AI | **Chấp nhận rủi ro (xác nhận 2026-09-01)** — không sửa | `docs/ops/COMPLETION-PLAN.md` |
 | F-309 `dev-task.sh` fallback grep | Thấp | AI | **Chấp nhận rủi ro (xác nhận 2026-09-01)** — không sửa | `docs/ops/COMPLETION-PLAN.md` |
-| 5 PR dependabot chưa merge (3 major công cụ bảo mật) | **Cao** | Người dùng | Mở PR cho nhánh hiện tại → merge → merge #53→#57 FIFO trước 16/09 | `docs/ops/COMPLETION-PLAN.md` W-101 |
+| ~~5 PR dependabot chưa merge~~ | — | — | ➖ Lỗi thời (G-002, audit 2026-09-12) — #53→#57 đã merge từ trước, `list_pull_requests(state=open)` xác nhận 0 PR đang mở | `docs/ops/COMPLETION-PLAN.md` W-101 |
 | Case-study Bước 6–8 (branch protection/Supabase/Vercel) chưa kiểm chứng | Thấp | Người dùng | Kiểm khi áp khung vào dự án thật có tài khoản | `docs/framework/case-study-greenfield-dry-run.md` |
 | 31 nhánh đã merge còn tồn trên remote (F-014) | Thấp | Người dùng | Xoá qua GitHub UI hoặc cấp quyền Bash cho `git push --delete` — danh sách đủ ở `docs/ops/repository-settings.md` | `docs/ops/COMPLETION-PLAN.md` W-308 |
+| Ruleset `.github/rulesets/main.json` chưa import trên GitHub | Vừa | Người dùng | Import: Settings → Rules → Rulesets → New ruleset → Import a ruleset — job CI `protection-guard` đỏ tới khi làm (CỐ Ý chưa nằm trong `needs:` của `gate` để tránh deadlock — xem `CP4_BOOTSTRAP_EXEMPT` ở `check-ci-policy.sh`). Sau khi import + job xanh: mở PR thêm `protection-guard` vào `needs:` của `gate` + xoá khỏi allowlist đó | `docs/ops/repository-settings.md` |
+| G-003 (`orchestration-3-tier.md` dòng sơ đồ ASCII còn "Opus·high") | Vừa | AI | Chưa sửa — 1 dòng, cùng gốc với G-004 | `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md` |
+| G-004 (effort/model lặp 6 file, không cổng đối chiếu) | Vừa | AI | Chưa sửa — cần thêm 1 kiểm vào `check-docs-consistency.sh` hoặc gộp về 1 nguồn | `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md` |
 | ~~W-303 test RLS~~ | — | — | ➖ Hết hiệu lực (ADR-0004) — dropins Supabase đã gỡ, không còn gì để test | `docs/ops/COMPLETION-PLAN.md` W-303 |
 | ~~PROGRESS.md lỗi thời (nhánh đã merge #67 nhưng vẫn ghi "chưa mở PR")~~ | Vừa | AI | ✅ Đã sửa 2026-09-12 — thêm `scripts/check-progress-freshness.sh` + job CI `progress-freshness` chặn merge nếu tái phạm; xem `TRAPS.md` | `CLAUDE.md` §8, `CODEMAP.md` |
 

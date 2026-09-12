@@ -9,13 +9,25 @@ khi tạo repo, đổi visibility/owner, sau incident và tối thiểu mỗi qu
 - [ ] Default branch rõ; cấm force-push/delete; mọi thay đổi qua PR.
 - [ ] Required checks theo project profile; branch up-to-date hoặc merge queue khi concurrency cao.
 
-### Required checks — nguồn sự thật (đối chiếu tự động)
+### Required checks & branch protection — nguồn sự thật (đối chiếu tự động, 2 lớp)
 
-**Required checks cần tick trên GitHub (Settings → Branches → main) — chỉ HAI tên** (ADR-0003):
-job **`gate`** của `ci.yml`, và job **`metadata`** của `pr-policy.yml`. Hết.
+**Cách bật (một lần, chủ repo làm trên GitHub):** import `.github/rulesets/main.json` — Settings →
+Rules → Rulesets → **New ruleset → Import a ruleset** → chọn file đó → Create. File này (cơ chế mượn
+từ repo `seeker19110/Claude-Agents`, tài liệu QUY-TRINH-GIT.md §8 của repo đó) khai: bắt buộc PR, chỉ **squash**, cấm
+xoá/force-push `main`, **required status checks = `gate` + `metadata`** (chỉ HAI tên — ADR-0003),
+**không ai bypass được kể cả admin** (`bypass_actors` rỗng), `required_approving_review_count: 0`
+(không phải hạ chuẩn — GitHub không cho tự duyệt PR của chính mình; đặt 1 sẽ khoá vĩnh viễn mọi PR
+khi repo chỉ có một người, xem case PR #40 của Claude-Agents nếu tò mò tại sao). Đặt lại thành ≥ 1
+khi repo có thêm collaborator khác.
 
 `gate` là job tổng hợp `needs:` mọi job cổng của `ci.yml`, nên thêm job cổng mới **không cần**
 sửa cấu hình GitHub nữa — chỉ thêm vào `needs:` của `gate` trong cùng PR.
+
+**Job `protection-guard` trong `ci.yml` xác nhận ruleset đã import THẬT SỰ có hiệu lực** (không chỉ
+là lời hứa trong tài liệu này) và **khớp file `.github/rulesets/main.json`** theo hai chiều: thiếu
+rule/check khai trong file → lỗi (bảo vệ yếu hơn thứ repo khai); có rule đang áp nhưng không khai
+trong file → cảnh báo (không yếu đi, nhưng import lại sẽ xoá mất). Lý do cần vế hai: sửa ruleset qua
+UI có thể làm rơi một rule mà không báo gì — CI vẫn xanh nếu không có đối chiếu này.
 
 Khối dưới đây là **bản kê toàn bộ job** của hai workflow đó (không phải danh sách cần tick):
 `scripts/check-ci-policy.sh` đối chiếu hai chiều bản kê này với job thật và chặn CI nếu lệch
@@ -31,6 +43,7 @@ ci.yml: framework-lint
 ci.yml: docs-consistency
 ci.yml: copy-framework-smoke
 ci.yml: progress-freshness
+ci.yml: protection-guard
 ci.yml: gate
 pr-policy.yml: metadata
 ```

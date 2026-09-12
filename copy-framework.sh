@@ -163,6 +163,7 @@ for f in \
   .github/workflows/secret-scan.yml .github/workflows/dependency-review.yml \
   .github/workflows/pr-policy.yml .github/workflows/release.yml \
   .github/pull_request_template.md .github/dependabot.yml .github/ISSUE_TEMPLATE .github/CODEOWNERS \
+  .github/rulesets/main.json \
   .gitignore .gitattributes \
   scripts/ci-workflow-policy.test.ts \
 ; do
