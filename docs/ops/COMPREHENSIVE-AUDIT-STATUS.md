@@ -17,15 +17,15 @@
 | 6 | Accessibility & UI/UX | ➖ Không áp dụng | Không còn UI trong repo khung (ADR-0004) | 2026-09-12 |
 | 7 | Dependency & chuỗi cung ứng | ✅ Xong | **1 Thấp (G-002, tái xác nhận)** — `PROGRESS.md` risk table vẫn ghi "5 PR dependabot chưa merge (Cao)" nhưng `list_pull_requests(state=open)` xác nhận **0 PR đang mở** — #53→#57 đã merge từ trước (thấy trong git log). Mục risk lỗi thời, hạ xuống đã đóng. Mọi `uses:` trong workflow đã ghim SHA đầy đủ (`grep` xác nhận 0 vi phạm) | 2026-09-12 |
 | 8 | CI/CD & vận hành | ✅ Xong | 8 job CI đều xanh (`framework-lint`, `docs-consistency`, `copy-framework-smoke`, `progress-freshness`, `metadata`, `gitleaks`, `dependency-review`, `gate`); branch protection **vẫn chưa gộp về 2 tên** (`gate`+`metadata`, ADR-0003) — đã biết, chờ chủ repo (không mới); 31 nhánh merged còn tồn trên remote — đã biết, chờ chủ repo (không mới) | 2026-09-12 |
-| 9 | Tài liệu & đồng bộ code thật | ✅ Xong | **1 Trung (G-003)** — `docs/framework/orchestration-3-tier.md` dòng ~31 (khối sơ đồ ASCII "Sơ đồ tổng thể") vẫn ghi `route:complex → complex-implementer (Opus · high)`, sót lại từ TRƯỚC PR #69 hạ effort trần xuống `medium` — bảng định tuyến ngay bên dưới trong CÙNG FILE đã đúng `Opus · medium`, nên tài liệu tự mâu thuẫn với chính nó. **Cùng G-003:** `PROGRESS.md` risk table dòng dependabot lỗi thời (trùng G-002) — chính là khuôn lỗi TRAPS.md mục 8 vừa thêm, nhưng lần này ở một field mà `check-progress-freshness.sh` KHÔNG kiểm (nó chỉ kiểm SHA/nhánh, không kiểm nội dung risk table) | 2026-09-12 |
+| 9 | Tài liệu & đồng bộ code thật | ✅ Xong | ~~1 Trung (G-003)~~ **✅ Đã sửa 2026-09-12** — sửa dòng sơ đồ ASCII thành `Opus · medium` (khớp bảng định tuyến); riêng dòng dependabot lỗi thời của `PROGRESS.md` đã dọn ở PR #73 | 2026-09-12 |
 | 10 | Dữ liệu & migration | ➖ Không áp dụng | Không còn migration nào trong repo khung (Supabase đã gỡ, ADR-0004) | 2026-09-12 |
 | 11 | Cấu hình môi trường & bí mật | ✅ Xong | 0 mới — không có `.env.example` nữa (đúng, vì không còn app cần biến môi trường); `.mcp.json.example` toàn placeholder biến môi trường, không secret thật | 2026-09-12 |
-| 12 | Thống nhất chéo tính năng | ✅ Xong | **1 Trung (G-004)** — quy ước "model · effort" cho từng `route:` bị chép tay lặp lại ở **6 chỗ khác nhau** (`orchestration-3-tier.md` ×2 vị trí trong cùng file, `complex-implementer.md`, `coordinator.md`, `models-and-automation.md`, `auto.md`) mà **không có cổng nào đối chiếu chéo** — cùng nguyên nhân gốc gây ra G-003 dòng đầu, và sẽ tái phát ở lần sửa effort/model kế tiếp nếu không có cổng | 2026-09-12 |
+| 12 | Thống nhất chéo tính năng | ✅ Xong | ~~1 Trung (G-004)~~ **✅ Đã sửa 2026-09-12** — thêm mục 5 vào `check-docs-consistency.sh`: cấm chuỗi cụ thể "Opus · high" (đã biết là sai) sống lại ở bất kỳ *.md/*.sh/*.ps1 nào, trừ nhật ký lịch sử. Cố ý KHÔNG xây trình đối chiếu ngữ nghĩa tổng quát giữa 6 file (prose mỗi nơi viết khác kiểu, dễ báo oan) — chốt hẹp đúng chuỗi đã biết là bẫy | 2026-09-12 |
 
 ## Tổng hợp mức độ
 
 - **Cao: 0**
-- **Trung: 4, đã sửa 1 (G-001)** — còn mở: G-002/G-003 (PROGRESS.md risk table lỗi thời), G-003 (orchestration-3-tier.md tự mâu thuẫn effort), G-004 (effort/model duplicated 6 nơi, không cổng đối chiếu)
+- **Trung: 4, đã sửa cả 4** — G-001 (PR #72), G-002 (PR #73), G-003 + G-004 (nhánh `fix/g003-g004-stale-effort-label`)
 - **Thấp: 0 mới** (branch protection 7→2 tên và 31 nhánh tồn đọng đã biết từ trước, không tính lại)
 
 ## Đối chiếu với lượt trước (đã lỗi thời, tham khảo lịch sử)
