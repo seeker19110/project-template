@@ -6,18 +6,14 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8 — ADR-0004 (gỡ scaffold Web mặc định) đã merge qua PR #67; PR #68 tổng quát hoá
-  harness cho mọi AI coding model/provider đã merge. Đang trên nhánh
-  `claude/loving-albattani-rqp49h` (chưa mở PR) với 2 thay đổi cùng lượt: (1) hàng rào chống lỗi
-  thời cho `PROGRESS.md` (`scripts/check-progress-freshness.sh` + job CI `progress-freshness`,
-  commit `a4fdd4d`); (2) quy trình mới "chia đơn vị PR + trần effort medium + auto-merge" chèn sau
-  bước duyệt kế hoạch, áp cho việc đủ lớn cần điều phối 3 tầng (`CLAUDE.md` §2, `AGENTS.md`,
-  `orchestration-3-tier.md`, `.claude/agents/{coordinator,complex-implementer}.md`, `auto.md`,
-  `models-and-automation.md`) — CHƯA commit.
-- Default-branch SHA đã đối chiếu: `08bcc84` (`origin/main`, PR #68) — nhánh làm việc đã đi trước
-  bằng 1 commit cục bộ chưa push (`a4fdd4d`) + thay đổi đang dở.
-- Nhánh đang làm: `claude/loving-albattani-rqp49h` (không phải PR — đã push commit `a4fdd4d`, đang
-  thêm commit thứ hai)
+- Giai đoạn: GĐ 8 — PR #69 đã merge (squash) vào `main`: (1) hàng rào chống lỗi thời cho
+  `PROGRESS.md` (`scripts/check-progress-freshness.sh` + job CI `progress-freshness`); (2) quy
+  trình mới "chia đơn vị PR + trần effort medium + auto-merge" chèn sau bước duyệt kế hoạch, áp cho
+  việc đủ lớn cần điều phối 3 tầng (`CLAUDE.md` §2, `AGENTS.md`, `orchestration-3-tier.md`,
+  `.claude/agents/{coordinator,complex-implementer}.md`, `auto.md`, `models-and-automation.md`).
+  Đã quay về `main`, không còn việc dở.
+- Default-branch SHA đã đối chiếu: `9ab8f4e` (`origin/main`, PR #69)
+- Nhánh đang làm: `main`
 - Ngày cập nhật: 2026-09-12
 
 ## Goal đang active
@@ -45,7 +41,10 @@
   thành entrypoint chung có hàng rào an toàn thủ công cho agent không có hook Claude Code;
   `.mcp.json.example` + `.claude/settings.local.json.example`; bridge file GEMINI.md/.clinerules/
   .windsurfrules/Cursor/Copilot trỏ về AGENTS.md; thêm subagent `tester` + `security-reviewer`.
-- PR đã merge gần nhất: **#68** (tổng quát hoá harness), **#67** (ADR-0004 gỡ scaffold Web), **#66**
+- **(2026-09-12) PR #69 — cổng chống PROGRESS.md lỗi thời + chia đơn vị PR/trần effort medium/
+  auto-merge**: `scripts/check-progress-freshness.sh` + job CI `progress-freshness`; quy trình mới
+  sau bước duyệt kế hoạch cho việc đủ lớn cần điều phối 3 tầng — xem `TRAPS.md` mục 8.
+- PR đã merge gần nhất: **#69** (freshness gate + PR-splitting/effort/auto-merge), **#68** (tổng quát hoá harness), **#67** (ADR-0004 gỡ scaffold Web), **#66**
   (đóng Nhóm 11 audit), **#62** (TRAPS.md + CODEMAP.md + `check-ci-policy.sh` + golden test/TDD —
   2 spec `docs/specs/2026-09-12-*.md`, 7 PR gộp thành 1, rút từ lượt quét 15 repo dẫn xuất/lân cận),
   **#61** (verify-dropins ERESOLVE), **#52** (hoàn thiện khung theo COMPLETION-PLAN, 4 đợt/22 việc
@@ -69,12 +68,12 @@
 
 ## Tiếp theo
 
-- **Ngay lập tức:** mở PR cho hàng rào `progress-freshness` (script + job CI + cập nhật CLAUDE.md
-  §8/CODEMAP.md/repository-settings.md), đăng ký theo dõi, merge khi CI xanh.
-- Sau đó: chờ yêu cầu tiếp theo của người dùng — bắt đầu dự án đích mới bằng khung này (`/consult`
-  hoặc `/auto`), tiếp tục quét thêm repo dẫn xuất khác (gói D–I của lượt quét 2026-09-12: script
-  `check-*` của `xboss`, hook `block-dangerous-git.sh`, gitleaks pre-commit, gate-agent `sc-gate-*`,
-  `eval-record.yml`), hoặc audit định kỳ khác (`/audit-full`).
+- **Ngay lập tức:** không có việc dở — chờ yêu cầu tiếp theo của người dùng.
+- Có thể làm khi được yêu cầu: bắt đầu dự án đích mới bằng khung này (`/consult` hoặc `/auto`), tiếp
+  tục quét thêm repo dẫn xuất khác (gói D–I của lượt quét 2026-09-12: script `check-*` của `xboss`,
+  hook `block-dangerous-git.sh`, gitleaks pre-commit, gate-agent `sc-gate-*`, `eval-record.yml`),
+  hoặc audit định kỳ khác (`/audit-full`). Ngoài ra vẫn còn tồn đọng chờ người dùng ở mục "Rủi ro"
+  bên dưới (xoá 31 nhánh, đổi branch protection sang khoá `gate`, merge PR dependabot).
 
 ## Quyết định quan trọng
 
@@ -122,11 +121,19 @@
     "Đã xong", mục Rủi ro ghi nhận lỗi này đã sửa).
   - Đã chạy lại `check-docs-consistency.sh` ✅, `check-ci-policy.sh` ✅, `test-copy-framework.sh` ✅,
     `test-hooks-gate.sh` ✅, `check-progress-freshness.sh` ✅ (sau khi sửa PROGRESS.md) — tất cả xanh.
-- Việc CHƯA xong + lý do: chưa mở PR cho đợt sửa này (làm ngay sau khi ghi file); cân nhắc thêm mục
-  vào `TRAPS.md` cho khuôn lỗi "tài liệu trạng thái lỗi thời sau merge" (chưa làm — có thể để phiên
-  sau nếu tái phát).
-- Bước tiếp theo: commit, mở PR, đăng ký theo dõi, merge khi CI xanh (đặc biệt xác nhận job mới
-  `progress-freshness` chạy đúng — job này chỉ kích hoạt SAU khi merge vào `main` nên tự PR của nó
-  sẽ hiện `skipped`, không phải bằng chứng job hoạt động; cần merge xong rồi xem lần push kế tiếp).
+- Cùng phiên, người dùng yêu cầu thêm bước: sau khi duyệt kế hoạch, việc đủ lớn cần điều phối thì
+  chia đơn vị PR (song song/tuần tự theo phụ thuộc) + trần effort medium cho mọi worker (kể cả
+  `route:complex`, trước là Opus·high) + mỗi đơn vị mở PR riêng + bật auto-merge khi cổng xanh —
+  viết nguyên tắc chung ở `AGENTS.md` (dùng chung mọi nhà cung cấp AI), bản triển khai Claude Code ở
+  `orchestration-3-tier.md` + `.claude/agents/{coordinator,complex-implementer}.md` + `auto.md`.
+- **Đã mở PR #69**, tiêu đề ban đầu `feat:` bị `pr-policy.yml` chặn (đúng thiết kế — feat phải link
+  spec Approved, đây là framework meta nên không có) → đổi tiêu đề/checkbox sang `chore:` → CI xanh
+  hết (`gate`, `docs-consistency`, `framework-lint`, `copy-framework-smoke`, `metadata`, `gitleaks`,
+  `dependency-review`; `progress-freshness` skip đúng vì đây là PR chưa push vào `main`) → **đã
+  merge (squash, SHA `9ab8f4e`)** → đã quay về `main`, fast-forward sạch.
+- Việc CHƯA xong + lý do: chưa có — phiên này đã đóng trọn vẹn (spec → code → gate → PR → CI xanh →
+  merge → quay về main → cập nhật PROGRESS.md). Có thể cân nhắc sau: thêm mục TRAPS.md riêng cho
+  bài học "PR title `feat:` kích hoạt yêu cầu spec dù không phải feature dự án đích" nếu tái phát.
+- Bước tiếp theo: không có, chờ yêu cầu người dùng.
 - Quyền/quyết định cần thêm: không có gì mới ngoài các mục tồn đọng cũ (xoá 31 nhánh, đổi branch
   protection sang khoá `gate`, merge PR dependabot).
