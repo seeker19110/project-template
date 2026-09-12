@@ -61,7 +61,8 @@ Dự án tự chốt mức ASVS mục tiêu vào `PROJECT.md`/ADR — không m�
 
 ## C. Vận hành/CI-CD — 12-Factor App + signed commit
 
-**Đã có:** branch protection, required checks, secret scanning, SBOM/provenance (`repository-settings.md`, `supply-chain.md`).
+**Đã có:** branch protection, required checks, quét rò rỉ bí mật (secret scanning), SBOM/provenance.
+Xem `docs/ops/repository-settings.md` và `docs/ops/supply-chain.md` để biết chi tiết.
 
 **Bổ sung — [12-Factor App](https://12factor.net/) cho hồ sơ Backend/API (C4) và mọi service chạy production:**
 
