@@ -454,7 +454,11 @@ sang `/debug`, đừng cập nhật golden để "cho xanh".
 
 **(e) CI không được tự tạo snapshot mới.** Snapshot/golden thiếu ở môi trường CI phải làm test
 **đỏ**, không tự sinh rồi pass — nếu không, một golden bị xoá nhầm sẽ không bao giờ bị phát hiện.
-Chạy Vitest ở CI với cờ chặn tạo mới (`--ci`, xem `vitest.config.mts` của dropins).
+Vitest tự phát hiện biến môi trường `CI` (mà GitHub Actions và hầu hết CI provider tự đặt
+`CI=true`) và **từ chối viết snapshot thiếu** thay vì tự tạo — đã xác minh thật: `vitest run` không
+đặt `CI` sẽ tự tạo snapshot mới rồi PASS (nguy hiểm — golden bị xoá nhầm sẽ không bao giờ bị phát
+hiện); cùng lệnh với `CI=true` thì **FAIL** đúng, không tạo file. Không cần cờ CLI hay cấu hình
+thêm trong `vitest.config.mts` — `ci.yml` của khung chạy trên GitHub Actions nên đã tự động đúng.
 
 *Hồ sơ non-Node:* pytest có `--snapshot-update` (plugin `syrupy`) cùng nguyên tắc cập nhật thủ
 công; Rust dùng `insta` (`cargo insta review`). Nguyên tắc (a)-(e) áp dụng như nhau, chỉ đổi công cụ.

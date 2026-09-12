@@ -13,6 +13,20 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **Golden test — cơ chế thật, ví dụ chạy được trong dropins** (PR-C/3 của spec
+  `docs/specs/2026-09-12-golden-tests-and-tdd.md`, đã Approved for implementation — spec hoàn tất
+  3/3 PR). `vitest.config.mts` thêm `resolveSnapshotPath` tường minh (đưa mọi
+  `toMatchSnapshot`/`toMatchFileSnapshot` vào `__golden__/` cạnh file test, khớp quy ước (b) đã viết
+  ở PR-B, thay thư mục `__snapshots__/` mặc định). Thêm `lib/order-summary.ts` (hàm thuần, tiền
+  dùng cents — không float) + `lib/order-summary.golden.test.ts` + baseline
+  `lib/__golden__/order-summary.golden.test.ts.snap` đã sinh THẬT bằng Vitest. **Sửa 1 chỗ sai đã
+  push ở PR-B:** `quality-supplements.md` từng ghi "Vitest có cờ `--ci` chặn tạo snapshot mới" —
+  KHÔNG có cờ đó ở Vitest 5 (`CACError: Unknown option`, xác minh thật). Cơ chế đúng là biến môi
+  trường `CI` (Vitest tự phát hiện `process.env.CI`; GitHub Actions tự đặt `CI=true`) — đã xác minh
+  cả hai chiều: `vitest run` không đặt `CI` tự tạo snapshot thiếu rồi PASS (nguy hiểm); cùng lệnh với
+  `CI=true` thì FAIL đúng, không tạo file (đây là FR-9 của spec: xác minh thật trước khi ghi tài
+  liệu, không suy đoán — CLAUDE.md §4). `copy-framework.sh`/`.ps1` nối 3 file mới vào Layer 2;
+  `test-copy-framework.sh` thêm 2 assertion (đã chạy negative test).
 - **Golden test — tài liệu + template** (PR-B/3 của spec `docs/specs/2026-09-12-golden-tests-and-tdd.md`,
   đã Approved for implementation). `docs/framework/quality-supplements.md` (Nhóm 2 mục 6) thêm tiểu
   mục "Golden test" đủ 5 phần: (a) dùng khi nào/KHÔNG dùng khi nào (không mặc định cho snapshot UI
