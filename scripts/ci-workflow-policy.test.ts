@@ -10,12 +10,21 @@
 // CỐ Ý chỉ kiểm CẤU TRÚC (job id có khớp danh sách khai báo không), KHÔNG kiểm nội dung từng bước —
 // ép nội dung sẽ biến test thành vật cản mỗi lần thêm một bước kiểm mới.
 //
+// BẢNG KIỂM (ID khai ở scripts/check-ci-policy.sh — bản shell của repo khung; xem W-302):
+//   CP-1  job id trong workflow ↔ bản kê required checks (hai chiều)   → ĐÃ IMPLEMENT dưới đây
+//   CP-2  mọi `uses:` ghim full commit SHA                             → ĐÃ IMPLEMENT dưới đây
+//   CP-3  `node-version:` khớp .nvmrc                                  → ĐÃ IMPLEMENT dưới đây
+//   CP-4  mọi job ci.yml có trong `needs:` của job tổng hợp `gate`     → KHÔNG ÁP DỤNG cho dự án
+//         đích: job `gate` là quy ước của RIÊNG repo khung (ADR-0003), khung không áp đặt cấu trúc
+//         job lên dự án đích (xem LƯU Ý ngay dưới). Dự án đích tự thêm nếu muốn.
+// Thêm/bỏ một CP-* ở bản shell mà quên khai ở đây → `check-ci-policy.sh` mục 7 làm CI đỏ.
+//
 // LƯU Ý cho dự án đích đã tự thêm job tổng hợp (`quality`/`e2e` có `needs:`, chia mảnh E2E…):
 // đó là quy ước RIÊNG của dự án, không phải bất biến của khung — thêm test riêng cho quy ước đó,
 // đừng sửa file này để giả định một cấu trúc mà khung không áp đặt.
 
 import { describe, it, expect } from 'vitest'
-import { readFileSync, existsSync } from 'node:fs'
+import { readFileSync, existsSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 
 const ROOT = process.cwd()
@@ -97,4 +106,52 @@ describe('required checks — .github/workflows/{ci,pr-policy}.yml ↔ docs/ops/
       expect(dead, `Job đã khai nhưng không còn tồn tại trong ${wf}`).toEqual([])
     })
   }
+})
+
+// ── CP-2: mọi GitHub Action phải ghim full commit SHA ──
+// Tag di động (`@v4`) nghĩa là mã chạy trong CI có thể đổi dưới chân bạn mà không có PR nào.
+describe('CP-2 — chuỗi cung ứng: action ghim full commit SHA', () => {
+  const wfDir = join(ROOT, '.github', 'workflows')
+  const files = existsSync(wfDir)
+    ? readdirSync(wfDir).filter((f) => f.endsWith('.yml') || f.endsWith('.yaml'))
+    : []
+
+  it('tìm thấy ít nhất một workflow (tự bảo vệ khỏi test rỗng luôn xanh)', () => {
+    expect(files.length).toBeGreaterThan(0)
+  })
+
+  for (const f of files) {
+    it(`${f}: mọi uses: đã ghim SHA40`, () => {
+      const unpinned: string[] = []
+      for (const line of readFileSync(join(wfDir, f), 'utf-8').split('\n')) {
+        const ref = line.match(/^\s*-?\s*uses:\s*(\S+)/)?.[1]
+        if (!ref) continue
+        if (ref.startsWith('./') || ref.startsWith('docker://')) continue // action local/docker
+        if (!/@[0-9a-f]{40}$/.test(ref)) unpinned.push(ref)
+      }
+      expect(unpinned, `Action chưa ghim SHA (dùng: uses: <action>@<sha40> # <tag>)`).toEqual([])
+    })
+  }
+})
+
+// ── CP-3: node-version trong workflow khớp .nvmrc ──
+// Lệch nghĩa là CI test bằng Node khác Node dev — hỏng im lặng, rất khó lần ra.
+describe('CP-3 — node-version khớp .nvmrc', () => {
+  const nvmrcPath = join(ROOT, '.nvmrc')
+  const wfDir = join(ROOT, '.github', 'workflows')
+
+  it.runIf(existsSync(nvmrcPath) && existsSync(wfDir))('mọi node-version khớp .nvmrc', () => {
+    const want = readFileSync(nvmrcPath, 'utf-8').trim()
+    const bad: string[] = []
+    for (const f of readdirSync(wfDir).filter((x) => x.endsWith('.yml') || x.endsWith('.yaml'))) {
+      for (const line of readFileSync(join(wfDir, f), 'utf-8').split('\n')) {
+        const raw = line.match(/node-version:\s*(.+)$/)?.[1]
+        if (!raw) continue
+        const val = raw.trim().replace(/['"]/g, '')
+        if (val.startsWith('${{')) continue // biểu thức matrix
+        if (val !== want) bad.push(`${f}: '${val}' ≠ .nvmrc '${want}'`)
+      }
+    }
+    expect(bad, 'node-version lệch .nvmrc').toEqual([])
+  })
 })

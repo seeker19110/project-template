@@ -17,6 +17,14 @@
 # Dự án đích dùng bản vitest tương đương trong dropins: scripts/ci-workflow-policy.test.ts.
 # Hai bản KHÔNG được gộp — xem CODEMAP.md khi có.
 #
+# BẢNG KIỂM (mỗi kiểm một ID — khai ở ĐÂY là nguồn sự thật; xem mục 7 và W-302):
+#   CP-1  job id trong workflow ↔ bản kê required checks (hai chiều)
+#   CP-2  mọi `uses:` ghim full commit SHA
+#   CP-3  `node-version:` khớp .nvmrc
+#   CP-4  mọi job ci.yml có trong `needs:` của job tổng hợp `gate`
+# Thêm một kiểm mới ở đây → PHẢI khai ID đó trong scripts/ci-workflow-policy.test.ts (bản dropins),
+# dù chỉ để ghi "không áp dụng cho dự án đích: <lý do>". Mục 7 dưới đây cưỡng chế điều đó.
+#
 # Chạy: bash scripts/check-ci-policy.sh
 set -euo pipefail
 
@@ -153,8 +161,30 @@ else
 fi
 
 
+# --- 7. Hai bản kiểm CI song song không được phân kỳ âm thầm (W-302, F-008). ---
+# VÌ SAO: repo khung dùng bản SHELL (không có package.json → không chạy vitest), dự án đích dùng
+# bản VITEST `scripts/ci-workflow-policy.test.ts`. CỐ Ý không gộp — nhưng trước kiểm này không gì
+# ràng hai bên: thêm một kiểm vào bản shell mà quên bản dropins thì dự án đích thiếu cổng đó mà
+# không ai biết. Hai bản KHÔNG cần giống nhau (phạm vi khác thật), nhưng mỗi ID phải được bên kia
+# KHAI TƯỜNG MINH — implement, hoặc ghi "không áp dụng cho dự án đích: <lý do>".
+echo "== Bảng kiểm CP-* được khai ở cả hai bản (shell ↔ vitest) =="
+DROPIN_TEST="scripts/ci-workflow-policy.test.ts"
+if [ -f "$DROPIN_TEST" ]; then
+  while IFS= read -r cp; do
+    [ -n "$cp" ] || continue
+    if ! grep -q "$cp" "$DROPIN_TEST"; then
+      echo "::error file=$DROPIN_TEST::Kiểm '$cp' có trong scripts/check-ci-policy.sh nhưng KHÔNG được khai ở bản dropins — implement nó, hoặc ghi rõ '$cp: không áp dụng cho dự án đích: <lý do>' (W-302)."
+      fail=1
+    fi
+  done < <(grep -oE '^#   CP-[0-9]+' "$0" | sed 's/^#   //')
+else
+  echo "::error::Thiếu $DROPIN_TEST — dự án đích sẽ không có cổng kiểm CI nào."
+  fail=1
+fi
+
+
 if [ "$fail" -eq 0 ]; then
-  echo "OK — job id khớp $SETTINGS_FILE; action đã ghim SHA; node-version khớp .nvmrc; gate needs đủ job."
+  echo "OK — CP-1..CP-4 đạt; bảng kiểm khớp hai bản (shell ↔ vitest dropins)."
 fi
 
 exit "$fail"

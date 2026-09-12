@@ -3,6 +3,7 @@
 > Lượt trước (01/09, 22 việc W-101→W-406) đã ĐÓNG — không mở lại. Đây là **chu kỳ mới**.
 > Nguồn phát hiện: `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md` (2 Cao · 8 Trung · 5 Thấp).
 > Duyệt: người dùng duyệt "cập nhật toàn diện" (2026-09-12) — phạm vi = cả 15 phát hiện.
+> Spec: `docs/specs/2026-09-12-enforcement-guardrails.md` (**Approved for implementation**).
 > Trạng thái: ⬜ chưa làm · 🔄 đang làm · ✅ xong (kèm bằng chứng) · ➖ huỷ (kèm lý do).
 
 ## Definition of Complete (lượt này)
@@ -24,7 +25,7 @@
 | W-102 | F-003 | Pin `actions/cache@v4` → full SHA | `ci.yml:205` có SHA + comment `# v4.x.y` | W-101 | S | ✅ `ci.yml:205` → `actions/cache@caa2961 # v5.1.0` (Node 24, thay vì v4 Node 20 sắp bị xoá khỏi runner) |
 | W-103 | F-003 | Thêm kiểm "mọi `uses:` phải pin SHA" vào `scripts/check-ci-policy.sh` + negative test | Script bắt được action không pin (chứng minh bằng lượt chạy đỏ có chủ đích) | W-102 | S | ✅ `ci.yml:205` → `actions/cache@caa2961 # v5.1.0` (Node 24, thay vì v4 Node 20 sắp bị xoá khỏi runner) |
 | W-104 | F-005 | gitleaks ở pre-commit (dropins `.husky/pre-commit`) | Commit chứa bí mật mẫu bị chặn tại local, trước khi vào lịch sử | — | S | ✅ `.husky/pre-commit` + kiểm 4 nhánh (chặn/cho qua/thiếu gitleaks/cờ bỏ qua) |
-| W-105 | F-001 | Hàng rào chống tái phát: cảnh báo khi có PR mở cũ hơn PR đang xử lý (FIFO) | Có cơ chế nhắc FIFO; hoặc ghi nhận không tự động hoá được + lý do | W-101 | M | ⬜ |
+| W-105 | F-001 | Hàng rào chống tái phát: cảnh báo khi có PR mở cũ hơn PR đang xử lý (FIFO) | Có cơ chế nhắc FIFO; hoặc ghi nhận không tự động hoá được + lý do | W-101 | M | ✅ `.github/workflows/stale-pr-alert.yml` (tuần) — 4 ca logic chạy offline với `github`/`core` giả: bỏ qua draft+PR mới, update issue cũ, không vỡ khi API check lỗi |
 
 ## Đợt 2 — Chứng minh cổng chặn thật + dựng hàng rào cho luật
 
@@ -40,7 +41,7 @@
 | ID | F gốc | Việc | Tiêu chí nghiệm thu | Phụ thuộc | Sức | Trạng thái |
 | --- | --- | --- | --- | --- | --- | --- |
 | W-301 | F-006 | Cổng kiểm `.claude/agents/` ↔ bảng nhãn `route:` trong `orchestration-3-tier.md` (2 chiều) + frontmatter | Thêm/xoá agent mà quên tài liệu → CI đỏ; có negative test | — | S | ✅ `check-docs-consistency.sh` §4 + 3 NT (agent thiếu tài liệu, name lệch, route trỏ agent ảo) |
-| W-302 | F-008 | Ràng `check-ci-policy.sh` ↔ `ci-workflow-policy.test.ts` (danh sách assertion khớp nhau) | Sửa một bên mà quên bên kia → đỏ | — | M | ⬜ |
+| W-302 | F-008 | Ràng `check-ci-policy.sh` ↔ `ci-workflow-policy.test.ts` (danh sách assertion khớp nhau) | Sửa một bên mà quên bên kia → đỏ | — | M | ✅ bảng kiểm `CP-*` — thêm kiểm ở bản shell mà quên bản vitest → CI đỏ; CP-2/CP-3 đã implement ở dropins (26/26 test `verify-dropins`) |
 | W-303 | F-009 | Test RLS "thử vượt quyền" trong dropins | Test đọc/ghi hàng của user khác → bị từ chối | — | M | ⬜ |
 | W-304 | F-010 | ADR + job tổng hợp `gate: needs: [...]` trong `ci.yml`; cập nhật `repository-settings.md` | ADR-0003 tồn tại; `check-ci-policy.sh` xanh; branch protection chỉ cần 1 tên | W-103 | M | ✅ `check-ci-policy.sh` §4 + NT: gỡ pin → rc=1 |
 | W-305 | F-011 | Ràng `.nvmrc` ↔ mọi `node-version:` trong workflow | Lệch → đỏ; có negative test | — | S | ✅ `check-ci-policy.sh` §5 + NT: đổi node-version → rc=1 |
@@ -67,13 +68,19 @@ required check này đòi PR body có 6 mục template, dependabot không điề
 Vì vậy 5 PR không thể merge cho tới khi bản sửa `pr-policy.yml` (W-106) có mặt **trên `main`**.
 CI của #53 (`ci.yml`) đã xanh trên head mới `a0edd2f` sau khi update branch — chỉ còn `metadata` chặn.
 
+**W-105 đã chọn cơ chế:** workflow theo lịch (tuần) thay vì nhắc trong `session-guide.sh` — hook
+không nên gọi mạng (chậm, cần auth, và dự án đích có thể không có `gh`). Workflow đọc PR + check run
+bằng `GITHUB_TOKEN` rồi mở/cập nhật **một** issue tổng hợp.
+
+**W-302 đã chọn cơ chế:** hai bản kiểm **không** phải giống nhau (phạm vi khác thật — bản vitest
+không giả định dự án đích có job `gate`). Thay vào đó mỗi kiểm có **ID `CP-*`**, và thêm/bỏ một ID ở
+bản shell **buộc** phải khai ở bản vitest — implement, hoặc ghi "không áp dụng cho dự án đích: lý do".
+
 **Còn mở (chưa làm trong đợt này, kèm lý do):**
 
 | ID | Lý do hoãn |
 | --- | --- |
-| W-105 | Cần quyết định cơ chế (workflow theo lịch quét PR đọng vs nhắc trong `session-guide.sh`) — xin ý kiến người dùng trước khi chọn |
 | W-202 | Cần chạy thật `verify-dropins.sh` (npm install Next.js, nhiều phút) để kiểm chứng bước commit mới; không đẩy bước CI chưa được chạy thử — nguyên tắc "một push đã kiểm chứng hơn ba push phỏng đoán" |
-| W-302 | Ràng 2 bản kiểm CI (shell ↔ vitest) cần thiết kế: sinh một bên từ bên kia, hay so danh sách assertion. Chưa chốt cách |
 | W-303 | Test RLS "thử vượt quyền" cần Supabase local (`supabase start`) trong `verify-dropins.sh` — cùng lý do W-202 |
 | W-306 | Làm cuối cùng, sau khi đợt này merge (SHA `main` chưa cố định) |
 | W-308 | Xoá ~32 nhánh đã merge là thao tác trên remote, không hoàn tác dễ → xin xác nhận người dùng (`CLAUDE.md` §9) |
