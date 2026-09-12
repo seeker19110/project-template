@@ -30,6 +30,7 @@ Không liệt kê job của `secret-scan.yml`, `dependency-review.yml`, `release
 ci.yml: framework-lint
 ci.yml: docs-consistency
 ci.yml: copy-framework-smoke
+ci.yml: progress-freshness
 ci.yml: gate
 pr-policy.yml: metadata
 ```
