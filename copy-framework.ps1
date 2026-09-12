@@ -141,6 +141,13 @@ Write-Host "  + docs/framework/FRAMEWORK-VERSION (bản khung: $FrameworkCommit)
 # ── File gốc dự án: chỉ copy nếu chưa có ──
 Copy-IfAbsent "CLAUDE.md"
 Copy-IfAbsent "AGENTS.md"                     # chuẩn mở agents.md — cho AI agent ngoài Claude Code (Cursor/Codex/Copilot...)
+# File cầu nối sang AGENTS.md cho công cụ CHƯA tự đọc agents.md — không lặp nội dung, chỉ trỏ sang.
+Copy-IfAbsent "GEMINI.md"                     # Gemini CLI
+# (Codex CLI đọc thẳng AGENTS.md — không cần file cầu nối riêng.)
+Copy-IfAbsent ".clinerules"                   # Cline / Roo Code
+Copy-IfAbsent ".windsurfrules"                # Windsurf
+Copy-IfAbsent ".cursor/rules"                 # Cursor
+Copy-IfAbsent ".github/copilot-instructions.md"  # GitHub Copilot
 Copy-IfAbsent "PROJECT.md"
 # PROGRESS.md: dự án đích nhận bản MẪU SẠCH (PROGRESS.template.md) — KHÔNG nhận
 # nhật ký phát triển của chính repo khung (PROGRESS.md ở repo khung là log của khung).
