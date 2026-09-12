@@ -6,9 +6,10 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8 — audit toàn diện 2026-09-12 đã qua Pha 3; đợt "siết hàng rào" + 5 PR dependabot đã vào `main`
-- Default-branch SHA đã đối chiếu: `67ce69b` (`origin/main`, PR #57 — 6 PR merge trong phiên: #64, #53, #54, #55, #56, #57)
-- Nhánh đang làm: `claude/khung-du-an-mau-upgrade-7aw7n1` (cập nhật trạng thái + W-107)
+- Giai đoạn: GĐ 8 — audit toàn diện 2026-09-12 đã qua Pha 3; đợt "siết hàng rào" đã vào `main`;
+  Nhóm 11 (audit) đã quét xong, chỉ còn W-303/W-306/W-308 mở
+- Default-branch SHA đã đối chiếu: `b6d66ef` (`origin/main`, PR #65)
+- Nhánh đang làm: `claude/admiring-clarke-mq767f` (tiếp tục audit toàn diện: Nhóm 11 + rà 5 việc treo)
 - Ngày cập nhật: 2026-09-12
 
 ## Goal đang active
@@ -16,7 +17,7 @@
 | Goal | Outcome | State | Current gap | Next slice | Link |
 | --- | --- | --- | --- | --- | --- |
 | Gói A+B+C: TRAPS + CODEMAP + cổng CI | 4 PR merge; TRAPS/CODEMAP thật + cổng `check-ci-policy.sh` chạy trong CI | ✅ ĐÓNG (2026-09-12, PR #62) | — | Không còn goal mở | `docs/specs/2026-09-12-traps-codemap-ci-policy.md` |
-| Siết hàng rào (audit 2026-09-12) | 0 phát hiện Cao mở; luật có cơ chế thi hành | 🔄 MỞ | Còn 5 việc: W-202, W-303 (cần môi trường npm/Supabase thật), W-308 (chờ người dùng), W-310 (chờ quyền đọc `.env*`), W-302 phần còn lại | W-202: cho `verify-dropins.sh` commit thật để husky được chạy | `docs/ops/COMPLETION-PLAN.md` |
+| Siết hàng rào (audit 2026-09-12) | 0 phát hiện Cao mở; luật có cơ chế thi hành | 🔄 MỞ | Còn 3 việc: W-303 (cần Supabase local — không có trong môi trường phiên), W-306 (chờ W-303/W-308 xong mới tổng hợp), W-308 (đã tra cứu xong 31 nhánh merged thật — **bị auto-mode chặn `git push --delete`**, cần người dùng tự xoá hoặc cấp quyền Bash) | W-308: người dùng xoá 31 nhánh liệt kê ở `docs/ops/repository-settings.md`, hoặc cấp quyền để AI chạy `git push --delete` | `docs/ops/COMPLETION-PLAN.md` |
 | Golden test + kỷ luật TDD | 3 PR merge; TDD lên cấp CLAUDE.md/gate, golden có luật cập nhật | ✅ ĐÓNG (2026-09-12, PR #62) | — | Không còn goal mở | `docs/specs/2026-09-12-golden-tests-and-tdd.md` |
 | Hoàn thiện khung theo COMPLETION-PLAN | 0 phát hiện Cao mở; Vừa/Thấp có kết cục ghi nhận; đạt Definition of Complete | ✅ ĐÓNG (2026-09-01) | — | Không còn goal mở | `docs/ops/COMPLETION-PLAN.md` |
 
@@ -39,14 +40,17 @@
 
 ## Đang làm / chờ
 
-- **Kế hoạch hoàn thiện lượt 2026-09-12 đang MỞ:** `docs/ops/COMPLETION-PLAN.md` — 18/23 việc ✅
-  (cả 2 phát hiện Cao đã đóng), 5 việc còn lại đều có lý do hoãn ghi rõ.
-- **Rủi ro Node 20 đã đóng:** đo lại trên `main` — **0 action chạy node20** (mốc GitHub xoá node20
-  khỏi runner: 16/09/2026). Lượt đo bắt được 1 lỗi tự gây: `stale-pr-alert.yml` của #64 ghim lại
-  v7.0.1 — đã nâng (W-107, `TRAPS.md` mục 7).
-- **Chờ người dùng:** (a) xác nhận xoá ~32 nhánh đã merge (W-308); (b) **chuyển branch protection
-  sang khoá đúng 1 tên `gate`** thay vì 7 tên job (ADR-0003, `docs/ops/repository-settings.md`) —
-  chỉ chủ repo làm được trên GitHub Settings.
+- **Kế hoạch hoàn thiện lượt 2026-09-12 đang MỞ:** `docs/ops/COMPLETION-PLAN.md` — 20/23 việc ✅
+  (cả 2 phát hiện Cao đã đóng; W-310 vừa đóng thêm), 3 việc còn lại đều có lý do hoãn ghi rõ.
+- **Audit toàn diện — Nhóm 11 đã quét xong:** `.env.example` ↔ `lib/env.ts` khớp hoàn toàn, 0 phát
+  hiện mới. `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md` nay đủ 12/12 nhóm có kết cục (10 ✅, 2 ➖ N/A).
+- **W-308 (xoá nhánh merge) đã tra cứu xong** qua GitHub API: 31/32 nhánh có PR `merged_at` thật,
+  1 nhánh (PR #28) closed không merge → giữ lại. **Bị chặn xoá:** auto-mode classifier từ chối
+  `git push --delete` (destructive git) — danh sách đầy đủ + cách xoá thủ công ở
+  `docs/ops/repository-settings.md`.
+- **Chờ người dùng:** (a) tự xoá 31 nhánh đã merge (W-308) qua GitHub UI, hoặc cấp quyền Bash cho
+  `git push --delete`; (b) **chuyển branch protection sang khoá đúng 1 tên `gate`** thay vì 7 tên
+  job (ADR-0003, `docs/ops/repository-settings.md`) — chỉ chủ repo làm được trên GitHub Settings.
 
 ## Tiếp theo
 
@@ -71,23 +75,27 @@
 | F-014 usage-guard số thập phân | Thấp | AI | **Chấp nhận rủi ro (xác nhận 2026-09-01)** — không sửa | `docs/ops/COMPLETION-PLAN.md` |
 | F-309 `dev-task.sh` fallback grep | Thấp | AI | **Chấp nhận rủi ro (xác nhận 2026-09-01)** — không sửa | `docs/ops/COMPLETION-PLAN.md` |
 | 5 PR dependabot chưa merge (3 major công cụ bảo mật) | **Cao** | Người dùng | Mở PR cho nhánh hiện tại → merge → merge #53→#57 FIFO trước 16/09 | `docs/ops/COMPLETION-PLAN.md` W-101 |
-| Nhóm 11 audit chưa quét xong (`.env.example`) | Thấp | AI | Chạy lại ở phiên có quyền đọc `.env*` | `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md` W-310 |
 | Case-study Bước 6–8 (branch protection/Supabase/Vercel) chưa kiểm chứng | Thấp | Người dùng | Kiểm khi áp khung vào dự án thật có tài khoản | `docs/framework/case-study-greenfield-dry-run.md` |
+| 31 nhánh đã merge còn tồn trên remote (F-014) | Thấp | Người dùng | Xoá qua GitHub UI hoặc cấp quyền Bash cho `git push --delete` — danh sách đủ ở `docs/ops/repository-settings.md` | `docs/ops/COMPLETION-PLAN.md` W-308 |
+| W-303 test RLS "vượt quyền" chưa viết | Thấp | AI | Cần môi trường có Supabase local (`supabase start`) — không có trong phiên hiện tại | `docs/ops/COMPLETION-PLAN.md` W-303 |
 
 ## Bàn giao phiên
 
-- Lần cập nhật: 2026-09-12
-- State: DONE — cả 2 spec đã merge vào `main` qua **PR #62** (squash, 13/13 check xanh, không
-  review comment/conflict, `mergeable_state: clean`). Đã unsubscribe PR, quay về `main`
-  (`a6601b7`), pull cập nhật local.
-- Việc đã xong và bằng chứng: PR-1..4 (`check-ci-policy.sh`, `TRAPS.md`, `CODEMAP.md`,
-  `ci-workflow-policy.test.ts` dropins) + PR-A..C (TDD bắt buộc cho bugfix lên `CLAUDE.md`/`gate`;
-  golden test tài liệu + `GOLDEN-TEST.template.md`; golden test cơ chế thật + ví dụ
-  `lib/order-summary.ts` trong dropins). Bằng chứng: `check-docs-consistency.sh` ✅,
-  `check-ci-policy.sh` ✅, `test-copy-framework.sh` ✅ (mọi assertion mới đều kèm negative test);
-  `verify-dropins.sh` chạy đủ 6/6 bước trên Next.js 16.3.5 sạch nhiều lượt, lần cuối 15/15 test pass
-  (13 `ci-workflow-policy.test.ts` + 2 golden mới); CI thật trên PR #62 xanh toàn bộ 13 check.
-  Một sai sót tự phát hiện và tự sửa giữa đường: PR-B ghi nhầm Vitest có cờ `--ci`; PR-C xác minh
-  thật (Vitest 5 không có cờ đó, cơ chế đúng là biến môi trường `CI`) và sửa lại trước khi merge.
-- Bước tiếp theo: không có; chờ người dùng chọn hướng kế tiếp (dự án đích mới, quét thêm gói D–I, hoặc audit định kỳ).
-- Quyền/quyết định cần thêm: không.
+- Lần cập nhật: 2026-09-12 (phiên tiếp theo — audit định kỳ)
+- State: DONE một phần — chạy `/audit-full` theo lựa chọn "Tiếp tục" của người dùng (không quét lại
+  từ đầu, chỉ hoàn tất phần dở). 2 việc xong hẳn (Nhóm 11, tra cứu W-308), 1 việc bị chặn quyền
+  (xoá nhánh), 2 việc vẫn treo vì thiếu môi trường (W-303) hoặc phụ thuộc việc khác (W-306).
+- Việc đã xong và bằng chứng: (1) Nhóm 11 — đọc `.env.example` + `lib/env.ts`, đối chiếu từng biến,
+  0 phát hiện mới, cập nhật `COMPREHENSIVE-AUDIT-STATUS.md` + `COMPLETION-PLAN.md` (W-310 ✅).
+  (2) W-308 — tra cứu 61 PR qua `mcp__github__list_pull_requests`, xác nhận 31/32 nhánh có
+  `merged_at` thật, 1 nhánh (PR #28) closed không merge; danh sách đầy đủ ghi vào
+  `docs/ops/repository-settings.md`. Cổng đã chạy lại: `check-docs-consistency.sh` ✅,
+  `check-ci-policy.sh` ✅ (chỉ sửa tài liệu, không đổi code/CI nên không cần chạy build/test/lint).
+- Việc CHƯA xong + lý do: W-308 xoá nhánh thật — bị auto-mode classifier chặn `git push --delete`
+  (destructive git), cần người dùng tự xoá hoặc cấp quyền Bash. W-303 (test RLS vượt quyền) — cần
+  Supabase local, không có trong môi trường phiên này. W-306 (đồng bộ PROGRESS.md cuối lượt) — đã
+  cập nhật một phần ngay trong phiên này, sẽ hoàn tất khi W-303/W-308 đóng.
+- Bước tiếp theo: chờ người dùng xoá 31 nhánh (hoặc cấp quyền), rồi chờ hướng kế tiếp (dự án đích
+  mới, quét thêm gói D–I, hoặc audit định kỳ khác).
+- Quyền/quyết định cần thêm: quyền Bash cho `git push --delete` (nếu muốn AI tự xoá nhánh thay vì
+  người dùng làm thủ công qua GitHub UI).

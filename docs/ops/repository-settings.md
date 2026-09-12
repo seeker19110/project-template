@@ -39,7 +39,28 @@ pr-policy.yml: metadata
 ```
 
 - [ ] Require conversation resolution; code-owner approval cho vùng nhạy cảm.
-- [x] Auto-delete branch sau merge (audit 2026-09-12, F-014: ~32 nhánh đã merge còn tồn)
+- [ ] Auto-delete branch sau merge (audit 2026-09-12, F-014: ~32 nhánh đã merge còn tồn) —
+      **chưa bật thật**, chỉ chủ repo bật được trên GitHub Settings → General → Pull Requests.
+      Danh sách 31 nhánh đã tra cứu qua GitHub API xác nhận PR `merged_at` thật (đủ điều kiện xoá,
+      tính đến 2026-09-12) — 1 nhánh còn lại (`claude/opusplan-model-config-2ojq58`, PR #28) **closed
+      KHÔNG merge**, không xoá:
+      `agent/parallel-subagent-workflow`, `agent/template-completeness-research`,
+      `agent/unify-standard-project-template`, `claude/3-tier-orchestration-arch-yrhz9h`,
+      `claude/apply-guidance-existing-project-2m0roa`, `claude/danh-gia-goi-y-du-an-8kttvi`,
+      `claude/dev-framework-setup-82roiy`, `claude/huong-dan-mo-phien-model`,
+      `claude/merge-pending-prs-main-1nazh9`, `claude/model-repo-role-capability-8pimv0`,
+      `claude/opus-sonnet-config-19lc0x`, `claude/opusplan-mode-check-8j3ney`,
+      `claude/opusplan-optimization-150yp1`, `claude/opusplan-shared-config-rm5ru6`,
+      `claude/opusplan-token-optimization-ihrkd6`, `claude/pr-merge-workflow-8hmdcv`,
+      `claude/process-improvement-agixul`, `claude/project-audit-feature-2jyw07`,
+      `claude/project-dev-process-review-5ehlgr`, `claude/project-enhancement-research-hosp8u`,
+      `claude/project-evaluation-refinement-8qjmoi`, `claude/project-planning-refinement-ujgfiy`,
+      `claude/project-ps-application-dqlgag`, `claude/repo-description-57ynk2`,
+      `claude/skills-framework-project-0pvndy`, `claude/software-dev-consulting-vh4t4s`,
+      `claude/software-dev-standards-jc776c`, `claude/source-code-optimization-pa1x8c`,
+      `claude/template-review-k4lpfy`, `claude/unsupported-projects-rxjrg2`,
+      `claude/verify-dropins-ci`. Xoá qua GitHub UI (Settings → Branches, hoặc trang so sánh
+      nhánh) hoặc `git push origin --delete <branch>` (auto-mode chặn lệnh này — chạy thủ công).
 - [ ] Không cho workflow tự approve PR; default `GITHUB_TOKEN` read-only.
 - [ ] Chọn squash/rebase/merge strategy và auto-delete branch.
 
