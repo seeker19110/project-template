@@ -8,6 +8,13 @@ Chẩn đoán một bug **khó** — không tái hiện được ngay, chập ch
 
 > Đây khác `/incident` (sự cố **production** đang ảnh hưởng người dùng thật — ưu tiên giảm thiệt hại trước) và khác `/audit-full` (quét toàn diện, không nhắm một bug cụ thể).
 
+## Pha 0 — Tra `TRAPS.md` trước khi ra giả thuyết
+
+Nếu repo có `TRAPS.md` ở gốc: đọc nó trước. Triệu chứng hiện tại có khớp một khuôn đã ghi không? Khớp
+→ áp thẳng "cách rà" của mục đó, tiết kiệm cả vòng Pha 1–4. Không khớp → tiếp tục bình thường, và ghi
+mục mới vào `TRAPS.md` ở Pha 6 khi sửa xong. Chưa có `TRAPS.md` (dự án đích chưa tạo) → bỏ qua pha
+này, không chặn.
+
 ## Pha 1 — Dựng feedback loop (quan trọng nhất, dồn phần lớn công sức ở đây)
 
 Có một lệnh **đỏ-được-trên-đúng-bug-này** thì mọi thứ sau chỉ là cơ học; không có thì càng đọc code càng vô ích. Thử theo thứ tự: test tự động ở đúng seam chạm bug → script curl/HTTP vào dev server → chạy CLI với input mẫu, so khớp output đã biết đúng → script trình duyệt headless (Playwright) → replay lại một request/log đã ghi → harness tối giản dựng lại đúng đường đi chạm bug → vòng lặp input ngẫu nhiên (nếu lỗi kiểu "thỉnh thoảng sai") → bisect qua các commit/state đã biết tốt/xấu → so sánh vi sai giữa 2 phiên bản/cấu hình.
@@ -37,6 +44,11 @@ Viết test hồi quy **trước** khi sửa — nhưng chỉ khi có **seam đ�
 ## Pha 6 — Dọn dẹp + rút kinh nghiệm
 
 Trước khi coi là xong: repro gốc hết tái hiện · test hồi quy xanh (hoặc đã ghi rõ lý do không có seam) · gỡ sạch mọi log `[DEBUG-...]` (`grep` tiền tố để chắc) · xóa prototype tạm dùng để chẩn đoán · ghi giả thuyết đúng vào commit/PR để người debug sau học được.
+
+**Ghi vào `TRAPS.md`** (nếu bug này là một khuôn — không phải lỗi đơn lẻ do gõ sai một lần): thêm mục
+mới (triệu chứng → cách rà → chốt chặn → ngày/PR), hoặc nếu khuôn đã có sẵn trong `TRAPS.md` (Pha 0
+đã khớp) thì thêm dòng "Tái phát <ngày>" vào mục cũ — **không** tạo mục trùng. Repo chưa có
+`TRAPS.md` → tạo mới từ `docs/framework/templates/TRAPS.template.md`.
 
 **Rồi mới hỏi:** điều gì lẽ ra ngăn được bug này? Nếu câu trả lời chạm kiến trúc (không có seam test tốt, caller rối, coupling ẩn) → đề xuất chạy `/audit-optimize` hoặc ghi ADR, **sau khi** đã sửa xong — lúc này biết nhiều hơn lúc mới bắt đầu.
 

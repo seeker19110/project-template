@@ -184,6 +184,8 @@ Copy-IfAbsent ".claude/agents"
 # Hook phụ thuộc 2 script này — thiếu thì hook no-op (mất auto-format + cổng chặn commit đỏ + nhắc quota):
 Copy-IfAbsent "scripts/dev-task.sh"
 Copy-IfAbsent "scripts/usage-estimate.sh"
+# Test chứng minh hook cổng CHẶN thật (audit 2026-09-12, F-002) — đi cùng .claude/hooks ở trên.
+Copy-IfAbsent "scripts/test-hooks-gate.sh"
 # 2 file mẫu để dự án tự điền (bản điền thật .claude/*.sh đã nằm trong .gitignore của khung):
 Copy-IfAbsent ".claude/project-commands.example.sh"
 Copy-IfAbsent ".claude/usage-budget.example.sh"
@@ -194,12 +196,14 @@ $dropins = @(
   'eslint.config.mjs', 'postcss.config.mjs',
   '.prettierrc', '.prettierignore', '.lintstagedrc.json', 'commitlint.config.cjs',
   'vitest.config.mts', 'vitest.setup.ts', 'playwright.config.ts', 'lighthouserc.json',
+  'lib/order-summary.ts', 'lib/order-summary.golden.test.ts', 'lib/__golden__',
   '.husky/pre-commit', '.husky/commit-msg',
-  '.github/workflows/ci.yml', '.github/workflows/lighthouse-ci.yml',
+  '.github/workflows/ci.yml', '.github/workflows/lighthouse-ci.yml', '.github/workflows/stale-pr-alert.yml',
   '.github/workflows/codeql.yml', '.github/workflows/secret-scan.yml', '.github/workflows/dependency-review.yml', '.github/workflows/pr-policy.yml', '.github/workflows/release.yml',
   '.github/pull_request_template.md', '.github/dependabot.yml', '.github/ISSUE_TEMPLATE', '.github/CODEOWNERS',
   'lib/env.ts', 'styles/theme.css', 'components/theme-toggle.tsx', 'i18n/request.ts', 'messages', 'app',
   'next.config.ts', 'e2e',
+  'scripts/ci-workflow-policy.test.ts',
   '.gitignore', '.gitattributes',
   'supabase'
 )

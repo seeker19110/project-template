@@ -3,7 +3,7 @@
 # Nạp trạng thái phiên trước vào ngữ cảnh để người dùng chỉ cần nhắn "tiếp tục":
 # PROGRESS.md (giai đoạn/đang làm/tiếp theo/bàn giao) + tóm tắt git (branch, chưa
 # commit, commit gần nhất). Chỉ ĐỌC, không đổi gì. No-op nếu thiếu jq/không có dữ liệu.
-set -uo pipefail
+set -uo pipefail   # cố ý KHÔNG -e: không được làm chết phiên/lượt chạy (xem docs/CONVENTIONS.md §A)
 
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
 

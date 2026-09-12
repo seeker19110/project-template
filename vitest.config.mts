@@ -12,6 +12,11 @@ export default defineConfig({
     // Spread configDefaults.exclude để GIỮ các mẫu mặc định (node_modules, dist...)
     // thay vì ghi đè mất chúng.
     exclude: [...configDefaults.exclude, 'e2e/**', '.next/**'],
+    // Golden/snapshot test (quality-supplements.md Nhóm 2 mục 6, mục b): đưa mọi snapshot
+    // (`toMatchSnapshot`/`toMatchFileSnapshot`) vào `__golden__/` cạnh file test — nhất quán với
+    // quy ước lưu fixture của khung, thay vì thư mục `__snapshots__/` mặc định của Vitest.
+    resolveSnapshotPath: (testPath, snapExtension) =>
+      path.join(path.dirname(testPath), '__golden__', `${path.basename(testPath)}${snapExtension}`),
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],
