@@ -6,13 +6,18 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8 — ADR-0004 (gỡ scaffold Web mặc định) đã merge qua PR #67; tiếp đó PR #68 tổng
-  quát hoá harness cho mọi AI coding model/provider (AGENTS.md làm entrypoint chung, bridge file
-  cho Gemini/Cline/Windsurf/Cursor/Copilot, subagent `tester`+`security-reviewer`) cũng đã merge.
-  Đang bổ sung hàng rào chống lỗi thời cho chính `PROGRESS.md` (script `check-progress-freshness.sh`
-  + job CI `progress-freshness`) sau khi phát hiện file này bị lỗi thời một lượt (xem "Rủi ro" bên dưới).
-- Default-branch SHA đã đối chiếu: `08bcc84` (`origin/main`, PR #68)
-- Nhánh đang làm: `main` (đang sửa trực tiếp, sẽ commit qua PR mới cho hàng rào freshness)
+- Giai đoạn: GĐ 8 — ADR-0004 (gỡ scaffold Web mặc định) đã merge qua PR #67; PR #68 tổng quát hoá
+  harness cho mọi AI coding model/provider đã merge. Đang trên nhánh
+  `claude/loving-albattani-rqp49h` (chưa mở PR) với 2 thay đổi cùng lượt: (1) hàng rào chống lỗi
+  thời cho `PROGRESS.md` (`scripts/check-progress-freshness.sh` + job CI `progress-freshness`,
+  commit `a4fdd4d`); (2) quy trình mới "chia đơn vị PR + trần effort medium + auto-merge" chèn sau
+  bước duyệt kế hoạch, áp cho việc đủ lớn cần điều phối 3 tầng (`CLAUDE.md` §2, `AGENTS.md`,
+  `orchestration-3-tier.md`, `.claude/agents/{coordinator,complex-implementer}.md`, `auto.md`,
+  `models-and-automation.md`) — CHƯA commit.
+- Default-branch SHA đã đối chiếu: `08bcc84` (`origin/main`, PR #68) — nhánh làm việc đã đi trước
+  bằng 1 commit cục bộ chưa push (`a4fdd4d`) + thay đổi đang dở.
+- Nhánh đang làm: `claude/loving-albattani-rqp49h` (không phải PR — đã push commit `a4fdd4d`, đang
+  thêm commit thứ hai)
 - Ngày cập nhật: 2026-09-12
 
 ## Goal đang active
