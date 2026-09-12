@@ -1,42 +1,38 @@
 # COMPREHENSIVE-AUDIT-STATUS — trạng thái quét audit toàn diện
 
 > Chủ thể: **chính bộ khung** `project-template` (không phải app web) — xem `docs/FEATURE-MAP.md`.
-> Lượt quét: bắt đầu 2026-09-12 · base `772c949` (`main`) · chạy qua `/completion` Pha 1.
+> Lượt quét: **RESET 2026-09-12** (lượt trước chạy TRƯỚC ADR-0004, đã lỗi thời — Nhóm 5/6/10/11
+> tham chiếu `app/`, `lib/env.ts`, Supabase đã bị gỡ khỏi repo khung, không còn ý nghĩa).
+> Base: `709cc86` (`origin/main`, sau PR #69 + #70). Chạy qua `/audit-full`, GIAI ĐOẠN 1 (chỉ quét,
+> chưa sửa gì).
 > Trạng thái: ✅ Xong · 🔄 Đang dở · ⬜ Chưa quét · ➖ Không áp dụng.
 
 | Nhóm | Tên | Trạng thái | Phát hiện | Ngày |
 | --- | --- | --- | --- | --- |
-| 1 | Kiến trúc & thiết kế | ✅ Xong | 1 Trung (F-010) | 2026-09-12 |
-| 2 | Bảo mật | ✅ Xong | 2 Trung (F-005, F-009) | 2026-09-12 |
-| 3 | Chất lượng mã & chống lỗi logic | ✅ Xong | 1 Trung (F-007) | 2026-09-12 |
-| 4 | Kiểm thử & coverage | ✅ Xong | 1 Cao (F-002), 1 Trung (F-006), 1 Thấp (F-015) | 2026-09-12 |
-| 5 | Hiệu năng | ➖ Không áp dụng | Khung không có runtime; ngân sách CWV/bundle thuộc dropins, đã có `lighthouse-ci.yml` + tối ưu job e2e ở PR #60 | 2026-09-12 |
-| 6 | Accessibility & UI/UX | ➖ Không áp dụng | Khung không có UI; dropins có axe trong `e2e/smoke.spec.ts` + `styles/theme.css` tokens, đã verify qua `verify-dropins.sh` | 2026-09-12 |
-| 7 | Dependency & chuỗi cung ứng | ✅ Xong | 1 Cao (F-001), 1 Trung (F-003) | 2026-09-12 |
-| 8 | CI/CD & vận hành | ✅ Xong | 1 Trung (F-004), 1 Thấp (F-014); `main` protected=true (xác minh qua GitHub API) | 2026-09-12 |
-| 9 | Tài liệu & đồng bộ code thật | ✅ Xong | 2 Thấp (F-011, F-012); `[ĐIỀN]` ở `CLAUDE.md` §5/§10 là CỐ Ý (§10 ghi rõ) | 2026-09-12 |
-| 10 | Dữ liệu & migration | ✅ Xong | 0 mới (F-009 tính ở Nhóm 2); migration có version + idempotent + rollback documented | 2026-09-12 |
-| 11 | Cấu hình môi trường & bí mật | ✅ Xong | 0 mới — `lib/env.ts` (Zod, tách client/server, `NEXT_PUBLIC_` đúng) ✅; không có `.env` trong `git ls-files` ✅; đối chiếu `.env.example` ↔ `lib/env.ts`: mọi biến bắt buộc (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) khớp; `SENTRY_DSN` optional khớp; `NEXT_PUBLIC_ANALYTICS_ID` chỉ là placeholder tùy biến (đã ghi chú) | 2026-09-12 (hoàn tất) |
-| 12 | Thống nhất chéo tính năng | ✅ Xong | 3 Trung (F-006, F-007, F-008), 2 Thấp (F-011, F-013) | 2026-09-12 |
+| 1 | Kiến trúc & thiết kế | ✅ Xong | 0 mới — ranh giới Lớp 1 (phương pháp)/Lớp 2 (CI/GitHub tổng quát) rõ, ADR-0001 cố ý giữ nguyên (đã superseded bằng văn xuôi ở ADR-0004, không sửa ADR cũ — đúng luật) | 2026-09-12 |
+| 2 | Bảo mật | ✅ Xong | 0 mới — không có secret commit thật (`.mcp.json` chỉ chứa URL công khai; `.mcp.json.example` dùng biến môi trường); `.gitignore` chặn đúng `.env*`/`.mcp.local.json`/`settings.local.json`; `gitleaks.toml` + job `gitleaks` + `secret-scan.yml` có thật; hook `block-dangerous-git.sh` chặn đọc `.env`/bí mật (test qua `test-hooks-gate.sh`) | 2026-09-12 |
+| 3 | Chất lượng mã & chống lỗi logic | ✅ Xong | 0 mới trong `check-progress-freshness.sh` (mới thêm PR #69) — đã tự rà edge case: thiếu remote, PROGRESS.md không tồn tại, thiếu dòng SHA, SHA không phải ancestor — đều có nhánh xử lý rõ, không im lặng | 2026-09-12 |
+| 4 | Kiểm thử & coverage | ✅ Xong | **1 Trung (G-001)** — 3 script gate mới nhất (`check-docs-consistency.sh`, `check-ci-policy.sh`, `check-progress-freshness.sh`) không có negative-test tự động nào được commit; các lượt xác nhận "NT: ... → rc=1" ghi trong `COMPLETION-PLAN.md` đều chạy TAY một lần rồi bỏ, không phải cổng lặp lại được. Chỉ `test-hooks-gate.sh` (phạm vi hook git) có kỷ luật này | 2026-09-12 |
+| 5 | Hiệu năng | ➖ Không áp dụng | Repo khung không còn runtime (ADR-0004 đã gỡ scaffold Web/Next.js) — không có gì để đo Core Web Vitals/bundle | 2026-09-12 |
+| 6 | Accessibility & UI/UX | ➖ Không áp dụng | Không còn UI trong repo khung (ADR-0004) | 2026-09-12 |
+| 7 | Dependency & chuỗi cung ứng | ✅ Xong | **1 Thấp (G-002, tái xác nhận)** — `PROGRESS.md` risk table vẫn ghi "5 PR dependabot chưa merge (Cao)" nhưng `list_pull_requests(state=open)` xác nhận **0 PR đang mở** — #53→#57 đã merge từ trước (thấy trong git log). Mục risk lỗi thời, hạ xuống đã đóng. Mọi `uses:` trong workflow đã ghim SHA đầy đủ (`grep` xác nhận 0 vi phạm) | 2026-09-12 |
+| 8 | CI/CD & vận hành | ✅ Xong | 8 job CI đều xanh (`framework-lint`, `docs-consistency`, `copy-framework-smoke`, `progress-freshness`, `metadata`, `gitleaks`, `dependency-review`, `gate`); branch protection **vẫn chưa gộp về 2 tên** (`gate`+`metadata`, ADR-0003) — đã biết, chờ chủ repo (không mới); 31 nhánh merged còn tồn trên remote — đã biết, chờ chủ repo (không mới) | 2026-09-12 |
+| 9 | Tài liệu & đồng bộ code thật | ✅ Xong | **1 Trung (G-003)** — `docs/framework/orchestration-3-tier.md` dòng ~31 (khối sơ đồ ASCII "Sơ đồ tổng thể") vẫn ghi `route:complex → complex-implementer (Opus · high)`, sót lại từ TRƯỚC PR #69 hạ effort trần xuống `medium` — bảng định tuyến ngay bên dưới trong CÙNG FILE đã đúng `Opus · medium`, nên tài liệu tự mâu thuẫn với chính nó. **Cùng G-003:** `PROGRESS.md` risk table dòng dependabot lỗi thời (trùng G-002) — chính là khuôn lỗi TRAPS.md mục 8 vừa thêm, nhưng lần này ở một field mà `check-progress-freshness.sh` KHÔNG kiểm (nó chỉ kiểm SHA/nhánh, không kiểm nội dung risk table) | 2026-09-12 |
+| 10 | Dữ liệu & migration | ➖ Không áp dụng | Không còn migration nào trong repo khung (Supabase đã gỡ, ADR-0004) | 2026-09-12 |
+| 11 | Cấu hình môi trường & bí mật | ✅ Xong | 0 mới — không có `.env.example` nữa (đúng, vì không còn app cần biến môi trường); `.mcp.json.example` toàn placeholder biến môi trường, không secret thật | 2026-09-12 |
+| 12 | Thống nhất chéo tính năng | ✅ Xong | **1 Trung (G-004)** — quy ước "model · effort" cho từng `route:` bị chép tay lặp lại ở **6 chỗ khác nhau** (`orchestration-3-tier.md` ×2 vị trí trong cùng file, `complex-implementer.md`, `coordinator.md`, `models-and-automation.md`, `auto.md`) mà **không có cổng nào đối chiếu chéo** — cùng nguyên nhân gốc gây ra G-003 dòng đầu, và sẽ tái phát ở lần sửa effort/model kế tiếp nếu không có cổng | 2026-09-12 |
 
 ## Tổng hợp mức độ
 
-- **Cao: 2** — F-001, F-002
-- **Trung: 8** — F-003, F-004, F-005, F-006, F-007, F-008, F-009, F-010
-- **Thấp: 7** — F-011, F-012, F-013, F-014, F-015, F-016, F-017
+- **Cao: 0**
+- **Trung: 4** — G-001 (thiếu negative test cho 3 gate script), G-002/G-003 (PROGRESS.md risk table lỗi thời), G-003 (orchestration-3-tier.md tự mâu thuẫn effort), G-004 (effort/model duplicated 6 nơi, không cổng đối chiếu)
+- **Thấp: 0 mới** (branch protection 7→2 tên và 31 nhánh tồn đọng đã biết từ trước, không tính lại)
 
-### Phát hiện thêm trong lúc chạy Pha 2 (cổng tự bắt)
+## Đối chiếu với lượt trước (đã lỗi thời, tham khảo lịch sử)
 
-- **F-016 (Thấp, Nhóm 9):** `ALLOW_MISSING_PATH` trong `scripts/check-docs-consistency.sh` vẫn liệt kê
-  4 file mà repo khung **giờ đã có thật** (`docs/CONVENTIONS.md`, `docs/FEATURE-MAP.md`,
-  `docs/ops/COMPLETION-PLAN.md`, `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md`) → cổng không còn bảo vệ chúng.
-- **F-017 (Thấp, Nhóm 4):** cổng dùng `git grep` nên **bỏ qua file chưa `git add`** → chạy local báo PASS
-  oan. Xảy ra thật trong phiên này: một tham chiếu gãy trong `docs/FEATURE-MAP.md` chỉ bị bắt sau khi commit.
+Lượt quét 2026-09-12 (base `772c949`, trước ADR-0004) từng ghi nhận F-001..F-017 trên scaffold Web
+đã bị xoá — không còn kiểm chứng được và không còn liên quan. Xem lịch sử Git của file này nếu cần
+tra lại nội dung cũ; không mang sang lượt reset này.
 
-(Chi tiết từng phát hiện: xem BÁO CÁO AUDIT trong phiên 2026-09-12; sẽ chuyển thành `W-xxx` khi
-người dùng duyệt kế hoạch ở Pha 2. Chưa duyệt → CHƯA sửa gì.)
-
-## Phát hiện cũ đã có kết cục (không quét lại)
-
-F-011/F-014/F-309 của lượt `COMPLETION-PLAN.md` (01/09) đã **chấp nhận rủi ro** — ID trùng số nhưng
-khác lượt quét; lượt này dùng tiền tố cùng dạng, đối chiếu theo ngày.
+**Chưa sửa gì ở lượt quét này (GIAI ĐOẠN 1 — chỉ quét).** Chờ người dùng duyệt kế hoạch xử lý ở
+GIAI ĐOẠN 2.
