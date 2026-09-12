@@ -6,15 +6,17 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8 — Khung đã hoàn thiện (Definition of Complete đã nghiệm thu), sẵn sàng dùng cho dự án đích
-- Default-branch SHA đã đối chiếu: `151de56` (`origin/main`, PR #52 đã merge)
-- Ngày cập nhật: 2026-09-01
+- Giai đoạn: GĐ 8 — Khung đã hoàn thiện, đang thực thi 2 spec nâng cấp thêm (traps/codemap/cổng CI, golden+TDD)
+- Default-branch SHA đã đối chiếu: `d0baf40` (`origin/main`, PR #61 đã merge; nhánh làm việc `claude/quirky-dijkstra-qahpgw` hiện trước `main` 3 commit chưa PR)
+- Ngày cập nhật: 2026-09-12
 
 ## Goal đang active
 
 | Goal | Outcome | State | Current gap | Next slice | Link |
 | --- | --- | --- | --- | --- | --- |
-| Hoàn thiện khung theo COMPLETION-PLAN | 0 phát hiện Cao mở; Vừa/Thấp có kết cục ghi nhận; đạt Definition of Complete | ✅ ĐÓNG (2026-09-01) | — | Không còn goal mở; theo dõi bằng audit định kỳ nếu cần | `docs/ops/COMPLETION-PLAN.md` |
+| Gói A+B+C: TRAPS + CODEMAP + cổng CI | 4 PR merge; TRAPS/CODEMAP thật + cổng `check-ci-policy.sh` chạy trong CI | 🔵 Đang làm — PR-1, PR-2 xong (chưa PR/merge lên `main`, đang trên nhánh làm việc) | PR-3 (CODEMAP), PR-4 (dropins vitest) chưa làm | PR-3: `CODEMAP.template.md` + `CODEMAP.md` thật + nối `/completion` | `docs/specs/2026-09-12-traps-codemap-ci-policy.md` |
+| Golden test + kỷ luật TDD | 3 PR merge; TDD lên cấp CLAUDE.md/gate, golden có luật cập nhật | ⚪ Approved, chưa bắt đầu | Chưa làm PR-A | PR-A: CLAUDE.md §3.6/§5/§7 + AGENTS.md + `/gate` + `/debug` | `docs/specs/2026-09-12-golden-tests-and-tdd.md` |
+| Hoàn thiện khung theo COMPLETION-PLAN | 0 phát hiện Cao mở; Vừa/Thấp có kết cục ghi nhận; đạt Definition of Complete | ✅ ĐÓNG (2026-09-01) | — | Không còn goal mở | `docs/ops/COMPLETION-PLAN.md` |
 
 ## Đã xong (tóm tắt)
 
@@ -33,13 +35,18 @@
 
 ## Đang làm / chờ
 
-- Không có việc dở. `docs/ops/COMPLETION-PLAN.md` đã đóng (22/22 việc ✅, Pha 4 nghiệm thu PASS,
-  3 mục Thấp F-011/F-014/F-309 đã được người dùng xác nhận chấp nhận rủi ro 2026-09-01).
+- Thực thi 2 spec đã Approved for implementation (2026-09-12): `docs/specs/2026-09-12-traps-codemap-ci-policy.md`
+  (PR-1 `check-ci-policy.sh` ✅, PR-2 `TRAPS.md` ✅ — cả hai đã push lên nhánh làm việc, CHƯA mở PR/merge
+  lên `main`) và `docs/specs/2026-09-12-golden-tests-and-tdd.md` (chưa bắt đầu).
+- `docs/ops/COMPLETION-PLAN.md` (đợt trước) vẫn đóng, không liên quan 2 goal mới này.
 
 ## Tiếp theo
 
-- Chờ yêu cầu tiếp theo của người dùng: bắt đầu dự án đích mới bằng khung này (`/consult` hoặc
-  `/auto`), hoặc audit định kỳ khác (`/audit-full`) nếu phát sinh nhu cầu.
+- PR-3 (CODEMAP.template.md + CODEMAP.md thật + nối `/completion`), rồi PR-4 (dropins vitest tương
+  đương `check-ci-policy.sh`) của spec traps-codemap-ci-policy.
+- Sau đó 3 PR của spec golden-tests-and-tdd (PR-A TDD → PR-B golden tài liệu → PR-C golden cơ chế thật).
+- Người dùng cần quyết: mở PR lên `main` cho các commit đã làm, hay tiếp tục dồn hết vào nhánh làm
+  việc rồi mở một PR tổng ở cuối.
 
 ## Quyết định quan trọng
 
@@ -60,9 +67,12 @@
 
 ## Bàn giao phiên
 
-- Lần cập nhật: 2026-09-01
-- State: DONE (khung) — chờ việc tiếp theo
-- Việc dở và bằng chứng mới nhất: không còn việc dở của COMPLETION-PLAN. Bằng chứng: `scripts/check-docs-consistency.sh`
-  PASS (chạy lại 2026-09-01); nghiệm thu Pha 4 trong `docs/ops/COMPLETION-PLAN.md` (5 cổng PASS, 22/22 việc ✅).
-- Bước tiếp theo: không có; chờ người dùng chọn hướng kế tiếp (dự án đích mới hoặc audit định kỳ).
-- Quyền/quyết định cần thêm: không.
+- Lần cập nhật: 2026-09-12
+- State: IN PROGRESS — 2/4 PR của spec traps-codemap-ci-policy xong (trên nhánh làm việc, chưa PR/merge)
+- Việc dở và bằng chứng mới nhất: PR-1 (`scripts/check-ci-policy.sh` + `docs/ops/repository-settings.md`
+  mục "Required checks — nguồn sự thật") và PR-2 (`TRAPS.md` 6 mục có thật + `TRAPS.template.md` +
+  nối `/debug`/`CLAUDE.md`/`AGENTS.md`) đã commit + push lên `claude/quirky-dijkstra-qahpgw`. Bằng chứng:
+  `check-docs-consistency.sh` ✅, `check-ci-policy.sh` ✅ (kèm negative test), `test-copy-framework.sh` ✅
+  (chạy lại 2026-09-12, kèm xác minh thật bằng copy tay vào scratch).
+- Bước tiếp theo: PR-3 (CODEMAP), PR-4 (dropins), rồi 3 PR của spec golden-tests-and-tdd.
+- Quyền/quyết định cần thêm: có nên mở PR lên `main` ngay cho PR-1/PR-2, hay dồn hết rồi mở một lần?
