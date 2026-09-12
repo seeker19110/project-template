@@ -37,6 +37,12 @@ jobs:
       - name: Hook cổng thật sự chặn (pre-commit-gate + block-dangerous-git)
         run: bash scripts/test-hooks-gate.sh
 
+      # Cùng nguyên tắc F-002, áp cho 3 gate script chính của repo khung (audit 2026-09-12, G-001):
+      # check-docs-consistency.sh, check-ci-policy.sh, check-progress-freshness.sh phải được CHỨNG
+      # MINH bắt đúng lỗi bằng negative-test, không chỉ "chạy không crash".
+      - name: 3 gate chính của khung thật sự bắt được lỗi (docs-consistency/ci-policy/progress-freshness)
+        run: bash scripts/test-check-scripts.sh
+
       - name: Cài ShellCheck (không dựa vào gói có sẵn của runner)
         run: sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
 

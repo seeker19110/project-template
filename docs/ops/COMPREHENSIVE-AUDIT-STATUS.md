@@ -12,7 +12,7 @@
 | 1 | Kiến trúc & thiết kế | ✅ Xong | 0 mới — ranh giới Lớp 1 (phương pháp)/Lớp 2 (CI/GitHub tổng quát) rõ, ADR-0001 cố ý giữ nguyên (đã superseded bằng văn xuôi ở ADR-0004, không sửa ADR cũ — đúng luật) | 2026-09-12 |
 | 2 | Bảo mật | ✅ Xong | 0 mới — không có secret commit thật (`.mcp.json` chỉ chứa URL công khai; `.mcp.json.example` dùng biến môi trường); `.gitignore` chặn đúng `.env*`/`.mcp.local.json`/`settings.local.json`; `gitleaks.toml` + job `gitleaks` + `secret-scan.yml` có thật; hook `block-dangerous-git.sh` chặn đọc `.env`/bí mật (test qua `test-hooks-gate.sh`) | 2026-09-12 |
 | 3 | Chất lượng mã & chống lỗi logic | ✅ Xong | 0 mới trong `check-progress-freshness.sh` (mới thêm PR #69) — đã tự rà edge case: thiếu remote, PROGRESS.md không tồn tại, thiếu dòng SHA, SHA không phải ancestor — đều có nhánh xử lý rõ, không im lặng | 2026-09-12 |
-| 4 | Kiểm thử & coverage | ✅ Xong | **1 Trung (G-001)** — 3 script gate mới nhất (`check-docs-consistency.sh`, `check-ci-policy.sh`, `check-progress-freshness.sh`) không có negative-test tự động nào được commit; các lượt xác nhận "NT: ... → rc=1" ghi trong `COMPLETION-PLAN.md` đều chạy TAY một lần rồi bỏ, không phải cổng lặp lại được. Chỉ `test-hooks-gate.sh` (phạm vi hook git) có kỷ luật này | 2026-09-12 |
+| 4 | Kiểm thử & coverage | ✅ Xong | ~~1 Trung (G-001)~~ **✅ Đã sửa 2026-09-12** — thêm `scripts/test-check-scripts.sh` (12 ca: baseline xanh + negative-test cho từng nhánh phát hiện của cả 3 script + 1 đối chứng không chặn oan), wire vào job `framework-lint` của `ci.yml` | 2026-09-12 |
 | 5 | Hiệu năng | ➖ Không áp dụng | Repo khung không còn runtime (ADR-0004 đã gỡ scaffold Web/Next.js) — không có gì để đo Core Web Vitals/bundle | 2026-09-12 |
 | 6 | Accessibility & UI/UX | ➖ Không áp dụng | Không còn UI trong repo khung (ADR-0004) | 2026-09-12 |
 | 7 | Dependency & chuỗi cung ứng | ✅ Xong | **1 Thấp (G-002, tái xác nhận)** — `PROGRESS.md` risk table vẫn ghi "5 PR dependabot chưa merge (Cao)" nhưng `list_pull_requests(state=open)` xác nhận **0 PR đang mở** — #53→#57 đã merge từ trước (thấy trong git log). Mục risk lỗi thời, hạ xuống đã đóng. Mọi `uses:` trong workflow đã ghim SHA đầy đủ (`grep` xác nhận 0 vi phạm) | 2026-09-12 |
@@ -25,7 +25,7 @@
 ## Tổng hợp mức độ
 
 - **Cao: 0**
-- **Trung: 4** — G-001 (thiếu negative test cho 3 gate script), G-002/G-003 (PROGRESS.md risk table lỗi thời), G-003 (orchestration-3-tier.md tự mâu thuẫn effort), G-004 (effort/model duplicated 6 nơi, không cổng đối chiếu)
+- **Trung: 4, đã sửa 1 (G-001)** — còn mở: G-002/G-003 (PROGRESS.md risk table lỗi thời), G-003 (orchestration-3-tier.md tự mâu thuẫn effort), G-004 (effort/model duplicated 6 nơi, không cổng đối chiếu)
 - **Thấp: 0 mới** (branch protection 7→2 tên và 31 nhánh tồn đọng đã biết từ trước, không tính lại)
 
 ## Đối chiếu với lượt trước (đã lỗi thời, tham khảo lịch sử)
