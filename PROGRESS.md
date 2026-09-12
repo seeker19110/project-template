@@ -6,16 +6,16 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8 — Khung đã hoàn thiện; 2 spec nâng cấp (traps/codemap/cổng CI, golden+TDD) đã code xong 7/7 PR, chờ mở PR tổng lên `main`
-- Default-branch SHA đã đối chiếu: `d0baf40` (`origin/main`, PR #61 đã merge; nhánh làm việc `claude/quirky-dijkstra-qahpgw` hiện trước `main` 9 commit, chưa mở PR — người dùng chọn dồn hết rồi mở một PR tổng)
+- Giai đoạn: GĐ 8 — Khung đã hoàn thiện; 2 spec nâng cấp (traps/codemap/cổng CI, golden+TDD) đã code xong 7/7 PR, đã mở PR tổng #62 lên `main`, đang chờ CI
+- Default-branch SHA đã đối chiếu: `d0baf40` (`origin/main`, PR #61 đã merge; PR #62 mở từ `claude/quirky-dijkstra-qahpgw`, 10 commit, đang chờ CI)
 - Ngày cập nhật: 2026-09-12
 
 ## Goal đang active
 
 | Goal | Outcome | State | Current gap | Next slice | Link |
 | --- | --- | --- | --- | --- | --- |
-| Gói A+B+C: TRAPS + CODEMAP + cổng CI | 4 PR merge; TRAPS/CODEMAP thật + cổng `check-ci-policy.sh` chạy trong CI | ✅ 4/4 PR xong trên nhánh làm việc | Chưa mở PR lên `main` | Mở PR tổng cùng spec golden-tests-and-tdd | `docs/specs/2026-09-12-traps-codemap-ci-policy.md` |
-| Golden test + kỷ luật TDD | 3 PR merge; TDD lên cấp CLAUDE.md/gate, golden có luật cập nhật | ✅ 3/3 PR xong trên nhánh làm việc | Chưa mở PR lên `main` | Mở PR tổng cùng spec traps-codemap-ci-policy | `docs/specs/2026-09-12-golden-tests-and-tdd.md` |
+| Gói A+B+C: TRAPS + CODEMAP + cổng CI | 4 PR merge; TRAPS/CODEMAP thật + cổng `check-ci-policy.sh` chạy trong CI | 🔵 4/4 PR code xong, gộp vào PR #62 chờ CI | Chờ CI PR #62 rồi merge | Theo dõi CI, squash merge | `docs/specs/2026-09-12-traps-codemap-ci-policy.md` |
+| Golden test + kỷ luật TDD | 3 PR merge; TDD lên cấp CLAUDE.md/gate, golden có luật cập nhật | 🔵 3/3 PR code xong, gộp vào PR #62 chờ CI | Chờ CI PR #62 rồi merge | Theo dõi CI, squash merge | `docs/specs/2026-09-12-golden-tests-and-tdd.md` |
 | Hoàn thiện khung theo COMPLETION-PLAN | 0 phát hiện Cao mở; Vừa/Thấp có kết cục ghi nhận; đạt Definition of Complete | ✅ ĐÓNG (2026-09-01) | — | Không còn goal mở | `docs/ops/COMPLETION-PLAN.md` |
 
 ## Đã xong (tóm tắt)
@@ -35,15 +35,15 @@
 
 ## Đang làm / chờ
 
-- Cả 2 spec đã Approved for implementation (2026-09-12) **XONG toàn bộ code** (7/7 PR):
-  `docs/specs/2026-09-12-traps-codemap-ci-policy.md` 4/4 PR, `docs/specs/2026-09-12-golden-tests-and-tdd.md`
-  3/3 PR. Còn duy nhất: **mở PR tổng lên `main`, theo dõi CI, merge**.
+- Cả 2 spec đã Approved for implementation (2026-09-12) **XONG toàn bộ code** (7/7 PR), gộp vào
+  **PR #62** (https://github.com/seeker19110/project-template/pull/62), đã `subscribe_pr_activity`.
+  Còn duy nhất: **chờ CI xanh, squash merge**.
 - `docs/ops/COMPLETION-PLAN.md` (đợt trước) vẫn đóng, không liên quan 2 goal này.
 
 ## Tiếp theo
 
-- Mở PR tổng (9 commit đã có trên `claude/quirky-dijkstra-qahpgw`) lên `main`, `subscribe_pr_activity`,
-  chờ CI xanh rồi squash merge (CLAUDE.md §8).
+- Theo dõi CI của PR #62, sửa nếu đỏ (đúng quy trình PR→merge tự động, CLAUDE.md §8), squash merge
+  khi xanh, rồi quay về `main`.
 
 ## Quyết định quan trọng
 
@@ -66,7 +66,7 @@
 
 - Lần cập nhật: 2026-09-12
 - State: IN PROGRESS — cả 2 spec XONG code (7/7 PR: 4 của traps-codemap-ci-policy + 3 của
-  golden-tests-and-tdd), trên nhánh làm việc, chưa mở PR/merge lên `main`.
+  golden-tests-and-tdd), gộp vào PR #62 lên `main`, đã subscribe, đang chờ CI.
 - Việc dở và bằng chứng mới nhất: PR-1..4 (check-ci-policy.sh, TRAPS.md, CODEMAP.md,
   ci-workflow-policy.test.ts dropins) + PR-A..C (TDD bắt buộc cho bugfix lên CLAUDE.md/`gate`;
   golden test tài liệu + `GOLDEN-TEST.template.md`; golden test cơ chế thật + ví dụ
@@ -76,5 +76,5 @@
   16.3.5 sạch nhiều lượt, lần cuối 15/15 test pass (13 `ci-workflow-policy.test.ts` + 2 golden mới).
   Một sai sót tự phát hiện và tự sửa giữa đường: PR-B ghi nhầm Vitest có cờ `--ci`; PR-C xác minh
   thật (Vitest 5 không có cờ đó, cơ chế đúng là biến môi trường `CI`) và sửa lại.
-- Bước tiếp theo: mở PR tổng lên `main`, `subscribe_pr_activity`, theo dõi CI, squash merge.
+- Bước tiếp theo: theo dõi CI của PR #62 (https://github.com/seeker19110/project-template/pull/62), squash merge khi xanh.
 - Quyền/quyết định cần thêm: không.
