@@ -13,6 +13,15 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **`TRAPS.md` — sổ bẫy đã mắc thật, nối vào `/debug`** (PR-2/4 của spec
+  `docs/specs/2026-09-12-traps-codemap-ci-policy.md`, đã Approved for implementation).
+  Thêm `docs/framework/templates/TRAPS.template.md` (mẫu rỗng cho dự án đích) và `TRAPS.md`
+  ở gốc repo với 6 mục **có thật**, mỗi mục trỏ tới commit/PR xác minh được (`59a280f` #18,
+  `6a4ac40` #27, `366aeec`, `79dca2f` #43, `d0baf40` #61) — vd bản `copy-framework.ps1` cần BOM
+  cho PowerShell 5.1 dù `.sh` không cần, hay job CI gọi GitHub API thiếu `permissions:` tường
+  minh gây 403 chỉ lộ ra khi chạy PR thật. `/debug` thêm Pha 0 đọc `TRAPS.md` trước khi ra giả
+  thuyết, và Pha 6 ghi mục mới/tái phát sau khi sửa xong. Nối vào `CLAUDE.md` §1 + §3.6 và
+  `AGENTS.md`. Nguồn thượng nguồn: TRAPS.md của repo Claude-Agents.
 - **`scripts/check-ci-policy.sh` — cổng canh cấu hình CI, chặn hỏng-im-lặng của required checks**
   (PR-1/4 của spec `docs/specs/2026-09-12-traps-codemap-ci-policy.md`, đã Approved for
   implementation). `docs/ops/repository-settings.md` thêm mục "Required checks — nguồn sự thật"

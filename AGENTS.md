@@ -20,6 +20,7 @@
   cùng failure tối đa 3 lần, kết thúc chỉ khi Goal/Project DoD có bằng chứng.
 - **Subagent song song:** chỉ tách việc độc lập; chốt contract trước; mỗi agent có file/phạm vi ghi riêng, không trùng file/artifact sinh chung. Đọc/phân tích được chạy song song; dependency dùng chung, migration, lockfile phải tuần tự. Mỗi agent báo file đổi, kiểm tra, rủi ro; agent chính review diff, tích hợp và chạy đủ build/type/lint/format/test. Chỉ dùng số agent tương ứng với lượng việc độc lập hữu ích.
 - **Chống ảo giác:** không bịa hàm/thư viện/API — xác minh bằng tài liệu/mã nguồn thật; không đoán kết quả lệnh — chạy thật và đọc output; xác minh phiên bản bằng nguồn sống, không dùng trí nhớ.
+- **Sổ bẫy (`TRAPS.md` ở gốc repo, nếu có):** đọc trước khi chẩn đoán bug lạ; sau khi sửa một khuôn lỗi thì ghi mục mới hoặc thêm ngày/PR vào mục cũ nếu tái phát.
 - **Cổng trước khi commit:** build + type-check + lint (0 cảnh báo) + format + test liên quan đều PHẢI xanh; tự đọc lại diff; không bí mật/`console.log` debug trong code. Lệnh cụ thể: xem `CLAUDE.md` §5 / `package.json`.
 - **Cổng trước khi merge:** toàn bộ test xanh, nhánh cập nhật với `main`, đối chiếu tiêu chí chấp nhận trong `PROJECT.md` — xem `CLAUDE.md` §6.
 - **Git:** mỗi tính năng một nhánh (`feat/...`, `fix/...`); conventional commits; mọi thay đổi vào `main` qua PR (ưu tiên squash); KHÔNG push thẳng `main`.
