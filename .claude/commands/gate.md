@@ -20,7 +20,7 @@ Chạy từng cổng dò được, **đọc kết quả thật** (không suy đo
 
 **Nếu commit là `fix:`** (CLAUDE.md §3.6): có test tái hiện đã chạy **đỏ trước khi sửa** trong diff/lịch sử phiên này không? Có → ghi `✅` + dẫn output đỏ. Không, và đây thật sự là sửa lỗi chính tả/đổi tên cơ học/chỉ tài liệu → `n-a` (ngoại lệ hợp lệ, không phải nợ kỹ thuật). Không rơi vào ngoại lệ nào → **CẢNH BÁO, hỏi lại người dùng**: có muốn viết test tái hiện trước khi tiếp tục, hay đây thực ra nên là `chore:`/`docs:`? Không tự động chặn — chỉ `/completion`/`/audit-full` chặn cứng mục này.
 
-**Nếu diff đổi một golden/snapshot test:** diff golden test + lý do thay đổi phải nằm trong PR body (không phải chỉ trong code). Đổi golden mà không giải thích được bằng thay đổi khác trong PR → đó là dấu hiệu hồi quy, không phải "làm xanh" — dừng, chẩn đoán trước khi cập nhật golden (`-u`).
+**Nếu diff đổi một golden/snapshot test:** điền checklist `docs/framework/templates/GOLDEN-TEST.template.md` và dán vào PR body (diff golden + lý do thay đổi, không phải chỉ trong code). Đổi golden mà không giải thích được bằng thay đổi khác trong PR → đó là dấu hiệu hồi quy, không phải "làm xanh" — dừng, chẩn đoán trước khi cập nhật golden (`-u`).
 
 ## Bước 4 — Xuất Báo cáo xác thực (đúng mẫu §7)
 ```

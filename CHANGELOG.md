@@ -13,6 +13,15 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **Golden test — tài liệu + template** (PR-B/3 của spec `docs/specs/2026-09-12-golden-tests-and-tdd.md`,
+  đã Approved for implementation). `docs/framework/quality-supplements.md` (Nhóm 2 mục 6) thêm tiểu
+  mục "Golden test" đủ 5 phần: (a) dùng khi nào/KHÔNG dùng khi nào (không mặc định cho snapshot UI
+  diện rộng — nguồn test giòn kinh điển), (b) nơi lưu fixture, (c) **luật chuẩn hoá bắt buộc** trước
+  khi so (timestamp/id/đường dẫn/thứ tự khoá/timezone), (d) **luật cập nhật** — không `-u` phản xạ,
+  PR phải nêu lý do + dán diff golden, (e) CI không được tự tạo snapshot mới. Thêm
+  `docs/framework/templates/GOLDEN-TEST.template.md` (28 dòng, checklist dán được thẳng vào PR
+  body) và nối vào `.claude/commands/gate.md`. `scripts/test-copy-framework.sh` thêm assertion cho
+  template mới (đã chạy negative test: gỡ file → FAIL đúng, phục hồi → PASS lại).
 - **TDD "sửa bug phải có test tái hiện đỏ trước khi sửa" nâng từ luật của một lệnh lên luật của
   khung** (PR-A/3 của spec `docs/specs/2026-09-12-golden-tests-and-tdd.md`, đã Approved for
   implementation). Trước đây luật này chỉ sống trong `/completion` + `/audit-full`, nên một PR
