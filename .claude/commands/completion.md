@@ -20,7 +20,7 @@ Ràng buộc bắt buộc (chi tiết nằm ở file trên — bám `CLAUDE.md` 
 
 - **Trình tự pha — không bỏ pha, không đảo:**
   - **Pha 0** dò hiện trạng: nếu chưa áp khung thì chạy Bước 0 của `existing-project-adoption.md`;
-    lập `docs/FEATURE-MAP.md` + `docs/CONVENTIONS.md` bằng cách **đọc code thật** (chống ảo giác).
+    lập `docs/FEATURE-MAP.md` + `docs/CONVENTIONS.md` + `CODEMAP.md` bằng cách **đọc code thật** (chống ảo giác).
   - **Pha 1** quét: chạy `/audit-full` (12 nhóm, gồm Nhóm 12 thống nhất chéo tính năng). KHÔNG sửa gì.
   - **Pha 2** lập `docs/ops/COMPLETION-PLAN.md` (đợt + việc + tiêu chí nghiệm thu + truy vết F-xxx→W-xxx
     + Definition of Complete) → **DỪNG, chờ người dùng duyệt kế hoạch + DoC**. Chưa duyệt chưa sửa.

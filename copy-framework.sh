@@ -157,6 +157,7 @@ for f in \
   .github/pull_request_template.md .github/dependabot.yml .github/ISSUE_TEMPLATE .github/CODEOWNERS \
   lib/env.ts styles/theme.css components/theme-toggle.tsx i18n/request.ts messages app \
   next.config.ts e2e \
+  scripts/ci-workflow-policy.test.ts \
   .gitignore .gitattributes \
   supabase \
 ; do

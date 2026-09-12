@@ -13,6 +13,24 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **`CODEMAP.md` — bảng "muốn đổi X → sửa file nào → rồi chạy lại gì", nối vào `/completion`**
+  (PR-3/4 của spec `docs/specs/2026-09-12-traps-codemap-ci-policy.md`, đã Approved for implementation).
+  Thêm `docs/framework/templates/CODEMAP.template.md` (mẫu rỗng cho dự án đích) và `CODEMAP.md` ở
+  gốc repo với bảng tra thật cho chính khung (thêm/đổi job CI → sửa file nào → chạy cổng nào; đổi
+  file gốc dự án đích nhận khi copy khung → chạy `test-copy-framework.sh`…). Mảnh còn thiếu giữa
+  `docs/FEATURE-MAP.md` ("có gì") và `docs/CONVENTIONS.md` ("viết thế nào") — mẫu này hội tụ độc lập
+  ở 4 repo dẫn xuất/lân cận nên có giá trị thật. `docs/framework/project-completion.md` (Pha 0) và
+  `.claude/commands/completion.md` nay sinh cả 3 file cùng lượt; nhân đó sửa luôn "Pha 1" → "Pha 0"
+  (lỗi sẵn có, không khớp checklist thật của Pha 0). Nguồn thượng nguồn: `CODEMAP.md` của
+  `Claude-Agents`/`Sales-Hunter`/`X-Agents`/`X-Studio`.
+- **`scripts/ci-workflow-policy.test.ts` — bản vitest của `check-ci-policy.sh` cho dự án đích**
+  (PR-4/4 của spec traps-codemap-ci-policy). Đối chiếu HAI CHIỀU job id thật trong
+  `ci.yml`/`pr-policy.yml` với danh sách khai báo trong `docs/ops/repository-settings.md`; nối vào
+  `stage`/`Add-Dropin` của `copy-framework.sh`/`.ps1` (Layer 2 — không đè file đang chạy). Đã xác
+  minh THẬT bằng `verify-dropins.sh` trên Next.js 16.3.5 sạch: 13/13 test pass, và negative test
+  (đổi tên một job thật) làm đúng 2 test đỏ ở cả hai chiều trước khi hoàn nguyên. `verify-dropins.sh`
+  cũng bắt một lỗi format Prettier do chính đợt sửa `project-completion.md` (PR-3) ở trên gây ra —
+  đã sửa và xác nhận idempotent (chạy `--write` lần hai không đổi gì) trước khi commit.
 - **`TRAPS.md` — sổ bẫy đã mắc thật, nối vào `/debug`** (PR-2/4 của spec
   `docs/specs/2026-09-12-traps-codemap-ci-policy.md`, đã Approved for implementation).
   Thêm `docs/framework/templates/TRAPS.template.md` (mẫu rỗng cho dự án đích) và `TRAPS.md`
