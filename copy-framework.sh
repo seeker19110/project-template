@@ -139,10 +139,12 @@ copy_if_absent ".claude/agents"
 # Hook phụ thuộc 2 script này — thiếu thì hook no-op (mất auto-format + cổng chặn commit đỏ + nhắc quota):
 copy_if_absent "scripts/dev-task.sh"
 copy_if_absent "scripts/usage-estimate.sh"
+# Test chứng minh hook cổng CHẶN thật (audit 2026-09-12, F-002) — đi cùng .claude/hooks ở trên.
+copy_if_absent "scripts/test-hooks-gate.sh"
 # 2 file mẫu để dự án tự điền (bản điền thật .claude/*.sh đã nằm trong .gitignore của khung):
 copy_if_absent ".claude/project-commands.example.sh"
 copy_if_absent ".claude/usage-budget.example.sh"
-chmod +x "$TARGET/scripts/dev-task.sh" "$TARGET/scripts/usage-estimate.sh" 2>/dev/null || true
+chmod +x "$TARGET/scripts/dev-task.sh" "$TARGET/scripts/usage-estimate.sh" "$TARGET/scripts/test-hooks-gate.sh" 2>/dev/null || true
 chmod +x "$TARGET/.claude/hooks/"*.sh 2>/dev/null || true
 
 echo ""
@@ -151,12 +153,14 @@ for f in \
   eslint.config.mjs postcss.config.mjs \
   .prettierrc .prettierignore .lintstagedrc.json commitlint.config.cjs \
   vitest.config.mts vitest.setup.ts playwright.config.ts lighthouserc.json \
+  lib/order-summary.ts lib/order-summary.golden.test.ts lib/__golden__ \
   .husky/pre-commit .husky/commit-msg \
-  .github/workflows/ci.yml .github/workflows/lighthouse-ci.yml \
+  .github/workflows/ci.yml .github/workflows/lighthouse-ci.yml .github/workflows/stale-pr-alert.yml \
   .github/workflows/codeql.yml .github/workflows/secret-scan.yml .github/workflows/dependency-review.yml .github/workflows/pr-policy.yml .github/workflows/release.yml \
   .github/pull_request_template.md .github/dependabot.yml .github/ISSUE_TEMPLATE .github/CODEOWNERS \
   lib/env.ts styles/theme.css components/theme-toggle.tsx i18n/request.ts messages app \
   next.config.ts e2e \
+  scripts/ci-workflow-policy.test.ts \
   .gitignore .gitattributes \
   supabase \
 ; do

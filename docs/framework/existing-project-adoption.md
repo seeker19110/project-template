@@ -149,7 +149,7 @@ Dự án bạn đã có i18n → **đừng thay nếu đang chạy tốt.** Đá
 
 ## Cổng "đã áp khung xong cho dự án cũ"
 - [ ] `PROJECT.md` (ngược) + `PROGRESS.md` + `CLAUDE.md` (điền thật) đã có.
-- [ ] `docs/FEATURE-MAP.md` + `docs/CONVENTIONS.md` đã lập (căn cứ rà thống nhất chéo tính năng).
+- [ ] `docs/FEATURE-MAP.md` + `docs/CONVENTIONS.md` + `CODEMAP.md` đã lập (căn cứ rà thống nhất chéo tính năng + tra sửa-ở-đâu).
 - [ ] Pre-commit hook + commit-msg hook **chặn được** lỗi trên commit MỚI.
 - [ ] CI chạy trên PR; branch protection bật.
 - [ ] Có baseline (lint/type/test/Lighthouse/a11y) + kế hoạch hạ nợ dần.

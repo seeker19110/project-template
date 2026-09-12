@@ -2,7 +2,7 @@
 # usage-guard.sh — Stop hook. Sau mỗi lượt, ước tính % quota 5h (usage-estimate.sh).
 # Nếu >= ngưỡng → tiêm additionalContext nhắc AI WIND-DOWN (không chặn cứng).
 # Nhắc MỘT lần/phiên (marker) để không lặp. Tự tắt khi chưa khai báo budget (OVERALL=NA).
-set -uo pipefail
+set -uo pipefail   # cố ý KHÔNG -e: không được làm chết phiên/lượt chạy (xem docs/CONVENTIONS.md §A)
 
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
 command -v jq >/dev/null 2>&1 || exit 0
