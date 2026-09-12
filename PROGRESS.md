@@ -6,16 +6,16 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8 — Khung đã hoàn thiện; 2 spec nâng cấp (traps/codemap/cổng CI, golden+TDD) đã code xong 7/7 PR, đã mở PR tổng #62 lên `main`, đang chờ CI
-- Default-branch SHA đã đối chiếu: `d0baf40` (`origin/main`, PR #61 đã merge; PR #62 mở từ `claude/quirky-dijkstra-qahpgw`, 10 commit, đang chờ CI)
+- Giai đoạn: GĐ 8 — Khung đã hoàn thiện; 2 spec nâng cấp (traps/codemap/cổng CI, golden+TDD) đã merge vào `main`
+- Default-branch SHA đã đối chiếu: `a6601b7` (`origin/main`, PR #62 đã merge squash — 13/13 check xanh, không review comment)
 - Ngày cập nhật: 2026-09-12
 
 ## Goal đang active
 
 | Goal | Outcome | State | Current gap | Next slice | Link |
 | --- | --- | --- | --- | --- | --- |
-| Gói A+B+C: TRAPS + CODEMAP + cổng CI | 4 PR merge; TRAPS/CODEMAP thật + cổng `check-ci-policy.sh` chạy trong CI | 🔵 4/4 PR code xong, gộp vào PR #62 chờ CI | Chờ CI PR #62 rồi merge | Theo dõi CI, squash merge | `docs/specs/2026-09-12-traps-codemap-ci-policy.md` |
-| Golden test + kỷ luật TDD | 3 PR merge; TDD lên cấp CLAUDE.md/gate, golden có luật cập nhật | 🔵 3/3 PR code xong, gộp vào PR #62 chờ CI | Chờ CI PR #62 rồi merge | Theo dõi CI, squash merge | `docs/specs/2026-09-12-golden-tests-and-tdd.md` |
+| Gói A+B+C: TRAPS + CODEMAP + cổng CI | 4 PR merge; TRAPS/CODEMAP thật + cổng `check-ci-policy.sh` chạy trong CI | ✅ ĐÓNG (2026-09-12, PR #62) | — | Không còn goal mở | `docs/specs/2026-09-12-traps-codemap-ci-policy.md` |
+| Golden test + kỷ luật TDD | 3 PR merge; TDD lên cấp CLAUDE.md/gate, golden có luật cập nhật | ✅ ĐÓNG (2026-09-12, PR #62) | — | Không còn goal mở | `docs/specs/2026-09-12-golden-tests-and-tdd.md` |
 | Hoàn thiện khung theo COMPLETION-PLAN | 0 phát hiện Cao mở; Vừa/Thấp có kết cục ghi nhận; đạt Definition of Complete | ✅ ĐÓNG (2026-09-01) | — | Không còn goal mở | `docs/ops/COMPLETION-PLAN.md` |
 
 ## Đã xong (tóm tắt)
@@ -28,22 +28,23 @@
   (`scripts/check-docs-consistency.sh`) / `copy-framework-smoke` / `source-hygiene` (knip) /
   `verify-dropins.yml`; case-study greenfield chạy thật đầu-cuối (vá eslint flat config, hook, dropins).
 - Tái cấu trúc tên file sang tiếng Anh (nội dung tiếng Việt), bản đồ tên cũ→mới ở `docs/framework/README.md`.
-- PR đã merge gần nhất: **#52** (hoàn thiện khung theo COMPLETION-PLAN, 4 đợt/22 việc W-101→W-406,
-  Pha 4 re-audit hội tụ + nghiệm thu Definition of Complete PASS), **#46** (parallel subagent workflow),
-  **#45** (governance & supply-chain), **#44** (hợp nhất chuẩn — standard-delivery). Mốc cũ hơn
-  (#19–#32…): xem lịch sử Git của file này + CHANGELOG.
+- PR đã merge gần nhất: **#62** (TRAPS.md + CODEMAP.md + `check-ci-policy.sh` + golden test/TDD —
+  2 spec `docs/specs/2026-09-12-*.md`, 7 PR gộp thành 1, rút từ lượt quét 15 repo dẫn xuất/lân cận),
+  **#61** (verify-dropins ERESOLVE), **#52** (hoàn thiện khung theo COMPLETION-PLAN, 4 đợt/22 việc
+  W-101→W-406, Pha 4 re-audit hội tụ + nghiệm thu Definition of Complete PASS), **#46** (parallel
+  subagent workflow), **#45** (governance & supply-chain), **#44** (hợp nhất chuẩn —
+  standard-delivery). Mốc cũ hơn (#19–#32…): xem lịch sử Git của file này + CHANGELOG.
 
 ## Đang làm / chờ
 
-- Cả 2 spec đã Approved for implementation (2026-09-12) **XONG toàn bộ code** (7/7 PR), gộp vào
-  **PR #62** (https://github.com/seeker19110/project-template/pull/62), đã `subscribe_pr_activity`.
-  Còn duy nhất: **chờ CI xanh, squash merge**.
-- `docs/ops/COMPLETION-PLAN.md` (đợt trước) vẫn đóng, không liên quan 2 goal này.
+- Không có việc dở. Cả 2 spec đã merge (**#62**). `docs/ops/COMPLETION-PLAN.md` (đợt trước) vẫn đóng.
 
 ## Tiếp theo
 
-- Theo dõi CI của PR #62, sửa nếu đỏ (đúng quy trình PR→merge tự động, CLAUDE.md §8), squash merge
-  khi xanh, rồi quay về `main`.
+- Chờ yêu cầu tiếp theo của người dùng: bắt đầu dự án đích mới bằng khung này (`/consult` hoặc
+  `/auto`), tiếp tục quét thêm repo dẫn xuất khác (gói D–I của lượt quét 2026-09-12: script `check-*`
+  của `xboss`, hook `block-dangerous-git.sh`, gitleaks pre-commit, gate-agent `sc-gate-*`,
+  `eval-record.yml`), hoặc audit định kỳ khác (`/audit-full`).
 
 ## Quyết định quan trọng
 
@@ -65,16 +66,17 @@
 ## Bàn giao phiên
 
 - Lần cập nhật: 2026-09-12
-- State: IN PROGRESS — cả 2 spec XONG code (7/7 PR: 4 của traps-codemap-ci-policy + 3 của
-  golden-tests-and-tdd), gộp vào PR #62 lên `main`, đã subscribe, đang chờ CI.
-- Việc dở và bằng chứng mới nhất: PR-1..4 (check-ci-policy.sh, TRAPS.md, CODEMAP.md,
-  ci-workflow-policy.test.ts dropins) + PR-A..C (TDD bắt buộc cho bugfix lên CLAUDE.md/`gate`;
+- State: DONE — cả 2 spec đã merge vào `main` qua **PR #62** (squash, 13/13 check xanh, không
+  review comment/conflict, `mergeable_state: clean`). Đã unsubscribe PR, quay về `main`
+  (`a6601b7`), pull cập nhật local.
+- Việc đã xong và bằng chứng: PR-1..4 (`check-ci-policy.sh`, `TRAPS.md`, `CODEMAP.md`,
+  `ci-workflow-policy.test.ts` dropins) + PR-A..C (TDD bắt buộc cho bugfix lên `CLAUDE.md`/`gate`;
   golden test tài liệu + `GOLDEN-TEST.template.md`; golden test cơ chế thật + ví dụ
-  `lib/order-summary.ts` trong dropins) — đều đã commit + push lên `claude/quirky-dijkstra-qahpgw`.
-  Bằng chứng: `check-docs-consistency.sh` ✅, `check-ci-policy.sh` ✅, `test-copy-framework.sh` ✅
-  (mọi assertion mới đều kèm negative test); `verify-dropins.sh` chạy đủ 6/6 bước trên Next.js
-  16.3.5 sạch nhiều lượt, lần cuối 15/15 test pass (13 `ci-workflow-policy.test.ts` + 2 golden mới).
+  `lib/order-summary.ts` trong dropins). Bằng chứng: `check-docs-consistency.sh` ✅,
+  `check-ci-policy.sh` ✅, `test-copy-framework.sh` ✅ (mọi assertion mới đều kèm negative test);
+  `verify-dropins.sh` chạy đủ 6/6 bước trên Next.js 16.3.5 sạch nhiều lượt, lần cuối 15/15 test pass
+  (13 `ci-workflow-policy.test.ts` + 2 golden mới); CI thật trên PR #62 xanh toàn bộ 13 check.
   Một sai sót tự phát hiện và tự sửa giữa đường: PR-B ghi nhầm Vitest có cờ `--ci`; PR-C xác minh
-  thật (Vitest 5 không có cờ đó, cơ chế đúng là biến môi trường `CI`) và sửa lại.
-- Bước tiếp theo: theo dõi CI của PR #62 (https://github.com/seeker19110/project-template/pull/62), squash merge khi xanh.
+  thật (Vitest 5 không có cờ đó, cơ chế đúng là biến môi trường `CI`) và sửa lại trước khi merge.
+- Bước tiếp theo: không có; chờ người dùng chọn hướng kế tiếp (dự án đích mới, quét thêm gói D–I, hoặc audit định kỳ).
 - Quyền/quyết định cần thêm: không.
