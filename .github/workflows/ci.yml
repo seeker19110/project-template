@@ -91,12 +91,70 @@ jobs:
           fetch-depth: 0
       - run: bash scripts/check-progress-freshness.sh
 
+  # Xác nhận branch protection ĐÃ ÁP THẬT (không chỉ được hứa trong tài liệu) và KHỚP với file
+  # .github/rulesets/main.json (đối chiếu hai chiều) — cơ chế mượn từ seeker19110/Claude-Agents
+  # (docs/QUY-TRINH-GIT.md §8): trước đây "đã bật" chỉ là lời hứa trong repository-settings.md,
+  # không gì kiểm chứng; sửa ruleset qua UI có thể làm RƠI một rule mà không báo gì.
+  protection-guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Bảo vệ nhánh đã có hiệu lực chưa
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+          rules=$(curl -sS --fail \
+            -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$REPO/rules/branches/$BRANCH")
+          echo "$rules" > /tmp/live-rules.json
+          has_rule()  { jq -e --arg t "$1" 'map(select(.type == $t)) | length > 0' <<<"$rules" >/dev/null; }
+          has_check() { jq -e --arg c "$1" '[.[] | select(.type == "required_status_checks") | .parameters.required_status_checks[].context] | index($c) != null' <<<"$rules" >/dev/null; }
+          fail=0
+          for t in pull_request required_status_checks deletion non_fast_forward; do
+            has_rule "$t" || { echo "::error::Thiếu rule '$t' trên $BRANCH"; fail=1; }
+          done
+          for c in $(jq -r '.rules[] | select(.type == "required_status_checks")
+                            | .parameters.required_status_checks[].context' .github/rulesets/main.json); do
+            has_check "$c" || { echo "::error::Status check '$c' chưa được bắt buộc trên $BRANCH"; fail=1; }
+          done
+          if [ "$fail" = 1 ]; then
+            echo "::error::Bảo vệ nhánh CHƯA có hiệu lực. Import .github/rulesets/main.json: Settings → Rules → Rulesets → New ruleset → Import a ruleset. Chi tiết: docs/ops/repository-settings.md."
+            exit 1
+          fi
+          echo "OK — $BRANCH đang được bảo vệ, và mọi required status check khai trong file đều đã bắt buộc."
+
+      - name: File và ruleset thật phải khớp (đối chiếu hai chiều)
+        run: |
+          set -euo pipefail
+          live=$(jq -r '[.[].type] | sort | unique | .[]' /tmp/live-rules.json)
+          want=$(jq -r '[.rules[].type] | sort | unique | .[]' .github/rulesets/main.json)
+          fail=0
+          for t in $want; do
+            grep -qx "$t" <<<"$live" || {
+              echo "::error::Rule '$t' có trong .github/rulesets/main.json nhưng KHÔNG áp trên nhánh mặc định."
+              echo "::error::Bảo vệ đang YẾU HƠN thứ repo khai. Bật lại trong Settings → Rules → Rulesets, hoặc bỏ khỏi file nếu đã cố ý không dùng."
+              fail=1; }
+          done
+          for t in $live; do
+            grep -qx "$t" <<<"$want" || {
+              echo "::warning::Rule '$t' đang áp trên nhánh mặc định nhưng KHÔNG có trong .github/rulesets/main.json."
+              echo "::warning::Không yếu đi, nhưng lần import lại từ file sẽ XOÁ MẤT nó. Thêm vào file cho khớp."; }
+          done
+          [ "$fail" = 0 ] || exit 1
+
   # Job TỔNG HỢP (ADR-0003, audit 2026-09-12 F-010): branch protection chỉ cần khoá MỘT tên là
   # `gate` thay vì liệt kê từng job. `if: always()` là bắt buộc — không có nó, `gate` bị SKIP khi
   # một job cha đỏ, và GitHub coi required check "skipped" là ĐẠT (hỏng im lặng).
   gate:
     if: always()
-    needs: [framework-lint, docs-consistency, copy-framework-smoke, progress-freshness]
+    needs: [framework-lint, docs-consistency, copy-framework-smoke, progress-freshness, protection-guard]
     runs-on: ubuntu-latest
     steps:
       - name: Kết luận từ mọi job cổng
