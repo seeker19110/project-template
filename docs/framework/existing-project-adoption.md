@@ -40,7 +40,28 @@ pwsh ./copy-framework.ps1 C:\đường-dẫn\tới\dự-án
 Script **không đè** file đang chạy: tài liệu khung + `CLAUDE.md` (nếu chưa có) copy thẳng; file cấu hình
 theo stack được đưa vào `_framework-dropins/` để bạn tự merge. Sau đó **mở phiên Claude Code trong dự án đích**
 → AI tự đọc `CLAUDE.md` và chạy Bước 0 (tự dò stack). *Vì sao phải copy chứ không "đưa link": một phiên
-chỉ tự nạp luật từ chính repo của nó (và `~/.claude/CLAUDE.md`), không đọc được repo khác qua link.*
+chỉ tự nạp luật từ chính repo của nó (và `~/.claude/CLAUDE.md`), không đọc được repo khác qua link — luật
+phải NẰM TRONG repo đích thì phiên mới đọc được.*
+
+### Cách khác — không tự tay chạy lệnh: nhờ chính AI làm bước copy
+
+Bạn **không bắt buộc** phải tự gõ `copy-framework.sh`. Nếu AI đang có quyền truy cập cả repo khung lẫn
+repo đích (agent có `bash`/git, hoặc được `add_repo` thêm cả hai repo trong cùng phiên), chỉ cần nói một
+câu, kiểu:
+
+> "Áp bộ khung ở `<đường dẫn/URL repo khung>` vào dự án này — tự clone/copy và chạy `copy-framework.sh`
+> giúp tôi, không cần tôi tự gõ lệnh."
+
+AI sẽ tự: (1) lấy repo khung về (clone hoặc dùng bản đã có sẵn cục bộ), (2) chạy `copy-framework.sh`/`.ps1`
+trỏ vào thư mục dự án đích y hệt lệnh thủ công ở trên, (3) đọc lại `CLAUDE.md` vừa có trong repo đích và
+tiếp tục Bước 0 ngay trong cùng phiên — không cần mở phiên mới. Đây **không phải cơ chế mới**: vẫn là
+đúng một lệnh `copy-framework.sh` đó, chỉ khác ai là người gõ nó. Giới hạn kỹ thuật ở trên ("luật phải
+nằm trong repo đích") không đổi — AI vẫn phải ghi file thật vào repo đích chứ không thể "đọc luật qua
+link" mà không copy.
+
+Ngoại lệ duy nhất không cần bước copy này: khi AI **không có quyền ghi** vào repo đích (chỉ được hỏi tư
+vấn qua chat, không có công cụ file/bash) — lúc đó chỉ đọc `CLAUDE.md`/`AGENTS.md` của repo khung để **trả
+lời tư vấn bằng lời**, không có gì để "tích hợp" cả vì không ghi được file nào.
 
 ---
 

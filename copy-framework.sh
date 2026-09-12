@@ -102,6 +102,13 @@ echo "  + docs/framework/FRAMEWORK-VERSION (bản khung: $FRAMEWORK_COMMIT)"
 # ── File gốc dự án: chỉ copy nếu chưa có ──
 copy_if_absent "CLAUDE.md"
 copy_if_absent "AGENTS.md"                     # chuẩn mở agents.md — cho AI agent ngoài Claude Code (Cursor/Codex/Copilot...)
+# File cầu nối sang AGENTS.md cho công cụ CHƯA tự đọc agents.md — không lặp nội dung, chỉ trỏ sang.
+copy_if_absent "GEMINI.md"                     # Gemini CLI
+# (Codex CLI đọc thẳng AGENTS.md — không cần file cầu nối riêng.)
+copy_if_absent ".clinerules"                   # Cline / Roo Code
+copy_if_absent ".windsurfrules"                # Windsurf
+copy_if_absent ".cursor/rules"                 # Cursor
+copy_if_absent ".github/copilot-instructions.md"  # GitHub Copilot
 copy_if_absent "PROJECT.md"
 # PROGRESS.md: dự án đích nhận bản MẪU SẠCH (PROGRESS.template.md) — KHÔNG nhận
 # nhật ký phát triển của chính repo khung (PROGRESS.md ở repo khung là log của khung).
@@ -121,6 +128,8 @@ copy_if_absent "CODE_OF_CONDUCT.md"
 copy_if_absent ".editorconfig"
 copy_if_absent ".nvmrc"
 copy_if_absent ".mcp.json"                     # MCP Context7 — tài liệu đúng phiên bản cho research-first (KHUNG-3)
+copy_if_absent ".mcp.json.example"             # mẫu MCP server phổ biến (github/filesystem/postgres) — dự án tự bật khi cần
+copy_if_absent ".claude/settings.local.json.example"  # mẫu permission cá nhân, không dùng chung nhóm
 # LICENSE KHÔNG copy: mỗi dự án tự chọn giấy phép + chủ sở hữu riêng.
 
 # ── Cấu hình Claude Code + script tự động: copy thẳng (KHÔNG đè cấu hình đã có) ──

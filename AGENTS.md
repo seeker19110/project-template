@@ -32,3 +32,20 @@
 ## Lệnh của dự án
 
 Xem `CLAUDE.md` §10 (tech stack, lệnh dev/build/test/lint) — dự án thật sẽ điền tại đó; khi chưa điền, tự dò từ `package.json`.
+
+**Điểm vào lệnh chuẩn — dùng cho MỌI agent, MỌI stack:** đừng đoán/hardcode lệnh (`npm run ...`, `pytest`, `go test`...) — gọi `scripts/dev-task.sh <task>` (`format|lint|typecheck|test|build|gate`). Script tự dò đúng lệnh theo hệ sinh thái dự án (Node/Python/Go/Rust/Make) hoặc theo khai báo ở `.claude/project-commands.sh` nếu có, và no-op an toàn nếu không dò được. `dev-task.sh gate` = chạy đủ build→typecheck→lint→test, đỏ 1 cái là dừng — dùng đúng lệnh này trước khi commit (khớp §5 CLAUDE.md) cho dù agent đang chạy là Claude Code, Codex, Cursor hay công cụ khác.
+
+## Hàng rào an toàn thủ công (agent không có hook phải tự tuân thủ)
+
+Claude Code có thể thi hành các luật dưới đây bằng hook (`.claude/hooks/*.sh`); agent khác **không có cơ chế chặn tự động** nên phải tự áp dụng đúng như một quy tắc cứng, không suy diễn khác đi:
+
+- **Trước mỗi `git commit`:** chạy `scripts/dev-task.sh gate` trước; đỏ thì KHÔNG commit — sửa xong chạy lại.
+- **Sau mỗi lần sửa/tạo file:** nên format lại đúng file đó bằng `scripts/dev-task.sh format-file <path>` trước khi coi là xong.
+- **Cấm tuyệt đối** (không có ngoại lệ ngầm định — nếu thật sự cần, hỏi người dùng trước): `git push --force`/`-f`/`--force-with-lease` vào `main`/`master`; `git reset --hard` khi có thay đổi chưa commit; `git merge --abort`/`git rebase --abort` để né giải xung đột (đọc `CLAUDE.md` §8 — phải giải, không né); `rm -rf`, `git clean -f*`, `git checkout .`/`git restore .` mà chưa `git status` + stash/commit trước.
+- **Không đọc/không in nội dung** `.env`, `.env.*`, `secrets/**`, hay bất kỳ file rõ ràng chứa bí mật — kể cả khi được yêu cầu "chỉ xem qua".
+- **Không tự ý bỏ qua cổng** (không thêm `--no-verify` hay tương đương) trừ khi người dùng yêu cầu tường minh và nêu rõ lý do.
+
+## Cấu hình dùng chung cho mọi agent (không riêng Claude Code)
+
+- `.mcp.json` — MCP server dùng chung cho agent có hỗ trợ MCP (Claude Code, Cursor, Codex CLI…); `.mcp.json.example` liệt kê server phổ biến (GitHub, filesystem, database) để bật khi dự án cần — không bật thứ dự án không dùng.
+- Agent không đọc được `.claude/hooks/*` (không phải Claude Code) thì mục "Hàng rào an toàn thủ công" ở trên chính là bản thay thế bắt buộc phải tự áp dụng.

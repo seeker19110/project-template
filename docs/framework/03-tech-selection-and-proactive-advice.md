@@ -192,6 +192,7 @@ Cho mỗi lựa chọn (framework, CSDL, hosting, thư viện lõi), chấm theo
 
 > **Cổng chất lượng đặc thù:** thay "Lighthouse/CWV web" bằng **hiệu năng khởi động + kích thước app + 60fps**;
 > a11y theo guideline nền tảng (TalkBack/VoiceOver); thay "theme web tokens" bằng design system của RN.
+> **Chi tiết đo được:** `quality-gates-by-profile.md` §C2.
 
 ## C3 — Hồ sơ Desktop app
 
@@ -203,6 +204,7 @@ Cho mỗi lựa chọn (framework, CSDL, hosting, thư viện lõi), chấm theo
 | Test | Vitest (unit) + WebDriver/Playwright (UI) | + kiểm thử cập nhật tự động |
 
 > **Cổng đặc thù:** ký số (code signing) + auto-update an toàn; quyền truy cập hệ thống tệp/phần cứng tối thiểu.
+> **Chi tiết đo được:** `quality-gates-by-profile.md` §C3.
 
 ## C4 — Hồ sơ Backend / API / dịch vụ
 
@@ -216,6 +218,7 @@ Cho mỗi lựa chọn (framework, CSDL, hosting, thư viện lõi), chấm theo
 
 > **Cổng đặc thù:** thay "a11y/CWV/theme" bằng **contract API ổn định, p95 latency, rate limit, idempotency,
 > bảo mật xác thực/phân quyền**; tài liệu OpenAPI là một phần DoD.
+> **Chi tiết đo được:** `quality-gates-by-profile.md` §C4.
 
 ## C5 — Hồ sơ Site nội dung tĩnh / SEO nặng
 
@@ -226,6 +229,7 @@ Cho mỗi lựa chọn (framework, CSDL, hosting, thư viện lõi), chấm theo
 | Cổng | **CWV + SEO (sitemap/OG/structured data)** giữ nguyên như web | Lighthouse CI áp được trực tiếp |
 
 > **Cổng đặc thù:** giữ Lighthouse/CWV + SEO; bỏ bớt phần "auth/RLS/realtime" nếu là site thuần đọc.
+> **Chi tiết đo được:** `quality-gates-by-profile.md` §C5.
 
 ## C6 — Hồ sơ CLI / Thư viện / SDK
 
@@ -238,6 +242,7 @@ Cho mỗi lựa chọn (framework, CSDL, hosting, thư viện lõi), chấm theo
 
 > **Cổng đặc thù:** thay "UI/theme/a11y/CWV" bằng **API ổn định + SemVer + tài liệu dùng (README/typedoc) +
 > không phụ thuộc thừa**; DX của người tích hợp là tiêu chí chính.
+> **Chi tiết đo được:** `quality-gates-by-profile.md` §C6.
 
 ## C7 — Hồ sơ Data / ML / AI
 
@@ -251,6 +256,7 @@ Cho mỗi lựa chọn (framework, CSDL, hosting, thư viện lõi), chấm theo
 
 > **Cổng đặc thù:** thay "a11y/CWV/theme" bằng **tái lập được (seed/version dữ liệu+model), chất lượng dữ liệu,
 > đánh giá mô hình (metrics/eval set), giám sát trôi dữ liệu (drift)**.
+> **Chi tiết đo được:** `quality-gates-by-profile.md` §C7.
 
 ## C8 — Hồ sơ Game
 
@@ -260,6 +266,7 @@ Cho mỗi lựa chọn (framework, CSDL, hosting, thư viện lõi), chấm theo
 | Test | Unit cho logic game + playtest | Tự động hóa giới hạn — chú trọng profiling |
 
 > **Cổng đặc thù:** **frame budget (60fps), thời gian tải, kích thước build**; thay E2E web bằng playtest có kịch bản.
+> **Chi tiết đo được:** `quality-gates-by-profile.md` §C8.
 
 ## C9 — Hồ sơ Blockchain / Web3
 
@@ -270,6 +277,7 @@ Cho mỗi lựa chọn (framework, CSDL, hosting, thư viện lõi), chấm theo
 | Frontend | Web app (C1) + thư viện ví (wagmi/viem) | |
 
 > **Cổng đặc thù:** audit bảo mật bắt buộc trước mainnet; bất biến sau deploy → test/fuzz/coverage là cổng cứng.
+> **Chi tiết đo được:** `quality-gates-by-profile.md` §C9.
 
 ## C10 — Hồ sơ Monorepo đa thành phần
 
@@ -280,6 +288,7 @@ Cho mỗi lựa chọn (framework, CSDL, hosting, thư viện lõi), chấm theo
 | CI | Build/test **theo phần thay đổi** (affected) + cache | |
 
 > **Cổng đặc thù:** mỗi app/package áp đúng cổng hồ sơ của nó; thêm ràng buộc biên (không import vòng/lệch tầng).
+> **Chi tiết đo được:** `quality-gates-by-profile.md` §C10.
 
 > **Khi một loại chưa có hồ sơ sẵn (vd embedded/IoT, AR/VR):** không coi là "ngoài khả năng" — AI áp **phương pháp**
 > PHẦN A–B (research-first, cân bằng phổ biến↔năng lực, xác minh phiên bản) để dựng stack tham chiếu mới + ghi **ADR**.

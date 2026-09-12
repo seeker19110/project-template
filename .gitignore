@@ -8,6 +8,12 @@
 # Khai bao lenh dev dac thu du an (copy tu .claude/project-commands.example.sh)
 .claude/project-commands.sh
 
+# Permission/setting ca nhan (copy tu .claude/settings.local.json.example) — khong dung chung
+.claude/settings.local.json
+
+# MCP server ca nhan/co bi mat that (copy mau tu .mcp.json.example)
+.mcp.local.json
+
 # Ước tính usage (tự hiệu chỉnh) + marker
 .claude/usage-budget.sh
 .claude/.winddown-nudged

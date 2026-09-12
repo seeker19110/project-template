@@ -62,6 +62,12 @@ Bạn đã clone/tải repo khung về máy. Chọn đúng một nhánh:
 - **Dự án ĐÃ CÓ (brownfield):** mang khung sang dự án đích rồi mở Claude Code trong đó — các bước bên dưới.
 
 ### Bước 1 — Mang khung sang dự án đích (một lệnh)
+> Không muốn tự gõ lệnh? Nhờ AI làm thay: nếu AI đang có quyền truy cập cả repo khung và repo đích
+> (bash/git, hoặc cả hai repo đã được thêm vào cùng phiên), chỉ cần nói "áp khung ở đây vào dự án đích,
+> tự chạy `copy-framework.sh` giúp tôi" — AI tự clone/copy và chạy đúng lệnh dưới đây, không cần bạn tự
+> gõ. Chi tiết + giới hạn: `docs/framework/existing-project-adoption.md` (mục "Cách khác — không tự tay
+> chạy lệnh").
+
 Đứng **trong repo khung này**, trỏ tới thư mục gốc của dự án đích. Script **không đè** file đang chạy:
 tài liệu khung + `.claude/` (commands, settings opusplan, hooks, agents) + `scripts/` (dev-task, usage-estimate —
 hook tự động cần 2 file này) copy thẳng; file gốc (`CLAUDE.md`, `PROJECT.md`…) chỉ copy nếu **chưa có**

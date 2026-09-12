@@ -59,6 +59,8 @@ pr-policy.yml: metadata
       nhánh) hoặc `git push origin --delete <branch>` (auto-mode chặn lệnh này — chạy thủ công).
 - [ ] Không cho workflow tự approve PR; default `GITHUB_TOKEN` read-only.
 - [ ] Chọn squash/rebase/merge strategy và auto-delete branch.
+- [ ] **Require signed commits** (chỉ khi dự án ở ASVS L2+ hoặc nhiều người đóng góp không quen biết
+      trực tiếp — xem `docs/framework/industry-standards.md` §C) — không bật mặc định cho mọi dự án.
 
 ## Security
 
