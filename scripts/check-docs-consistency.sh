@@ -16,6 +16,12 @@ fail=0
 # case-study-*.md tường thuật đường dẫn của một dự án demo tạm thời (không phải repo này).
 EXCLUDE_SOURCE=("PROGRESS.md" "docs/framework/README.md" "docs/framework/case-study-greenfield-dry-run.md")
 
+# Thư mục nguồn được miễn trừ theo TIỀN TỐ. `docs/specs/` là contract HƯỚNG TỚI TƯƠNG LAI: một
+# feature spec mô tả file nó sẽ tạo khi được thực thi, nên tham chiếu tới file chưa tồn tại là
+# BẢN CHẤT của nó, không phải lỗi. Nếu không miễn trừ, mọi spec mới đều làm cổng này đỏ và áp lực
+# sẽ là viết spec mờ đi (bỏ backtick) — tức cổng làm hỏng đúng thứ nó bảo vệ.
+EXCLUDE_SOURCE_PREFIX=("docs/specs/")
+
 # Đường dẫn được nhắc tới trong docs nhưng KHÔNG đóng gói sẵn trong repo khung này:
 # sinh ra tại dự án đích (`/completion`, `/audit-full`), hoặc người dùng tự tạo từ
 # `.example.*`, hoặc là file chuẩn của scaffold Next.js sau khi `create-next-app`.
@@ -47,7 +53,12 @@ for ref in "${refs[@]}"; do
   onlyExcluded=1
   for f in $refFiles; do
     f="${f#./}"
-    is_in "$f" "${EXCLUDE_SOURCE[@]}" || onlyExcluded=0
+    if is_in "$f" "${EXCLUDE_SOURCE[@]}"; then continue; fi
+    excludedByPrefix=0
+    for pre in "${EXCLUDE_SOURCE_PREFIX[@]}"; do
+      case "$f" in "$pre"*) excludedByPrefix=1 ;; esac
+    done
+    [ "$excludedByPrefix" -eq 1 ] || onlyExcluded=0
   done
   if [ "$onlyExcluded" -eq 0 ] || [ -z "$refFiles" ]; then
     echo "::error::Tham chiếu file không tồn tại: $ref (trong: $refFiles)"
