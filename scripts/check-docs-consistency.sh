@@ -162,6 +162,27 @@ while IFS= read -r agent; do
   fi
 done < <(grep -oE 'route:[a-z]+[[:space:]]+→[[:space:]]+[a-z-]+' "$ORCH" | sed -E 's/.*→[[:space:]]*//' | sort -u)
 
+# --- 5. Nhãn effort đã bị RÚT LẠI không được sống lại (audit 2026-09-12, G-003/G-004). ---
+# VÌ SAO: chốt 2026-09-12 hạ effort trần của route:complex từ "Opus · high" xuống "Opus · medium"
+# (PR #69). Quy ước đó được chép tay ở NHIỀU file (orchestration-3-tier.md có 2 chỗ trong CÙNG
+# file, .claude/agents/, models-and-automation.md, auto.md) — không có nguồn duy nhất, nên PR #69
+# sửa xong vẫn sót một chỗ ngay trong chính file nó vừa sửa (bắt được ở audit toàn diện kế tiếp,
+# không phải bởi cổng nào). Đây là chốt hẹp: cấm CHUỖI CỤ THỂ đã biết là sai sống lại, không cố
+# tổng quát hoá thành trình phân tích ngữ nghĩa (prose mỗi nơi viết một kiểu, dễ báo oan).
+echo "== 5. Nhãn effort đã rút lại ('Opus · high') không còn sót =="
+STALE_EFFORT_EXCLUDE=(
+  "TRAPS.md" "CHANGELOG.md" "PROGRESS.md" "docs/ops/COMPREHENSIVE-AUDIT-STATUS.md"
+  "docs/ops/COMPLETION-PLAN.md" "scripts/check-docs-consistency.sh"
+)
+while IFS= read -r hit; do
+  [ -n "$hit" ] || continue
+  file="${hit%%:*}"; rest="${hit#*:}"; lineno="${rest%%:*}"
+  is_in "$file" "${STALE_EFFORT_EXCLUDE[@]}" && continue
+  case "$file" in docs/specs/*) continue ;; esac
+  echo "::error file=$file,line=$lineno::Nhãn 'Opus · high' đã bị rút lại (route:complex trần effort medium từ 2026-09-12) nhưng còn sót ở đây — sửa thành 'Opus · medium' hoặc xoá nếu không còn liên quan (G-003/G-004)."
+  fail=1
+done < <(git grep --untracked -noE 'Opus[[:space:]]*·[[:space:]]*\*{0,2}high' -- '*.md' '*.sh' '*.ps1' 2>/dev/null || true)
+
 
 if [ "$fail" -eq 0 ]; then
   echo "OK — không phát hiện link gãy, tên cũ sót lại, hay lệnh lệch với CLAUDE.md."
