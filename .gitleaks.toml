@@ -1,0 +1,20 @@
+# .gitleaks.toml — allowlist cho false positive đã xác minh thủ công.
+#
+# Không có file này thì gitleaks-action tự nạp bộ rule mặc định. Khai báo `extend` để GIỮ
+# nguyên toàn bộ rule mặc định, chỉ THÊM allowlist — không tắt rule nào.
+title = "gitleaks config — extend default, chỉ thêm allowlist đã xác minh"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Commit đã xác minh KHÔNG chứa bí mật thật — false positive rule generic-api-key"
+# Audit 2026-09-12 (PR #68): rule "generic-api-key" khớp nhầm một câu văn tiếng Việt chứa từ
+# "secret" đứng gần chuỗi trong dấu backtick (tên file docs, không phải khóa/token thật) ở
+# docs/framework/industry-standards.md dòng 64. Đã sửa câu văn ở commit sau đó, nhưng
+# gitleaks-action quét TỪNG commit trong lịch sử PR (không chỉ trạng thái cuối), nên commit
+# giới thiệu vẫn bị khớp mãi trừ khi allowlist theo đúng commit này — không rewrite lịch sử
+# của PR đã push (nhánh không phải của một mình phiên này can thiệp force-push tùy tiện).
+commits = [
+  "65125621ae92e6d05ddbfc364b2c758d9800c43d",
+]
