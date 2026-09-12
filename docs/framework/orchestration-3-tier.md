@@ -16,7 +16,8 @@ TẦNG 1 — NGƯỜI LẬP KẾ HOẠCH  (phiên chính · opusplan/Fable 5) �
                                   ▼
 TẦNG 2 — NGƯỜI ĐIỀU PHỐI  (coordinator · Opus · low) — phần "CHẠY"
    Nhận NGUYÊN VĂN PLAN.md → git fetch đồng bộ → tạo nhánh/worktree từng việc
-   → dispatch theo `route:` → nghiệm thu (tiêu chí chấp nhận) → gọi reviewer soát diff
+   → dispatch theo `route:` → nghiệm thu (tiêu chí chấp nhận, gọi `tester` chạy cổng)
+   → gọi `reviewer` soát diff (đụng bảo mật/dữ liệu thật → thêm `security-reviewer`)
    → tích hợp (số migration, rebase) → báo cáo tổng hợp về Tầng 1.
    CỨNG: không đổi kế hoạch/đặc tả · không tự code · không merge.
                                   │  dispatch theo nhãn
@@ -29,6 +30,10 @@ TẦNG 3 — WORKERS  (định tuyến 2 trục: độ phức tạp × độ kí
 
    reviewer (Sonnet) — hậu kiểm bằng skill `code-review` sau khi worker xong,
    trước khi Tầng 1 duyệt cuối. KHÔNG nằm trong bảng route.
+   tester (Haiku) — chạy `scripts/dev-task.sh gate`, báo kết quả thô (build/type/lint/test).
+   security-reviewer (Sonnet) — skill `security-review`, chỉ gọi khi việc đụng
+   auth/thanh toán/dữ liệu người dùng thật hoặc reviewer nghi ngờ có lỗ hổng.
+   Cả hai KHÔNG nằm trong bảng route, KHÔNG tự sửa code.
 ```
 
 ## Bảng định tuyến (2 trục)

@@ -1,0 +1,11 @@
+{
+  "_readme": "Mẫu permission/setting CÁ NHÂN — copy thành .claude/settings.local.json (đã .gitignore, không commit). Dùng để mở thêm quyền riêng cho máy/agent của bạn mà KHÔNG đổi settings.json dùng chung của cả nhóm. settings.local.json đè lên settings.json theo đúng cơ chế Claude Code.",
+
+  "permissions": {
+    "allow": [
+      "Bash(scripts/dev-task.sh *)"
+    ]
+  },
+
+  "_vi_du_them_quyen_theo_stack": "Nếu dev-task.sh chưa dò được lệnh của stack bạn dùng (vd Java/Gradle, .NET, Ruby), thêm dòng allow riêng ở đây thay vì sửa settings.json chung — vd \"Bash(./gradlew *)\", \"Bash(dotnet *)\", \"Bash(bundle exec rspec*)\"."
+}

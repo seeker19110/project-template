@@ -121,6 +121,8 @@ copy_if_absent "CODE_OF_CONDUCT.md"
 copy_if_absent ".editorconfig"
 copy_if_absent ".nvmrc"
 copy_if_absent ".mcp.json"                     # MCP Context7 — tài liệu đúng phiên bản cho research-first (KHUNG-3)
+copy_if_absent ".mcp.json.example"             # mẫu MCP server phổ biến (github/filesystem/postgres) — dự án tự bật khi cần
+copy_if_absent ".claude/settings.local.json.example"  # mẫu permission cá nhân, không dùng chung nhóm
 # LICENSE KHÔNG copy: mỗi dự án tự chọn giấy phép + chủ sở hữu riêng.
 
 # ── Cấu hình Claude Code + script tự động: copy thẳng (KHÔNG đè cấu hình đã có) ──
