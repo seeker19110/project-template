@@ -59,6 +59,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: bash scripts/check-docs-consistency.sh
+      # Đối chiếu hai chiều job id (ci.yml/pr-policy.yml) với danh sách required checks trong
+      # docs/ops/repository-settings.md — xem lý do ở đầu scripts/check-ci-policy.sh.
+      - run: bash scripts/check-ci-policy.sh
 
   # Luôn chạy — chạy THẬT copy-framework.sh/.ps1 vào thư mục scratch để xác nhận: copy
   # đúng cấu trúc (Lớp 1 thẳng, Lớp 2 vào _framework-dropins/), KHÔNG đè file đã có ở
