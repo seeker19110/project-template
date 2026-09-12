@@ -52,6 +52,14 @@ check_structure() {     # check_structure <mô tả> <target>
   [ -f "$target/_framework-dropins/.github/ISSUE_TEMPLATE/goal.yml" ] || { echo "  FAIL [$label]: thiếu Goal Issue Form"; ok=0; }
   [ ! -e "$target/eslint.config.mjs" ] || { echo "  FAIL [$label]: eslint.config.mjs bị copy thẳng ra gốc (chỉ được nằm trong _framework-dropins/)"; ok=0; }
   [ -f "$target/docs/framework/templates/FEATURE-MAP.template.md" ] || { echo "  FAIL [$label]: thiếu docs/framework/templates/FEATURE-MAP.template.md"; ok=0; }
+  [ -f "$target/docs/framework/templates/TRAPS.template.md" ] || { echo "  FAIL [$label]: thiếu TRAPS template"; ok=0; }
+  [ -f "$target/docs/framework/templates/CODEMAP.template.md" ] || { echo "  FAIL [$label]: thiếu CODEMAP template"; ok=0; }
+  [ -f "$target/docs/framework/templates/GOLDEN-TEST.template.md" ] || { echo "  FAIL [$label]: thiếu GOLDEN-TEST template"; ok=0; }
+  [ -f "$target/_framework-dropins/lib/order-summary.golden.test.ts" ] || { echo "  FAIL [$label]: thiếu golden test ví dụ drop-in"; ok=0; }
+  [ -f "$target/_framework-dropins/lib/__golden__/order-summary.golden.test.ts.snap" ] || { echo "  FAIL [$label]: thiếu golden baseline drop-in"; ok=0; }
+  [ -f "$target/_framework-dropins/scripts/ci-workflow-policy.test.ts" ] || { echo "  FAIL [$label]: thiếu ci-workflow-policy.test.ts drop-in"; ok=0; }
+  [ ! -e "$target/TRAPS.md" ] || { echo "  FAIL [$label]: TRAPS.md của khung (nhật ký riêng) bị copy sang gốc dự án đích"; ok=0; }
+  [ ! -e "$target/CODEMAP.md" ] || { echo "  FAIL [$label]: CODEMAP.md của khung (nhật ký riêng) bị copy sang gốc dự án đích"; ok=0; }
   if [ -f "$target/docs/framework/FRAMEWORK-VERSION" ] && grep -q "^commit-nguon: " "$target/docs/framework/FRAMEWORK-VERSION"; then
     :
   else

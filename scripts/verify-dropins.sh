@@ -63,7 +63,11 @@ cd "$APP"
 
 # Phần D Bước 1. Gồm cả next-intl/serwist vì i18n/request.ts và app/sw.ts trong dropins
 # import chúng — không có thì type-check không thể chạy (dropins tự quyết định phụ thuộc).
+# @types/node nâng cùng lượt: create-next-app@latest ghim @types/node@^20 trong khi vitest@5 khai peer
+# `^22 || >=24` → npm ERESOLVE, verify đỏ từ 2026-09-04 (lịch đêm) dù dropins không đổi gì. Nâng
+# tường minh thay vì --legacy-peer-deps để cảm biến version drift vẫn còn tác dụng.
 npm install --save-dev --no-audit --no-fund \
+  @types/node@latest \
   prettier prettier-plugin-tailwindcss \
   husky lint-staged \
   @commitlint/cli @commitlint/config-conventional \

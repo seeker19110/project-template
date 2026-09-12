@@ -13,6 +13,98 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **Golden test — cơ chế thật, ví dụ chạy được trong dropins** (PR-C/3 của spec
+  `docs/specs/2026-09-12-golden-tests-and-tdd.md`, đã Approved for implementation — spec hoàn tất
+  3/3 PR). `vitest.config.mts` thêm `resolveSnapshotPath` tường minh (đưa mọi
+  `toMatchSnapshot`/`toMatchFileSnapshot` vào `__golden__/` cạnh file test, khớp quy ước (b) đã viết
+  ở PR-B, thay thư mục `__snapshots__/` mặc định). Thêm `lib/order-summary.ts` (hàm thuần, tiền
+  dùng cents — không float) + `lib/order-summary.golden.test.ts` + baseline
+  `lib/__golden__/order-summary.golden.test.ts.snap` đã sinh THẬT bằng Vitest. **Sửa 1 chỗ sai đã
+  push ở PR-B:** `quality-supplements.md` từng ghi "Vitest có cờ `--ci` chặn tạo snapshot mới" —
+  KHÔNG có cờ đó ở Vitest 5 (`CACError: Unknown option`, xác minh thật). Cơ chế đúng là biến môi
+  trường `CI` (Vitest tự phát hiện `process.env.CI`; GitHub Actions tự đặt `CI=true`) — đã xác minh
+  cả hai chiều: `vitest run` không đặt `CI` tự tạo snapshot thiếu rồi PASS (nguy hiểm); cùng lệnh với
+  `CI=true` thì FAIL đúng, không tạo file (đây là FR-9 của spec: xác minh thật trước khi ghi tài
+  liệu, không suy đoán — CLAUDE.md §4). `copy-framework.sh`/`.ps1` nối 3 file mới vào Layer 2;
+  `test-copy-framework.sh` thêm 2 assertion (đã chạy negative test).
+- **Golden test — tài liệu + template** (PR-B/3 của spec `docs/specs/2026-09-12-golden-tests-and-tdd.md`,
+  đã Approved for implementation). `docs/framework/quality-supplements.md` (Nhóm 2 mục 6) thêm tiểu
+  mục "Golden test" đủ 5 phần: (a) dùng khi nào/KHÔNG dùng khi nào (không mặc định cho snapshot UI
+  diện rộng — nguồn test giòn kinh điển), (b) nơi lưu fixture, (c) **luật chuẩn hoá bắt buộc** trước
+  khi so (timestamp/id/đường dẫn/thứ tự khoá/timezone), (d) **luật cập nhật** — không `-u` phản xạ,
+  PR phải nêu lý do + dán diff golden, (e) CI không được tự tạo snapshot mới. Thêm
+  `docs/framework/templates/GOLDEN-TEST.template.md` (28 dòng, checklist dán được thẳng vào PR
+  body) và nối vào `.claude/commands/gate.md`. `scripts/test-copy-framework.sh` thêm assertion cho
+  template mới (đã chạy negative test: gỡ file → FAIL đúng, phục hồi → PASS lại).
+- **TDD "sửa bug phải có test tái hiện đỏ trước khi sửa" nâng từ luật của một lệnh lên luật của
+  khung** (PR-A/3 của spec `docs/specs/2026-09-12-golden-tests-and-tdd.md`, đã Approved for
+  implementation). Trước đây luật này chỉ sống trong `/completion` + `/audit-full`, nên một PR
+  `fix` thường hoặc phiên `/auto` không đi qua nhánh đó. Nay có ở `CLAUDE.md` §3.6/§5, Báo cáo xác
+  thực §7 (dòng `Test tái hiện (nếu là fix) ✅/❌/n-a` + `Golden ✅/n-a` — golden `n-a` cho tới khi
+  PR-B/PR-C của spec dựng cơ chế thật), `.claude/commands/gate.md` (cảnh báo mềm, không chặn cứng —
+  cố ý, vì chặn cứng sẽ dạy người dùng khai sai loại commit) và `AGENTS.md`. Làm rõ trong
+  `docs/framework/quality-supplements.md` ranh giới đang bị đọc lẫn: vòng đỏ-xanh TỔNG QUÁT cho code
+  MỚI là **khuyến nghị**, còn test-tái-hiện-trước cho bug là **bắt buộc** — hai thứ khác nhau.
+  **Sửa nghiên cứu sai của chính spec:** `.claude/commands/debug.md` Pha 5 hoá ra ĐÃ đúng từ trước
+  (đã nói "trước khi sửa... đỏ → sửa → xanh" từ PR #36) — claim ban đầu trong spec (§1) rằng
+  debug.md yêu cầu test "kèm lúc sửa" là research sai lúc viết spec; không sửa file đó, chỉ ghi
+  nhận đúng sự thật ở đây.
+- **`CODEMAP.md` — bảng "muốn đổi X → sửa file nào → rồi chạy lại gì", nối vào `/completion`**
+  (PR-3/4 của spec `docs/specs/2026-09-12-traps-codemap-ci-policy.md`, đã Approved for implementation).
+  Thêm `docs/framework/templates/CODEMAP.template.md` (mẫu rỗng cho dự án đích) và `CODEMAP.md` ở
+  gốc repo với bảng tra thật cho chính khung (thêm/đổi job CI → sửa file nào → chạy cổng nào; đổi
+  file gốc dự án đích nhận khi copy khung → chạy `test-copy-framework.sh`…). Mảnh còn thiếu giữa
+  `docs/FEATURE-MAP.md` ("có gì") và `docs/CONVENTIONS.md` ("viết thế nào") — mẫu này hội tụ độc lập
+  ở 4 repo dẫn xuất/lân cận nên có giá trị thật. `docs/framework/project-completion.md` (Pha 0) và
+  `.claude/commands/completion.md` nay sinh cả 3 file cùng lượt; nhân đó sửa luôn "Pha 1" → "Pha 0"
+  (lỗi sẵn có, không khớp checklist thật của Pha 0). Nguồn thượng nguồn: `CODEMAP.md` của
+  `Claude-Agents`/`Sales-Hunter`/`X-Agents`/`X-Studio`.
+- **`scripts/ci-workflow-policy.test.ts` — bản vitest của `check-ci-policy.sh` cho dự án đích**
+  (PR-4/4 của spec traps-codemap-ci-policy). Đối chiếu HAI CHIỀU job id thật trong
+  `ci.yml`/`pr-policy.yml` với danh sách khai báo trong `docs/ops/repository-settings.md`; nối vào
+  `stage`/`Add-Dropin` của `copy-framework.sh`/`.ps1` (Layer 2 — không đè file đang chạy). Đã xác
+  minh THẬT bằng `verify-dropins.sh` trên Next.js 16.3.5 sạch: 13/13 test pass, và negative test
+  (đổi tên một job thật) làm đúng 2 test đỏ ở cả hai chiều trước khi hoàn nguyên. `verify-dropins.sh`
+  cũng bắt một lỗi format Prettier do chính đợt sửa `project-completion.md` (PR-3) ở trên gây ra —
+  đã sửa và xác nhận idempotent (chạy `--write` lần hai không đổi gì) trước khi commit.
+- **`TRAPS.md` — sổ bẫy đã mắc thật, nối vào `/debug`** (PR-2/4 của spec
+  `docs/specs/2026-09-12-traps-codemap-ci-policy.md`, đã Approved for implementation).
+  Thêm `docs/framework/templates/TRAPS.template.md` (mẫu rỗng cho dự án đích) và `TRAPS.md`
+  ở gốc repo với 6 mục **có thật**, mỗi mục trỏ tới commit/PR xác minh được (`59a280f` #18,
+  `6a4ac40` #27, `366aeec`, `79dca2f` #43, `d0baf40` #61) — vd bản `copy-framework.ps1` cần BOM
+  cho PowerShell 5.1 dù `.sh` không cần, hay job CI gọi GitHub API thiếu `permissions:` tường
+  minh gây 403 chỉ lộ ra khi chạy PR thật. `/debug` thêm Pha 0 đọc `TRAPS.md` trước khi ra giả
+  thuyết, và Pha 6 ghi mục mới/tái phát sau khi sửa xong. Nối vào `CLAUDE.md` §1 + §3.6 và
+  `AGENTS.md`. Nguồn thượng nguồn: TRAPS.md của repo Claude-Agents.
+- **`scripts/check-ci-policy.sh` — cổng canh cấu hình CI, chặn hỏng-im-lặng của required checks**
+  (PR-1/4 của spec `docs/specs/2026-09-12-traps-codemap-ci-policy.md`, đã Approved for
+  implementation). `docs/ops/repository-settings.md` thêm mục "Required checks — nguồn sự thật"
+  liệt kê đủ 7 job (`ci.yml`: framework-lint/docs-consistency/copy-framework-smoke/quality/
+  source-hygiene/e2e, `pr-policy.yml`: metadata) — trước đây danh sách này KHÔNG tồn tại ở đâu.
+  Script đối chiếu HAI CHIỀU job id thật trong workflow với danh sách đó, chạy trong job
+  `docs-consistency`; đã kiểm chứng bằng negative test (đổi tên một job thật, xác nhận script đỏ
+  đúng cả hai chiều, rồi hoàn nguyên) trước khi nối vào CI.
+- **Feature spec golden test + kỷ luật TDD (`docs/specs/2026-09-12-golden-tests-and-tdd.md`)** — *spec, CHƯA thực thi.*
+  Rà thật cho thấy: **golden test chưa tồn tại như cơ chế** (chỉ 2 lần nhắc thoáng qua ở
+  `01-process-and-standards.md:11` và `03-tech-selection-and-proactive-advice.md:237`, không định nghĩa,
+  không nơi lưu fixture, **không luật cập nhật** — nên golden đỏ sẽ bị `vitest -u` làm xanh, tức ghi nhận
+  bug thành giá trị kỳ vọng mới); và **TDD chỉ bắt buộc ở một ca hẹp trong một nhánh lệnh** ("bug có test
+  tái hiện trước khi sửa" chỉ sống ở `/completion` + `/audit-full`, vắng mặt ở `CLAUDE.md` §3/§5/§6 và
+  `/gate`, nên PR `fix` thường hoặc phiên `/auto` không đi qua). Spec nâng luật lên cấp khung + cổng,
+  giữ vòng đỏ-xanh tổng quát là khuyến nghị, và cố ý KHÔNG ép test-trước lên scaffolding/rename/docs.
+  Nguồn thượng nguồn: repo `Claude-Agents`, workflow eval-record.yml (cập nhật golden là hành động
+  thủ công có người bấm nút, tách khỏi việc phát hiện lệch), `donghanh` (`*-fixtures.json`), `xboss`
+  (allowlist ngoại lệ tường minh). Kế hoạch 3 PR ở §17.
+- **Feature spec gói A+B+C (`docs/specs/2026-09-12-traps-codemap-ci-policy.md`)** — *spec, CHƯA thực thi.*
+  Rút ba lỗ hổng có thật của khung từ lượt quét 15 repo dẫn xuất (2026-09-12): (A) không có nơi tích luỹ
+  bẫy đã mắc qua thời gian → `TRAPS.template.md`; (B) thiếu bảng tra `Muốn | Sửa | Rồi chạy` giữa
+  `FEATURE-MAP` ("có gì") và `CONVENTIONS` ("viết thế nào") → `CODEMAP.template.md`; (C) danh sách
+  required checks của branch protection KHÔNG tồn tại ở đâu và `ci.yml` có 6 job phẳng (`framework-lint`, `docs-consistency`, `copy-framework-smoke`, `quality`, `source-hygiene`, `e2e`), 0 `needs:` —
+  nên đổi tên một job id sẽ làm required check cũ không bao giờ báo cáo nữa và kẹt merge mọi PR mà
+  không PR nào hiện màu đỏ → thêm một script đối chiếu hai chiều (tên dự kiến
+  scripts/check-ci-policy.sh, chưa tồn tại).
+  Nguồn thượng nguồn: `Claude-Agents` (TRAPS/CODEMAP), `donghanh` (policy-as-test).
+  Kế hoạch 4 PR + mục CHANGELOG khi thực thi nằm trong §17–§18 của spec.
 - **Hoàn thiện quản trị OSS (Đợt 4 COMPLETION-PLAN):** thêm `CODE_OF_CONDUCT.md`
   (Contributor Covenant v2.1 tiếng Việt), `SUPPORT.md` + `GOVERNANCE.md` thật (từ template);
   dịch `CONTRIBUTING.md` sang tiếng Việt; gộp issue template về một bộ form `.yml`
