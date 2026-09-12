@@ -25,22 +25,25 @@ EXCLUDE_SOURCE_PREFIX=("docs/specs/")
 # Đường dẫn được nhắc tới trong docs nhưng KHÔNG đóng gói sẵn trong repo khung này:
 # sinh ra tại dự án đích (`/completion`, `/audit-full`), hoặc người dùng tự tạo từ
 # `.example.*`, hoặc là file chuẩn của scaffold Next.js sau khi `create-next-app`.
+# Gỡ khỏi danh sách này khi repo khung BẮT ĐẦU có file thật (audit 2026-09-12, F-016): giữ lại
+# entry cho file đã tồn tại sẽ khiến cổng im lặng khi file bị xoá.
 ALLOW_MISSING_PATH=(
-  "docs/CONVENTIONS.md" "docs/FEATURE-MAP.md"
-  "docs/ops/COMPLETION-PLAN.md" "docs/ops/COMPREHENSIVE-AUDIT-STATUS.md"
   "app/layout.tsx" "lib/example.test.ts"
   ".claude/project-commands.sh" ".claude/settings-sonnet.json" ".claude/usage-budget.sh"
 )
 
 is_in() { local needle="$1"; shift; for x in "$@"; do [ "$x" = "$needle" ] && return 0; done; return 1; }
 
+# `--untracked` (audit 2026-09-12, F-017): git grep mặc định CHỈ quét file đã track → file .md mới
+# chưa `git add` không được kiểm, cổng báo PASS oan cho tới lúc commit. Xảy ra thật trong phiên
+# 2026-09-12: một tham chiếu gãy chỉ lộ ra sau khi commit.
 grep_files() {
-  git grep -l "$@" -- '*.md' '*.sh' '*.ps1' 2>/dev/null || true
+  git grep --untracked -l "$@" -- '*.md' '*.sh' '*.ps1' 2>/dev/null || true
 }
 
 echo "== 1. Đường dẫn file tham chiếu trong backtick =="
 mapfile -t refs < <(
-  git grep -hoE '`[A-Za-z0-9_./-]+\.(md|sh|ps1|json|ts|tsx|yml|cjs|mjs)`' \
+  git grep --untracked -hoE '`[A-Za-z0-9_./-]+\.(md|sh|ps1|json|ts|tsx|yml|cjs|mjs)`' \
     -- '*.md' '*.sh' '*.ps1' 2>/dev/null \
   | tr -d '`' | sort -u
 )
@@ -111,6 +114,40 @@ for name in "${slashRefs[@]}"; do
   echo "::error::CLAUDE.md nhắc \`/$name\` nhưng không có .claude/commands/$name.md"
   fail=1
 done
+
+# ── 4. Subagent (.claude/agents) ↔ bảng nhãn `route:` trong orchestration-3-tier.md ──
+# VÌ SAO (audit 2026-09-12, F-006): 8 subagent + kiến trúc điều phối 3 tầng trước đây KHÔNG có
+# cổng máy nào — thêm/xoá/đổi tên agent mà quên tài liệu thì `/auto` dispatch tới một nhãn
+# `route:` trỏ vào agent không tồn tại, và hỏng đó chỉ lộ ra giữa lúc đang chạy tự động.
+echo "== 4. Subagent ↔ bảng route trong orchestration-3-tier.md =="
+ORCH="docs/framework/orchestration-3-tier.md"
+for f in .claude/agents/*.md; do
+  [ -e "$f" ] || continue
+  base="$(basename "$f" .md)"
+  # (a) frontmatter `name:` phải khớp tên file
+  nm="$(grep -m1 '^name:' "$f" | sed -E 's/^name:[[:space:]]*//; s/[[:space:]]*$//')"
+  if [ -z "$nm" ]; then
+    echo "::error file=$f::Thiếu frontmatter 'name:' — Claude Code không nạp được subagent này."
+    fail=1
+  elif [ "$nm" != "$base" ]; then
+    echo "::error file=$f::frontmatter name '$nm' lệch tên file '$base' — giao việc theo tên file sẽ không tìm thấy agent."
+    fail=1
+  fi
+  # (b) phải được nhắc tới trong tài liệu điều phối
+  if ! grep -q "$base" "$ORCH"; then
+    echo "::error file=$ORCH::Subagent '$base' tồn tại nhưng KHÔNG được nhắc trong $ORCH — bổ sung vào bảng route/hậu kiểm."
+    fail=1
+  fi
+done
+# (c) chiều ngược: mọi nhãn route: trong tài liệu phải trỏ tới agent có thật
+while IFS= read -r agent; do
+  [ -n "$agent" ] || continue
+  if [ ! -e ".claude/agents/$agent.md" ]; then
+    echo "::error file=$ORCH::Bảng route trỏ tới agent '$agent' nhưng .claude/agents/$agent.md không tồn tại."
+    fail=1
+  fi
+done < <(grep -oE 'route:[a-z]+[[:space:]]+→[[:space:]]+[a-z-]+' "$ORCH" | sed -E 's/.*→[[:space:]]*//' | sort -u)
+
 
 if [ "$fail" -eq 0 ]; then
   echo "OK — không phát hiện link gãy, tên cũ sót lại, hay lệnh lệch với CLAUDE.md."

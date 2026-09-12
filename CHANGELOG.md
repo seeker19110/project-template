@@ -13,6 +13,34 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **Hàng rào thi hành cho các luật trước đây chỉ nằm trên giấy** (audit toàn diện 2026-09-12,
+  kế hoạch `docs/ops/COMPLETION-PLAN.md`):
+  - `scripts/test-hooks-gate.sh` — **chứng minh** `pre-commit-gate.sh` chặn thật (exit 2 khi cổng
+    đỏ) và `block-dangerous-git.sh` chặn đúng khuôn, kèm negative test. Trước đây cổng chặn commit
+    là hàng rào quan trọng nhất mà không có bất kỳ test nào (F-002).
+  - `.claude/hooks/block-dangerous-git.sh` (mới) — chặn force-push nhánh chính, `reset --hard`,
+    `merge/rebase --abort`; cờ bỏ qua tường minh `ALLOW_DANGEROUS_GIT=1` (F-004).
+  - `.husky/pre-commit` quét bí mật bằng `gitleaks protect --staged` trước khi commit — trước đây
+    chỉ quét ở CI, tức bí mật đã vào lịch sử Git rồi mới bị phát hiện (F-005).
+  - `scripts/check-ci-policy.sh` thêm 3 kiểm: mọi action phải ghim full commit SHA (F-003),
+    `node-version` khớp `.nvmrc` (F-011), mọi job `ci.yml` có trong `needs:` của `gate` (F-010).
+  - `scripts/check-docs-consistency.sh` thêm kiểm subagent ↔ bảng `route:` hai chiều + frontmatter
+    `name` khớp tên file (F-006); quét cả file chưa `git add` (F-017).
+  - Job tổng hợp `gate` trong `ci.yml` + **ADR-0003** — branch protection chỉ cần khoá một tên (F-010).
+  - `docs/FEATURE-MAP.md` + `docs/CONVENTIONS.md` cho chính bộ khung (Pha 0 của `/completion`).
+- **Miễn trừ PR của bot trong `pr-policy.yml`** — nguyên nhân gốc khiến 5 PR dependabot (gồm 3 bản
+  nâng cấp công cụ bảo mật) kẹt 19 ngày: required check `metadata` đòi PR body có đủ mục template,
+  thứ dependabot không bao giờ có, nên **không bao giờ xanh được** (F-001).
+
+### Changed (Thay đổi)
+
+- `actions/cache@v4` (tag di động, **Node 20** — bị GitHub xoá khỏi runner 16/09/2026) →
+  `actions/cache@caa2961` ghim SHA, v5.1.0 (Node 24). Đây là action duy nhất còn dùng tag di động
+  trong 13 action của repo.
+- `auto-format.sh` + `test-copy-framework.sh`: fail-open giờ **in cảnh báo** thay vì bỏ qua âm thầm
+  (F-007, F-015); CI chạy `REQUIRE_PWSH=1` nên bỏ qua bản `.ps1` sẽ làm job đỏ.
+- `scripts/check-docs-consistency.sh`: gỡ 4 file đã tồn tại thật khỏi `ALLOW_MISSING_PATH` (F-016).
+
 - **Golden test — cơ chế thật, ví dụ chạy được trong dropins** (PR-C/3 của spec
   `docs/specs/2026-09-12-golden-tests-and-tdd.md`, đã Approved for implementation — spec hoàn tất
   3/3 PR). `vitest.config.mts` thêm `resolveSnapshotPath` tường minh (đưa mọi

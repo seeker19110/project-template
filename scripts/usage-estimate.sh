@@ -12,7 +12,7 @@
 #
 # LƯU Ý: chỉ đếm token của PHIÊN NÀY (1 transcript). Việc chạy ở phiên/khác song song
 # trong cùng 5h sẽ không được cộng vào — nên đây là ước tính, không phải số chính thức.
-set -uo pipefail
+set -uo pipefail   # cố ý KHÔNG -e: không được làm chết phiên/lượt chạy (xem docs/CONVENTIONS.md §A)
 
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 TRANSCRIPT="${1:-}"
