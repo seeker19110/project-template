@@ -414,6 +414,55 @@ test **vô dụng dù vẫn xanh** — rà cả khi viết mới lẫn khi revie
 test đó pass (không đoán trước tính năng chưa cần) → refactor an toàn (có lưới test) → lặp lại
 cho hành vi tiếp theo. Chỉ **1 seam, 1 test, 1 lần sửa tối thiểu** mỗi vòng.
 
+> **Bắt buộc vs khuyến nghị — đừng lẫn hai thứ khác nhau.** Vòng đỏ-xanh ở trên là kỹ thuật để viết
+> code **MỚI** (chưa có bug) — dùng khi có chủ đích, **khuyến nghị**, không bắt buộc cho mọi thay
+> đổi (ép test-trước lên scaffolding/rename/docs là nghi thức rỗng, xem "horizontal slicing" trên).
+> Khác hẳn luật **BẮT BUỘC** ở `CLAUDE.md` §3.6: **sửa bug (`fix:`) phải có test tái hiện chạy đỏ
+> trước khi sửa** — đây không phải TDD "có chủ đích" mà là điều kiện để coi một bug là đã sửa đúng
+> (không có nó, không biết sửa có trúng nguyên nhân hay chỉ trùng hợp hết triệu chứng). `/gate`,
+> `/debug`, `/completion` đều áp dụng luật bắt buộc này.
+
+### Golden test — khi nào dùng, lưu ở đâu, cập nhật thế nào
+
+Golden test = so đầu ra thật với một giá trị kỳ vọng đã lưu ("golden") thay vì viết lại từng
+assertion. Mạnh cho đầu ra **lớn, có cấu trúc, ổn định** — yếu và giòn nếu dùng sai chỗ.
+
+**(a) Dùng khi / KHÔNG dùng khi.** Dùng cho đầu ra tuần tự hoá được, tất định: output CLI, phản
+hồi API đã chuẩn hoá, SQL/migration/ERD sinh ra, file cấu hình sinh ra, kết quả tính toán dạng
+bảng. **KHÔNG** dùng làm mặc định cho snapshot UI component diện rộng — đó là nguồn test giòn kinh
+điển (fail mỗi lần đổi 1px, không nói được gì về hành vi đúng/sai); UI thì test qua interface công
+khai (xem "Kỷ luật viết test" trên) hoặc E2E. Golden cho đầu ra LLM/AI là chủ đề riêng (eval), không
+nằm trong mục này.
+
+**(b) Nơi lưu fixture.** Cạnh file test: `__golden__/<tên-ca>.golden.<ext>` hoặc dùng snapshot có
+sẵn của framework test (`toMatchSnapshot`/`toMatchFileSnapshot` của Vitest). Không trộn fixture của
+nhiều ca vào một file dùng chung — mỗi ca một file, tên nói rõ ca nào. **Không** để dữ liệu thật
+(PII, token, secret) trong fixture — dùng dữ liệu tổng hợp; `secret-scan.yml`/gitleaks là hàng rào
+sau cùng, không phải hàng rào đầu.
+
+**(c) Luật chuẩn hoá trước khi so (bắt buộc, không phải gợi ý).** Golden chập chờn vì thiếu bước
+này sẽ bị vô hiệu hoá trong vài tuần rồi thành rác. Trước khi so, thay bằng placeholder ổn định:
+timestamp/`Date.now()`, UUID/id tự sinh, đường dẫn tuyệt đối (khác máy/CI), thứ tự khoá object
+(`JSON.stringify` không đảm bảo thứ tự — sort khoá trước), locale, timezone (cố định `TZ=UTC` khi
+chạy test).
+
+**(d) Luật cập nhật (quan trọng nhất — chống lạm dụng).** Golden đỏ **không** có nghĩa là "chạy
+`-u` cho xanh". Không `-u` phản xạ. Khi golden đỏ: đọc diff, hỏi "thay đổi nào trong PR này giải
+thích được diff đó?" — giải thích được (đổi hành vi có chủ đích) → cập nhật golden **và trong PR
+body nêu rõ lý do + dán diff golden** để người review thấy; không giải thích được → đó là hồi quy,
+sang `/debug`, đừng cập nhật golden để "cho xanh".
+
+**(e) CI không được tự tạo snapshot mới.** Snapshot/golden thiếu ở môi trường CI phải làm test
+**đỏ**, không tự sinh rồi pass — nếu không, một golden bị xoá nhầm sẽ không bao giờ bị phát hiện.
+Vitest tự phát hiện biến môi trường `CI` (mà GitHub Actions và hầu hết CI provider tự đặt
+`CI=true`) và **từ chối viết snapshot thiếu** thay vì tự tạo — đã xác minh thật: `vitest run` không
+đặt `CI` sẽ tự tạo snapshot mới rồi PASS (nguy hiểm — golden bị xoá nhầm sẽ không bao giờ bị phát
+hiện); cùng lệnh với `CI=true` thì **FAIL** đúng, không tạo file. Không cần cờ CLI hay cấu hình
+thêm trong `vitest.config.mts` — `ci.yml` của khung chạy trên GitHub Actions nên đã tự động đúng.
+
+*Hồ sơ non-Node:* pytest có `--snapshot-update` (plugin `syrupy`) cùng nguyên tắc cập nhật thủ
+công; Rust dùng `insta` (`cargo insta review`). Nguyên tắc (a)-(e) áp dụng như nhau, chỉ đổi công cụ.
+
 ---
 
 ## 7. Observability — Sentry (cụ thể hóa GĐ 6)

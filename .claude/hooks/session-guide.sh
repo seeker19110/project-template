@@ -9,7 +9,7 @@
 # Khi KHÔNG phải opusplan: còn phát additionalContext để AI CHỦ ĐỘNG nhắc chuyển sang
 #   opusplan và CHỜ xác nhận trước khi chạy tự động (hook/AI không tự gõ /model được).
 # Không đổi gì (chỉ đọc). No-op nếu thiếu jq hoặc không phải dự án của khung.
-set -uo pipefail
+set -uo pipefail   # cố ý KHÔNG -e: không được làm chết phiên/lượt chạy (xem docs/CONVENTIONS.md §A)
 
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
 command -v jq >/dev/null 2>&1 || exit 0
