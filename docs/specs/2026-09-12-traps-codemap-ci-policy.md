@@ -4,8 +4,8 @@
 | --- | --- |
 | Issue / Goal | — (khởi phát từ lượt quét 15 repo của người dùng, 2026-09-12) |
 | Spec owner | AI (Claude Code) |
-| State | **Draft** |
-| Approver / date | _(chờ)_ |
+| State | **Approved for implementation** |
+| Approver / date | donghanhcungban.org@gmail.com / 2026-09-12 |
 | Last updated | 2026-09-12 |
 
 > Không code khi chưa **Approved for implementation**.
@@ -34,9 +34,11 @@ thật, không phải sở thích của một repo.
 
 **Lỗ hổng C — cấu hình cổng merge của chính repo hỏng theo kiểu IM LẶNG, không ai canh.** Hai dữ kiện đã
 xác minh trong repo này hôm nay:
-1. `.github/workflows/ci.yml` có 5 job (`framework-lint`, `docs-consistency`, `copy-framework-smoke`,
-   `quality`, `source-hygiene`) và **không có một `needs:` nào** — các job phẳng, độc lập. Nghĩa là branch
-   protection phải liệt kê **đúng tên từng job**; không có job tổng hợp nào để gom.
+1. `.github/workflows/ci.yml` có 6 job (`framework-lint`, `docs-consistency`, `copy-framework-smoke`,
+   `quality`, `source-hygiene`, `e2e`) và **không có một `needs:` nào** — các job phẳng, độc lập. Nghĩa là
+   branch protection phải liệt kê **đúng tên từng job**; không có job tổng hợp nào để gom. (Sửa
+   2026-09-12: bản đầu ghi nhầm "5 job" — grep dùng lớp ký tự `[a-z-]` bỏ sót job `e2e` có chữ số;
+   đã đối chiếu lại bằng cách liệt kê thật cả 8 workflow, xem CODEMAP.md khi có.)
 2. `docs/ops/repository-settings.md` **không liệt kê tên job nào cả** — dòng 10 chỉ ghi
    "Required checks theo project profile". Nên **không tồn tại nguồn sự thật** cho danh sách required checks.
 
@@ -67,7 +69,7 @@ Nguồn đã đọc trực tiếp (không suy đoán), đều là repo của ch�
 | `seeker19110/Claude-Agents` — `TRAPS.md`, `CODEMAP.md`, `ARCHITECTURE.md`, `.pre-commit-config.yaml` | A, B | Hình dạng mục bẫy (khuôn → cách rà → test chốt → ngày/PR → tái phát); bảng CODEMAP 3 cột; quy ước "chi tiết từng package ở `<pkg>/TRAPS.md`" |
 | `seeker19110/donghanh` — `scripts/ci-workflow-policy.test.ts`, `ui-policy.test.ts`, `a11y-gate-policy.test.ts`, `.claude/report-status.sh` | C | Ba luật CI cần khoá; nguyên tắc **chỉ kiểm cấu trúc, không kiểm nội dung từng bước** ("ép nội dung sẽ biến test thành vật cản mỗi lần thêm một bước kiểm mới") |
 | `seeker19110/X-Studio`, `X-Agents`, `Sales-Hunter` | B | `CODEMAP.md` hội tụ độc lập ở cả 3 |
-| Repo này — `.github/workflows/ci.yml`, `docs/ops/repository-settings.md`, `scripts/check-docs-consistency.sh` (107 dòng), `.github/workflows/pr-policy.yml`, `vitest.config.mts`, `copy-framework.sh` | C, §11 | 5 job phẳng, 0 `needs:`; required checks chưa được liệt kê ở đâu; cổng của khung là **shell script**, không phải vitest |
+| Repo này — `.github/workflows/ci.yml`, `docs/ops/repository-settings.md`, `scripts/check-docs-consistency.sh` (107 dòng), `.github/workflows/pr-policy.yml`, `vitest.config.mts`, `copy-framework.sh` | C, §11 | 6 job phẳng (kể cả `e2e`), 0 `needs:`; required checks chưa được liệt kê ở đâu; cổng của khung là **shell script**, không phải vitest |
 
 **Ràng buộc then chốt phát hiện trong lúc research:** repo khung **không có `package.json`** (ghi rõ ở
 `CLAUDE.md` §10, ghi chú cuối). Nên mẫu của `donghanh` (vitest policy test) **không port trực tiếp được**
@@ -267,5 +269,5 @@ Không còn blocking decision.
 - [ ] Test/telemetry/rollout/rollback
 - [ ] Blocking decisions closed
 
-**Conclusion:** **Draft** — chờ duyệt
-**Approver/date:** _(chưa)_
+**Conclusion:** **Approved for implementation**
+**Approver/date:** donghanhcungban.org@gmail.com / 2026-09-12

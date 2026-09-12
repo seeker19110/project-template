@@ -28,7 +28,7 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
   Rút ba lỗ hổng có thật của khung từ lượt quét 15 repo dẫn xuất (2026-09-12): (A) không có nơi tích luỹ
   bẫy đã mắc qua thời gian → `TRAPS.template.md`; (B) thiếu bảng tra `Muốn | Sửa | Rồi chạy` giữa
   `FEATURE-MAP` ("có gì") và `CONVENTIONS` ("viết thế nào") → `CODEMAP.template.md`; (C) danh sách
-  required checks của branch protection KHÔNG tồn tại ở đâu và `ci.yml` có 5 job phẳng, 0 `needs:` —
+  required checks của branch protection KHÔNG tồn tại ở đâu và `ci.yml` có 6 job phẳng (`framework-lint`, `docs-consistency`, `copy-framework-smoke`, `quality`, `source-hygiene`, `e2e`), 0 `needs:` —
   nên đổi tên một job id sẽ làm required check cũ không bao giờ báo cáo nữa và kẹt merge mọi PR mà
   không PR nào hiện màu đỏ → thêm một script đối chiếu hai chiều (tên dự kiến
   scripts/check-ci-policy.sh, chưa tồn tại).

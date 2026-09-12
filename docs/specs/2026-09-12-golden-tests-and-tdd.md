@@ -4,8 +4,8 @@
 | --- | --- |
 | Issue / Goal | — (khởi phát từ câu hỏi của người dùng 2026-09-12: "có golden và TDD chưa?") |
 | Spec owner | AI (Claude Code) |
-| State | **Draft** |
-| Approver / date | _(chờ)_ |
+| State | **Approved for implementation** |
+| Approver / date | donghanhcungban.org@gmail.com / 2026-09-12 |
 | Last updated | 2026-09-12 |
 
 > Không code khi chưa **Approved for implementation**.
@@ -253,5 +253,5 @@ Không còn blocking decision.
 - [ ] Test/telemetry/rollout/rollback
 - [ ] Blocking decisions closed
 
-**Conclusion:** **Draft** — chờ duyệt
-**Approver/date:** _(chưa)_
+**Conclusion:** **Approved for implementation**
+**Approver/date:** donghanhcungban.org@gmail.com / 2026-09-12
