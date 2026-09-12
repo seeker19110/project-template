@@ -6,16 +6,16 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8 — Khung đã hoàn thiện, đang thực thi 2 spec nâng cấp thêm (traps/codemap/cổng CI, golden+TDD)
-- Default-branch SHA đã đối chiếu: `d0baf40` (`origin/main`, PR #61 đã merge; nhánh làm việc `claude/quirky-dijkstra-qahpgw` hiện trước `main` 6 commit, chưa mở PR — người dùng chọn dồn hết rồi mở một PR tổng)
+- Giai đoạn: GĐ 8 — Khung đã hoàn thiện; 2 spec nâng cấp (traps/codemap/cổng CI, golden+TDD) đã code xong 7/7 PR, chờ mở PR tổng lên `main`
+- Default-branch SHA đã đối chiếu: `d0baf40` (`origin/main`, PR #61 đã merge; nhánh làm việc `claude/quirky-dijkstra-qahpgw` hiện trước `main` 9 commit, chưa mở PR — người dùng chọn dồn hết rồi mở một PR tổng)
 - Ngày cập nhật: 2026-09-12
 
 ## Goal đang active
 
 | Goal | Outcome | State | Current gap | Next slice | Link |
 | --- | --- | --- | --- | --- | --- |
-| Gói A+B+C: TRAPS + CODEMAP + cổng CI | 4 PR merge; TRAPS/CODEMAP thật + cổng `check-ci-policy.sh` chạy trong CI | ✅ 4/4 PR xong trên nhánh làm việc (chưa PR/merge lên `main` — dồn cùng spec golden-tests-and-tdd, mở 1 PR tổng) | Chưa mở PR lên `main` | Sau khi xong 3 PR của spec golden-tests-and-tdd: mở một PR tổng cho cả 2 spec | `docs/specs/2026-09-12-traps-codemap-ci-policy.md` |
-| Golden test + kỷ luật TDD | 3 PR merge; TDD lên cấp CLAUDE.md/gate, golden có luật cập nhật | 🔵 1/3 PR xong — PR-A ✅ | PR-B (golden tài liệu), PR-C (golden cơ chế thật) chưa làm | PR-B: `GOLDEN-TEST.template.md` + tiểu mục Nhóm 2 mục 6 | `docs/specs/2026-09-12-golden-tests-and-tdd.md` |
+| Gói A+B+C: TRAPS + CODEMAP + cổng CI | 4 PR merge; TRAPS/CODEMAP thật + cổng `check-ci-policy.sh` chạy trong CI | ✅ 4/4 PR xong trên nhánh làm việc | Chưa mở PR lên `main` | Mở PR tổng cùng spec golden-tests-and-tdd | `docs/specs/2026-09-12-traps-codemap-ci-policy.md` |
+| Golden test + kỷ luật TDD | 3 PR merge; TDD lên cấp CLAUDE.md/gate, golden có luật cập nhật | ✅ 3/3 PR xong trên nhánh làm việc | Chưa mở PR lên `main` | Mở PR tổng cùng spec traps-codemap-ci-policy | `docs/specs/2026-09-12-golden-tests-and-tdd.md` |
 | Hoàn thiện khung theo COMPLETION-PLAN | 0 phát hiện Cao mở; Vừa/Thấp có kết cục ghi nhận; đạt Definition of Complete | ✅ ĐÓNG (2026-09-01) | — | Không còn goal mở | `docs/ops/COMPLETION-PLAN.md` |
 
 ## Đã xong (tóm tắt)
@@ -35,18 +35,15 @@
 
 ## Đang làm / chờ
 
-- Thực thi 2 spec đã Approved for implementation (2026-09-12): `docs/specs/2026-09-12-traps-codemap-ci-policy.md`
-  **XONG cả 4/4 PR** và `docs/specs/2026-09-12-golden-tests-and-tdd.md` **1/3 PR xong** (PR-A ✅ —
-  TDD bắt buộc cho bugfix lên CLAUDE.md/`gate`; còn PR-B, PR-C golden). Cả hai đã push lên nhánh làm
-  việc, CHƯA mở PR/merge lên `main` — người dùng chọn dồn hết rồi mở một PR tổng.
-- `docs/ops/COMPLETION-PLAN.md` (đợt trước) vẫn đóng, không liên quan 2 goal mới này.
+- Cả 2 spec đã Approved for implementation (2026-09-12) **XONG toàn bộ code** (7/7 PR):
+  `docs/specs/2026-09-12-traps-codemap-ci-policy.md` 4/4 PR, `docs/specs/2026-09-12-golden-tests-and-tdd.md`
+  3/3 PR. Còn duy nhất: **mở PR tổng lên `main`, theo dõi CI, merge**.
+- `docs/ops/COMPLETION-PLAN.md` (đợt trước) vẫn đóng, không liên quan 2 goal này.
 
 ## Tiếp theo
 
-- PR-B (golden — tài liệu + `GOLDEN-TEST.template.md`) → PR-C (golden — cơ chế thật, ví dụ chạy
-  được trong dropins, kèm FR-9: xác minh thật hành vi Vitest khi thiếu snapshot ở CI).
-- Sau khi xong cả 3: **mở một PR tổng lên `main`** cho toàn bộ 7 commit của 2 spec (quyết định đã
-  chốt với người dùng 2026-09-12 — dồn hết rồi mở một PR, không mở PR riêng cho spec 1).
+- Mở PR tổng (9 commit đã có trên `claude/quirky-dijkstra-qahpgw`) lên `main`, `subscribe_pr_activity`,
+  chờ CI xanh rồi squash merge (CLAUDE.md §8).
 
 ## Quyết định quan trọng
 
@@ -68,14 +65,16 @@
 ## Bàn giao phiên
 
 - Lần cập nhật: 2026-09-12
-- State: IN PROGRESS — spec traps-codemap-ci-policy XONG 4/4 PR; spec golden-tests-and-tdd 1/3 PR (PR-A xong) (trên nhánh làm việc, chưa PR/merge lên `main`)
-- Việc dở và bằng chứng mới nhất: PR-1..4 của spec traps-codemap-ci-policy + PR-A (TDD bắt buộc cho
-  bugfix: `CLAUDE.md` §3.6/§5/§7, `.claude/commands/gate.md`, `quality-supplements.md`, `AGENTS.md`
-  — không sửa `.claude/commands/debug.md` vì kiểm tra lại thấy Pha 5 đã đúng từ PR #36, claim ban
-  đầu ở §1 spec là research sai lúc viết spec) của spec golden-tests-and-tdd — đều đã commit + push
-  lên `claude/quirky-dijkstra-qahpgw`. Bằng chứng: `check-docs-consistency.sh` ✅,
-  `check-ci-policy.sh` ✅, `test-copy-framework.sh` ✅ (đều kèm negative test); `verify-dropins.sh`
-  chạy đủ 6/6 bước trên Next.js 16.3.5 sạch (lint/type-check/build/test xanh, vitest dropins mới
-  13/13 pass + negative test riêng cho nó).
-- Bước tiếp theo: PR-B, PR-C của spec golden-tests-and-tdd, rồi mở một PR tổng lên `main`.
-- Quyền/quyết định cần thêm: không (đã chốt "dồn hết rồi mở một PR tổng" 2026-09-12).
+- State: IN PROGRESS — cả 2 spec XONG code (7/7 PR: 4 của traps-codemap-ci-policy + 3 của
+  golden-tests-and-tdd), trên nhánh làm việc, chưa mở PR/merge lên `main`.
+- Việc dở và bằng chứng mới nhất: PR-1..4 (check-ci-policy.sh, TRAPS.md, CODEMAP.md,
+  ci-workflow-policy.test.ts dropins) + PR-A..C (TDD bắt buộc cho bugfix lên CLAUDE.md/`gate`;
+  golden test tài liệu + `GOLDEN-TEST.template.md`; golden test cơ chế thật + ví dụ
+  `lib/order-summary.ts` trong dropins) — đều đã commit + push lên `claude/quirky-dijkstra-qahpgw`.
+  Bằng chứng: `check-docs-consistency.sh` ✅, `check-ci-policy.sh` ✅, `test-copy-framework.sh` ✅
+  (mọi assertion mới đều kèm negative test); `verify-dropins.sh` chạy đủ 6/6 bước trên Next.js
+  16.3.5 sạch nhiều lượt, lần cuối 15/15 test pass (13 `ci-workflow-policy.test.ts` + 2 golden mới).
+  Một sai sót tự phát hiện và tự sửa giữa đường: PR-B ghi nhầm Vitest có cờ `--ci`; PR-C xác minh
+  thật (Vitest 5 không có cờ đó, cơ chế đúng là biến môi trường `CI`) và sửa lại.
+- Bước tiếp theo: mở PR tổng lên `main`, `subscribe_pr_activity`, theo dõi CI, squash merge.
+- Quyền/quyết định cần thêm: không.
