@@ -54,7 +54,7 @@
 |----|-------------------|----------|------------------|-----------|--------------|
 | FT-26 | Kiểm tài liệu đồng bộ (link, tên cũ, lệnh ↔ CLAUDE.md) | `scripts/check-docs-consistency.sh` | mọi `*.md` | ✅ | job CI `docs-consistency`; có negative test |
 | FT-27 | Kiểm job CI ↔ required checks 2 chiều | `scripts/check-ci-policy.sh` | `ci.yml`, `pr-policy.yml`, `repository-settings.md` | ✅ | job CI `docs-consistency`; có negative test |
-| FT-28 | Smoke test bộ copy khung | `scripts/test-copy-framework.sh` | `copy-framework.sh/.ps1` | ✅ | job CI `copy-framework-smoke` |
+| FT-28 | Smoke test bộ copy khung | `scripts/test-copy-framework.sh` | `copy-framework.sh`/`copy-framework.ps1` | ✅ | job CI `copy-framework-smoke` |
 | FT-29 | Kiểm dropins chạy thật trên Next.js sạch | `scripts/verify-dropins.sh` | toàn bộ dropins Lớp 2 | ✅ | workflow `verify-dropins.yml`; lần cuối 15/15 test pass |
 
 ## E. Bộ copy khung (2 biến thể)

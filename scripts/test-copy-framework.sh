@@ -5,7 +5,7 @@
 # không lỗi. copy-framework.ps1 chỉ được kiểm nếu máy có `pwsh` (luôn có trên
 # runner ubuntu-latest của GitHub Actions).
 # Chạy: bash scripts/test-copy-framework.sh
-set -uo pipefail
+set -uo pipefail   # cố ý KHÔNG -e: không được làm chết phiên/lượt chạy (xem docs/CONVENTIONS.md §A)
 
 cd "$(git rev-parse --show-toplevel)"
 REPO_ROOT="$(pwd)"
@@ -146,11 +146,22 @@ if command -v pwsh >/dev/null 2>&1; then
   check_claude_config_not_overwritten "pwsh / đích có sẵn" "$targetE"
 else
   echo ""
-  echo "  (bỏ qua kiểm thử .ps1 — máy này không có pwsh; CI ubuntu-latest có sẵn)"
+  echo "⚠️  ⚠️  BỎ QUA toàn bộ kiểm thử copy-framework.ps1 — máy này KHÔNG có pwsh."
+  echo "    Nghĩa là lượt chạy này KHÔNG chứng minh gì về bản Windows: danh sách file của"
+  echo "    .sh và .ps1 có thể đã lệch nhau mà không ai thấy (audit 2026-09-12, F-015)."
+  echo "    Bản .ps1 chỉ được kiểm thật trên CI (job copy-framework-smoke, ubuntu-latest có pwsh)."
+  if [ "${REQUIRE_PWSH:-0}" = "1" ]; then
+    echo "::error::REQUIRE_PWSH=1 nhưng không tìm thấy pwsh — CI phải kiểm được bản .ps1."
+    fail=1
+  fi
 fi
 
 echo ""
 if [ "$fail" -eq 0 ]; then
-  echo "OK — copy-framework.sh/.ps1 hoạt động đúng kỳ vọng."
+  if command -v pwsh >/dev/null 2>&1; then
+    echo "OK — copy-framework.sh VÀ copy-framework.ps1 hoạt động đúng kỳ vọng."
+  else
+    echo "OK — copy-framework.sh đúng kỳ vọng (bản .ps1 CHƯA được kiểm ở lượt này — xem cảnh báo trên)."
+  fi
 fi
 exit "$fail"

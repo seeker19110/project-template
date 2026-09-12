@@ -21,6 +21,15 @@ jobs:
             const title = /^(feat|fix|refactor|docs|test|chore|style|perf|build|ci|revert)(\([a-z0-9._/-]+\))?!?: .+/;
             if (!title.test(pr.title)) core.setFailed("PR title must follow Conventional Commits.");
             if (pr.draft) return;
+            // Miễn trừ PR do BOT tạo (audit 2026-09-12, F-001 — nguyên nhân gốc):
+            // dependabot/renovate không thể điền các mục của PR template, nên required check này
+            // KHÔNG BAO GIỜ xanh được → 5 PR nâng cấp bảo mật kẹt 19 ngày mà không ai lần ra lý do
+            // (cổng đỏ nhìn giống "PR chưa đạt chuẩn"). Kiểm tiêu đề conventional ở trên VẪN áp dụng.
+            const BOT_ACTORS = ["dependabot[bot]", "renovate[bot]", "github-actions[bot]"];
+            if (BOT_ACTORS.includes(pr.user.login)) {
+              core.info(`PR của bot (${pr.user.login}) → miễn trừ yêu cầu mục PR template.`);
+              return;
+            }
             const headings = ["## Summary", "## Issue / Goal", "## Research / Spec",
               "## Validation", "## Risk, rollout and rollback", "## Definition of Done"];
             const missing = headings.filter(h => !body.includes(h));

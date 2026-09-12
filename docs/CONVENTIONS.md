@@ -19,6 +19,7 @@
 | Bản Windows | Mỗi script người dùng chạy có cặp `.sh` + `.ps1`; `.ps1` dùng `$ErrorActionPreference='Stop'` | `copy-framework.sh` / `.ps1` | Chỉ áp cho `copy-framework`; script cổng nội bộ không cần |
 | Kiểm CẤU TRÚC, không kiểm nội dung | Script cổng chỉ đối chiếu *có khớp danh sách/tồn tại không*, không ép nội dung từng bước | `scripts/check-ci-policy.sh` dòng 12–14 | Tránh biến cổng thành vật cản mỗi lần thêm bước mới |
 | Mọi assertion mới có **negative test** | Thêm một kiểm mới → chứng minh nó **bắt được** vi phạm (cố tình làm sai, thấy đỏ) | `scripts/test-copy-framework.sh` | Ghi ở PROGRESS.md như bằng chứng của PR #62 |
+| Phục hồi file trong negative test | `cp` từ bản sao ở scratchpad — **KHÔNG** `git checkout/restore <file>` (xoá luôn sửa chưa commit, xem `TRAPS.md` mục 6) | — | Bẫy đã mắc thật 2026-09-12 |
 
 ## B. Quy ước tài liệu
 
@@ -53,14 +54,19 @@
 
 ## Đang có NHIỀU KIỂU / quy ước NGẦM — cần hợp nhất (đầu vào cho kế hoạch hoàn thiện)
 
-1. **`set -euo` vs `set -uo` chưa ghi ở đâu.** Hiện 4 file dùng `-euo` (script cổng), 8 file dùng `-uo`
+1. ✅ **ĐÃ XỬ LÝ (W-307, 2026-09-12)** — **`set -euo` vs `set -uo`.** Hiện 4 file dùng `-euo` (script cổng), 8 file dùng `-uo`
    (3 script tiện ích + 5 hook). Lựa chọn là **đúng và có chủ đích** (hook không được làm chết phiên),
    nhưng **không tài liệu nào nói ra** — người/AI sau rất dễ "chuẩn hoá" bằng cách thêm `-e` vào hook
-   và biến một formatter thiếu thành cổng chặn phiên. Cần: ghi vào file này (đã làm) + một dòng
-   comment `# cố ý KHÔNG -e:` tại mỗi file `-uo` (hiện chỉ `auto-format.sh` giải thích gián tiếp).
+   và biến một formatter thiếu thành cổng chặn phiên. Đã ghi vào file này + comment `# cố ý KHÔNG -e`
+   tại cả 9 file dùng `set -uo pipefail`.
 2. **Hai bản kiểm CI song song** (`scripts/check-ci-policy.sh` shell cho repo khung ·
    `scripts/ci-workflow-policy.test.ts` vitest cho dropins) — **cố ý không gộp** (repo khung không có
    `package.json`), đã ghi rõ trong header script. Không phải nợ, nhưng là điểm phân kỳ cần canh:
    sửa một bên phải soát bên kia. Chưa có cổng nào ràng hai bên với nhau.
-3. **`copy-framework.sh` ↔ `.ps1`**: hai bản phải khớp danh sách file. `test-copy-framework.sh` kiểm
-   được cả hai nhưng bản `.ps1` chỉ chạy khi có `pwsh` → trên máy dev thường **bỏ qua âm thầm**.
+3. ✅ **ĐÃ XỬ LÝ (W-309, 2026-09-12)** — **`copy-framework.sh` ↔ `.ps1`**: hai bản phải khớp danh sách
+   file. Việc bỏ qua `.ps1` khi thiếu `pwsh` giờ in cảnh báo nổi bật, và CI chạy với `REQUIRE_PWSH=1`
+   nên runner mất `pwsh` sẽ làm job đỏ thay vì bỏ qua âm thầm.
+
+4. **Fail-open phải NÓI RA.** Mọi hook/cổng khi bỏ qua vì thiếu công cụ (`jq`, `gitleaks`, `pwsh`,
+   `dev-task.sh`) đều phải in cảnh báo ra stderr. Đã áp cho `auto-format.sh` (W-204),
+   `pre-commit-gate.sh`, `block-dangerous-git.sh`, `.husky/pre-commit`, `test-copy-framework.sh`.

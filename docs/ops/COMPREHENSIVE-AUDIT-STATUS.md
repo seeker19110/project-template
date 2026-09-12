@@ -23,7 +23,15 @@
 
 - **Cao: 2** — F-001, F-002
 - **Trung: 8** — F-003, F-004, F-005, F-006, F-007, F-008, F-009, F-010
-- **Thấp: 5** — F-011, F-012, F-013, F-014, F-015
+- **Thấp: 7** — F-011, F-012, F-013, F-014, F-015, F-016, F-017
+
+### Phát hiện thêm trong lúc chạy Pha 2 (cổng tự bắt)
+
+- **F-016 (Thấp, Nhóm 9):** `ALLOW_MISSING_PATH` trong `scripts/check-docs-consistency.sh` vẫn liệt kê
+  4 file mà repo khung **giờ đã có thật** (`docs/CONVENTIONS.md`, `docs/FEATURE-MAP.md`,
+  `docs/ops/COMPLETION-PLAN.md`, `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md`) → cổng không còn bảo vệ chúng.
+- **F-017 (Thấp, Nhóm 4):** cổng dùng `git grep` nên **bỏ qua file chưa `git add`** → chạy local báo PASS
+  oan. Xảy ra thật trong phiên này: một tham chiếu gãy trong `docs/FEATURE-MAP.md` chỉ bị bắt sau khi commit.
 
 (Chi tiết từng phát hiện: xem BÁO CÁO AUDIT trong phiên 2026-09-12; sẽ chuyển thành `W-xxx` khi
 người dùng duyệt kế hoạch ở Pha 2. Chưa duyệt → CHƯA sửa gì.)
