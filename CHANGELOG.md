@@ -13,6 +13,14 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **`scripts/check-ci-policy.sh` — cổng canh cấu hình CI, chặn hỏng-im-lặng của required checks**
+  (PR-1/4 của spec `docs/specs/2026-09-12-traps-codemap-ci-policy.md`, đã Approved for
+  implementation). `docs/ops/repository-settings.md` thêm mục "Required checks — nguồn sự thật"
+  liệt kê đủ 7 job (`ci.yml`: framework-lint/docs-consistency/copy-framework-smoke/quality/
+  source-hygiene/e2e, `pr-policy.yml`: metadata) — trước đây danh sách này KHÔNG tồn tại ở đâu.
+  Script đối chiếu HAI CHIỀU job id thật trong workflow với danh sách đó, chạy trong job
+  `docs-consistency`; đã kiểm chứng bằng negative test (đổi tên một job thật, xác nhận script đỏ
+  đúng cả hai chiều, rồi hoàn nguyên) trước khi nối vào CI.
 - **Feature spec golden test + kỷ luật TDD (`docs/specs/2026-09-12-golden-tests-and-tdd.md`)** — *spec, CHƯA thực thi.*
   Rà thật cho thấy: **golden test chưa tồn tại như cơ chế** (chỉ 2 lần nhắc thoáng qua ở
   `01-process-and-standards.md:11` và `03-tech-selection-and-proactive-advice.md:237`, không định nghĩa,
