@@ -15,7 +15,8 @@
 #     scripts/dev-task.sh, scripts/usage-estimate.sh, 2 file .claude/*.example.sh)
 #                                                  → chỉ copy nếu CHƯA có; nếu đã có thì để bản
 #                                                  khung cạnh bên (đuôi .framework-new) để bạn tự so.
-#   - File cấu hình/stack (eslint, husky, app...) → KHÔNG đè; đưa vào _framework-dropins/ để bạn tự merge.
+#   - File CI/quy ước GitHub (workflows, PR template, dependabot...) → KHÔNG đè; đưa vào
+#     _framework-dropins/ để bạn tự so/merge với cấu hình CI đã có (nếu có).
 #
 set -euo pipefail
 
@@ -119,7 +120,6 @@ copy_if_absent "SECURITY.md"
 copy_if_absent "CODE_OF_CONDUCT.md"
 copy_if_absent ".editorconfig"
 copy_if_absent ".nvmrc"
-copy_if_absent ".env.example"
 copy_if_absent ".mcp.json"                     # MCP Context7 — tài liệu đúng phiên bản cho research-first (KHUNG-3)
 # LICENSE KHÔNG copy: mỗi dự án tự chọn giấy phép + chủ sở hữu riêng.
 
@@ -148,21 +148,14 @@ chmod +x "$TARGET/scripts/dev-task.sh" "$TARGET/scripts/usage-estimate.sh" "$TAR
 chmod +x "$TARGET/.claude/hooks/"*.sh 2>/dev/null || true
 
 echo ""
-echo "[3/4] File cấu hình khác (Lớp 2 — KHÔNG đè; để bạn tự merge cái khớp stack):"
+echo "[3/4] File CI/quy ước GitHub (Lớp 2 — KHÔNG đè; để bạn tự so/merge với CI đã có):"
 for f in \
-  eslint.config.mjs postcss.config.mjs \
-  .prettierrc .prettierignore .lintstagedrc.json commitlint.config.cjs \
-  vitest.config.mts vitest.setup.ts playwright.config.ts lighthouserc.json \
-  lib/order-summary.ts lib/order-summary.golden.test.ts lib/__golden__ \
-  .husky/pre-commit .husky/commit-msg \
-  .github/workflows/ci.yml .github/workflows/lighthouse-ci.yml .github/workflows/stale-pr-alert.yml \
-  .github/workflows/codeql.yml .github/workflows/secret-scan.yml .github/workflows/dependency-review.yml .github/workflows/pr-policy.yml .github/workflows/release.yml \
+  .github/workflows/ci.yml .github/workflows/stale-pr-alert.yml \
+  .github/workflows/secret-scan.yml .github/workflows/dependency-review.yml \
+  .github/workflows/pr-policy.yml .github/workflows/release.yml \
   .github/pull_request_template.md .github/dependabot.yml .github/ISSUE_TEMPLATE .github/CODEOWNERS \
-  lib/env.ts styles/theme.css components/theme-toggle.tsx i18n/request.ts messages app \
-  next.config.ts e2e \
-  scripts/ci-workflow-policy.test.ts \
   .gitignore .gitattributes \
-  supabase \
+  scripts/ci-workflow-policy.test.ts \
 ; do
   stage "$f"
 done
@@ -184,9 +177,9 @@ cat <<'NEXT'
      → Chạy Bước 0 của docs/framework/existing-project-adoption.md
        (tự dò stack bằng cách đọc package.json/config — không cần bạn khai stack).
 
-  3) Soát thư mục _framework-dropins/ : merge file cấu hình KHỚP stack vào dự án
-     (các file lớp 2 khác: eslint, prettier, playwright, github workflows, etc.).
-     Xong thì có thể xóa _framework-dropins/.
+  3) Soát thư mục _framework-dropins/ : so/merge các file CI (.github/workflows/*,
+     PR template, dependabot, CODEOWNERS, .gitignore, .gitattributes) với cấu hình
+     CI đã có (nếu có) rồi merge cho khớp dự án. Xong thì có thể xóa _framework-dropins/.
 
   4) Commit, rồi áp khung tăng dần theo existing-project-adoption.md
      (Prettier → ESLint → TS strict → hook → CI → lấp lỗ hổng test/a11y/hiệu năng).

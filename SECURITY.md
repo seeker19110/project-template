@@ -17,15 +17,14 @@ Mục tiêu phản hồi: xác nhận trong vòng **72 giờ**; thống nhất m
 
 | Lớp | Công cụ | Bắt gì |
 |-----|---------|--------|
-| Phụ thuộc | `npm audit --audit-level=high` (CI) + Dependabot | thư viện có lỗ hổng đã biết |
-| Mã nguồn (SAST) | CodeQL (`.github/workflows/codeql.yml`) | lỗ hổng trong code (injection, XSS, luồng dữ liệu...) |
 | Bí mật | gitleaks (`.github/workflows/secret-scan.yml`) | API key/token/mật khẩu lỡ commit |
-| Biến môi trường | `lib/env.ts` (Zod) | thiếu/sai biến → dừng ngay khi khởi động |
-| CSDL | RLS bật + policy (`supabase/migrations/`) | truy cập dữ liệu của người khác |
+| Phụ thuộc | Dependabot (`.github/dependabot.yml`) | phiên bản action/thư viện có lỗ hổng đã biết |
 
-> **Thiết lập một lần cho CodeQL:** bật **Code scanning** trong repo (Settings → Code security & analysis).
-> Nếu chưa bật, job CodeQL sẽ lỗi "Code scanning is not enabled for this repository" khi upload kết quả.
-> Repo public: miễn phí. Repo private: cần GitHub Advanced Security. Repo khung chưa có app sẽ tự bỏ qua CodeQL.
+Repo khung không đóng gói sẵn app nên không có sẵn phụ thuộc npm/mã nguồn để quét CodeQL/`npm audit`.
+Ở **dự án đích** (đã chọn stack qua `/consult`), bổ sung tương ứng: SAST (vd CodeQL cho JS/TS, hoặc
+công cụ tương đương ngôn ngữ khác), `npm audit`/công cụ quét phụ thuộc của stack đã chọn, validate
+biến môi trường lúc khởi động (vd Zod cho Node), và kiểm soát truy cập dữ liệu (RLS/ACL) nếu có CSDL —
+xem `CLAUDE.md` §3 mục 1–2 + `docs/framework/03-tech-selection-and-proactive-advice.md`.
 
 ## Nguyên tắc bất biến (không bao giờ phá)
 

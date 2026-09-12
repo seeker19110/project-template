@@ -17,7 +17,7 @@
 | FT-03 | Chạy tự động (plan → điều phối) | `/auto` | `orchestration-3-tier.md`, `.claude/agents/` | ✅ | như trên |
 | FT-04 | Cổng commit/merge + Báo cáo xác thực | `/gate`, `/gate merge` | `package.json` dự án đích | ✅ | như trên |
 | FT-05 | Tạo ADR | `/adr` | `docs/adr/`, `0000-template.md` | ✅ | như trên |
-| FT-06 | Thiết kế UI/UX | `/ui-ux` | `styles/theme.css`, `quality-supplements.md` | ✅ | như trên |
+| FT-06 | Thiết kế UI/UX | `/ui-ux` | design tokens của dự án đích, `quality-supplements.md` | ✅ | như trên |
 | FT-07 | Audit tối ưu mã nguồn | `/audit-optimize` | `docs/ops/code-optimization-audit-prompt.md` | ✅ | như trên |
 | FT-08 | Audit toàn diện 12 nhóm | `/audit-full` | `comprehensive-audit-prompt.md`, `COMPREHENSIVE-AUDIT-STATUS.md` | ✅ | như trên |
 | FT-09 | Hoàn thiện dự án (5 pha) | `/completion` | `project-completion.md`, `COMPLETION-PLAN.md`, 4 file trạng thái | ✅ | như trên |
@@ -48,14 +48,14 @@
 | FT-24 | Nạp trạng thái để "tiếp tục" | `session-resume.sh` (SessionStart) | `PROGRESS.md`, git log | ✅ | như trên |
 | FT-25 | Nhắc ngân sách quota | `usage-guard.sh` | `usage-estimate.sh`, `.claude/usage-budget.sh` | ⚠️ (F-014 đã chấp nhận rủi ro) | như trên |
 
-## D. Cổng tự kiểm của CHÍNH repo khung (4 script) — `scripts/`
+## D. Cổng tự kiểm của CHÍNH repo khung (3 script) — `scripts/`
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
 | FT-26 | Kiểm tài liệu đồng bộ (link, tên cũ, lệnh ↔ CLAUDE.md) | `scripts/check-docs-consistency.sh` | mọi `*.md` | ✅ | job CI `docs-consistency`; có negative test |
 | FT-27 | Kiểm job CI ↔ required checks 2 chiều | `scripts/check-ci-policy.sh` | `ci.yml`, `pr-policy.yml`, `repository-settings.md` | ✅ | job CI `docs-consistency`; có negative test |
 | FT-28 | Smoke test bộ copy khung | `scripts/test-copy-framework.sh` | `copy-framework.sh`/`copy-framework.ps1` | ✅ | job CI `copy-framework-smoke` |
-| FT-29 | Kiểm dropins chạy thật trên Next.js sạch | `scripts/verify-dropins.sh` | toàn bộ dropins Lớp 2 | ✅ | workflow `verify-dropins.yml`; lần cuối 15/15 test pass |
+| FT-29 | *(gỡ 2026-09-12, ADR-0004 — scaffold Web đã xoá, không còn dropins Lớp 2 để kiểm chạy thật)* | — | — | ➖ | — |
 
 ## E. Bộ copy khung (2 biến thể)
 
@@ -86,22 +86,21 @@
 |----|-------------------|----------|-----------|--------------|
 | FT-43 | 12 bản mẫu: FEATURE-MAP, CONVENTIONS, CODEMAP, COMPLETION-PLAN, FEATURE-SPEC, GOAL, GOLDEN-TEST, TRAPS, THREAT-MODEL, DATA-GOVERNANCE, GOVERNANCE, SUPPORT | copy thủ công / theo pha | ✅ | link-check; ❌ không kiểm "mẫu ↔ tài liệu hướng dẫn còn khớp" |
 
-## H. Dropins Lớp 2 (cấu hình/stack — KHÔNG đè dự án đích)
+## H. Dropins Lớp 2 (CI/quy ước GitHub tổng quát — KHÔNG đè dự án đích)
+
+> **Gỡ 2026-09-12 (ADR-0004):** scaffold Web (Next.js/Supabase — theme, i18n, golden test ví dụ,
+> migration RLS mẫu, cấu hình Vitest/Playwright/Lighthouse/ESLint/Prettier/husky) đã xoá khỏi repo
+> khung. Lớp 2 giờ chỉ còn CI/quy ước GitHub tổng quát (không đặc thù stack nào).
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
-| FT-44 | Cổng CI dự án đích (8 workflow) | `.github/workflows/*` | ci, lighthouse, codeql, secret-scan, dependency-review, pr-policy, release, verify-dropins | ✅ | `check-ci-policy.sh` + `ci-workflow-policy.test.ts` (dropins) |
-| FT-45 | Hàng rào pre-commit | `.husky/pre-commit`, `commit-msg`, `.lintstagedrc.json`, `commitlint.config.cjs` | staged files | ✅ | `verify-dropins.sh` |
-| FT-46 | Cấu hình test (Vitest + Playwright + Lighthouse) | `vitest.config.mts`, `playwright.config.ts`, `lighthouserc.json` | — | ✅ | `verify-dropins.sh` |
-| FT-47 | Golden test (cơ chế + ví dụ) | `lib/order-summary.ts`, `.golden.test.ts`, `lib/__golden__/` | — | ✅ | `verify-dropins.sh` (2 test golden) |
-| FT-48 | Scaffold Web: theme tokens, theme-toggle, i18n, env, PWA/SEO | `styles/theme.css`, `components/`, `i18n/`, `messages/`, `lib/env.ts`, `app/*` | — | ✅ | `verify-dropins.sh`; ⚠️ F-011 dead token (chấp nhận rủi ro) |
-| FT-49 | Migration mẫu + RLS | `supabase/migrations/20260630000000_init_example.sql` | — | ✅ | ❌ không có test RLS |
-| FT-50 | Script tiện ích dự án đích | `scripts/dev-task.sh`, `scripts/usage-estimate.sh` | `package.json` | ⚠️ (F-309 fallback grep, chấp nhận rủi ro) | `test-copy-framework.sh` (kiểm copy) |
+| FT-44 | Cổng CI dự án đích (6 workflow tổng quát) | `.github/workflows/*` | ci (3 job tự kiểm khung), secret-scan, dependency-review, pr-policy, release, stale-pr-alert | ✅ | `check-ci-policy.sh` + `ci-workflow-policy.test.ts` (dropins — cần Node ở dự án đích để chạy) |
+| FT-50 | Script tiện ích dự án đích | `scripts/dev-task.sh`, `scripts/usage-estimate.sh` | tự dò `package.json`/công cụ theo stack | ⚠️ (F-309 fallback grep, chấp nhận rủi ro) | `test-copy-framework.sh` (kiểm copy) |
 
 ## Luồng chính (bắt buộc có test đi qua — đối chiếu Definition of Complete)
 
-1. **Copy khung → dự án đích chạy được** (FT-30/31 → FT-44..50): `test-copy-framework.sh` + `verify-dropins.sh`. ✅ có test thật.
-2. **Cổng chặn commit/merge đỏ** (FT-04, FT-22, FT-44, FT-45): `verify-dropins.sh` kiểm cấu hình; ⚠️ **chưa có test "thử vi phạm phải bị chặn"** end-to-end.
+1. **Copy khung → dự án đích chạy được** (FT-30/31 → FT-44, FT-50): `test-copy-framework.sh`. ✅ có test thật (không còn dropins chạy thật để kiểm — ADR-0004).
+2. **Cổng chặn commit/merge đỏ** (FT-04, FT-22, FT-44): `test-hooks-gate.sh` chứng minh hook local chặn thật; ⚠️ dự án đích tự thêm cổng build/test theo stack đã chọn, chưa có test "thử vi phạm phải bị chặn" cho phần đó (không có ở repo khung).
 3. **Tài liệu ↔ code khung không lệch** (FT-26, FT-27): ✅ có test 2 chiều + negative test.
 4. **Điều phối 3 tầng thực thi được một PLAN.md** (FT-03, FT-13..20): ❌ **không có test/nghiệm thu nào**; chỉ có case-study thủ công.
 5. **Vòng hoàn thiện/audit chạy đúng trên dự án thật** (FT-08, FT-09): ⚠️ đã chạy trên chính repo khung (01/09) nhưng **chưa chạy trên dự án đích thật**.

@@ -42,7 +42,7 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | W-301 | F-006 | Cổng kiểm `.claude/agents/` ↔ bảng nhãn `route:` trong `orchestration-3-tier.md` (2 chiều) + frontmatter | Thêm/xoá agent mà quên tài liệu → CI đỏ; có negative test | — | S | ✅ `check-docs-consistency.sh` §4 + 3 NT (agent thiếu tài liệu, name lệch, route trỏ agent ảo) |
 | W-302 | F-008 | Ràng `check-ci-policy.sh` ↔ `ci-workflow-policy.test.ts` (danh sách assertion khớp nhau) | Sửa một bên mà quên bên kia → đỏ | — | M | ✅ bảng kiểm `CP-*` — thêm kiểm ở bản shell mà quên bản vitest → CI đỏ; CP-2/CP-3 đã implement ở dropins (26/26 test `verify-dropins`) |
-| W-303 | F-009 | Test RLS "thử vượt quyền" trong dropins | Test đọc/ghi hàng của user khác → bị từ chối | — | M | ⬜ |
+| W-303 | F-009 | Test RLS "thử vượt quyền" trong dropins | Test đọc/ghi hàng của user khác → bị từ chối | — | M | ➖ hết hiệu lực (2026-09-12, ADR-0004) — dropins Supabase đã gỡ khỏi repo khung, không còn RLS mẫu để test |
 | W-304 | F-010 | ADR + job tổng hợp `gate: needs: [...]` trong `ci.yml`; cập nhật `repository-settings.md` | ADR-0003 tồn tại; `check-ci-policy.sh` xanh; branch protection chỉ cần 1 tên | W-103 | M | ✅ `check-ci-policy.sh` §4 + NT: gỡ pin → rc=1 |
 | W-305 | F-011 | Ràng `.nvmrc` ↔ mọi `node-version:` trong workflow | Lệch → đỏ; có negative test | — | S | ✅ `check-ci-policy.sh` §5 + NT: đổi node-version → rc=1 |
 | W-306 | F-012 | Cập nhật `PROGRESS.md` (SHA, goal, nợ kỹ thuật) | Khớp `main` thật cuối lượt | mọi W | S | ⬜ |
@@ -99,7 +99,7 @@ bản shell **buộc** phải khai ở bản vitest — implement, hoặc ghi "k
 | ID | Lý do hoãn |
 | --- | --- |
 | W-202 | Cần chạy thật `verify-dropins.sh` (npm install Next.js, nhiều phút) để kiểm chứng bước commit mới; không đẩy bước CI chưa được chạy thử — nguyên tắc "một push đã kiểm chứng hơn ba push phỏng đoán" |
-| W-303 | Test RLS "thử vượt quyền" cần Supabase local (`supabase start`) trong `verify-dropins.sh` — cùng lý do W-202 |
+| W-303 | ➖ Hết hiệu lực (2026-09-12, ADR-0004): dropins Supabase/RLS đã gỡ khỏi repo khung, không còn gì để viết test |
 | W-107 | ✅ (mới, sinh trong lúc nghiệm thu W-101) Nâng `github-script` trong `stale-pr-alert.yml` v7.0.1 → v9.0.0 — file mới của #64 không nằm trong phạm vi PR #53 |
 | W-306 | Làm cuối cùng, sau khi đợt này merge (SHA `main` chưa cố định) |
 | W-308 | Xoá ~32 nhánh đã merge là thao tác trên remote, không hoàn tác dễ → xin xác nhận người dùng (`CLAUDE.md` §9) |

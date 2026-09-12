@@ -120,4 +120,4 @@ Yêu cầu mơ hồ / nhiều cách hiểu · thao tác không thể hoàn tác 
 - Quy ước đặt tên file/component: `[ĐIỀN]`
 - Thư viện chính & lý do dùng: `[ĐIỀN]`
 - Giai đoạn hiện tại: **nguồn sự thật là `PROGRESS.md`** (đọc mục "Giai đoạn hiện tại" ở đó, đừng chép lại vào đây — hai chỗ sẽ lệch nhau).
-- *(Riêng REPO KHUNG này: các mục `[ĐIỀN]` ở §5 và §10 là placeholder CỐ Ý cho dự án đích — repo khung không có `package.json`. Cổng thật của chính repo khung là `scripts/check-docs-consistency.sh`, `scripts/test-copy-framework.sh` và `scripts/verify-dropins.sh`.)*
+- *(Riêng REPO KHUNG này: các mục `[ĐIỀN]` ở §5 và §10 là placeholder CỐ Ý cho dự án đích — repo khung không có `package.json`. Cổng thật của chính repo khung là `scripts/check-docs-consistency.sh`, `scripts/check-ci-policy.sh` và `scripts/test-copy-framework.sh`.)*

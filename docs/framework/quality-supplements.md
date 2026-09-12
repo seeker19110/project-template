@@ -10,6 +10,13 @@
 | 3 — Theme | Dark blue mặc định + Light, design tokens, no-flash |
 | 4 — Nâng cao | i18n · PWA · Sentry · SEO · Analytics |
 
+> **Kể từ ADR-0004 (2026-09-12): repo khung KHÔNG còn kèm sẵn scaffold Web (Next.js/Supabase).**
+> Mọi đường dẫn file trong tài liệu này (`lib/env.ts`, `app/*.tsx`, `styles/theme.css`, `i18n/*`,
+> `e2e/*`, `lighthouserc.json`, `.github/workflows/lighthouse-ci.yml`...) là **ví dụ minh hoạ cho
+> hồ sơ Web** (C-nào đó trong KHUNG-3 PHẦN C) — bạn tự tạo các file này ở dự án đích khi hồ sơ áp
+> dụng là Web, không phải file có sẵn trong repo khung để copy thẳng. Hồ sơ khác thay bằng công cụ
+> tương đương của hồ sơ đó.
+
 ===============================================================================
 
 # PHẦN 1 — Nhóm 1: nền tảng chất lượng & quy trình
@@ -34,7 +41,7 @@
 
 ## 1. Xác thực biến môi trường (file `lib/env.ts`)
 
-File code kèm theo: đặt tại `lib/env.ts`. Cần cài Zod nếu chưa có:
+Ví dụ đặt tại `lib/env.ts` (hồ sơ Node/TS — hồ sơ khác đổi tên file cho khớp). Cần cài Zod nếu chưa có:
 
 ```bash
 npm install zod
@@ -262,8 +269,8 @@ Biến nó thành **cổng tự động** chạy trên mỗi PR.
 npm install --save-dev @lhci/cli
 ```
 
-File `lighthouserc.json` (đã kèm ở gốc repo) khai báo URL cần đo + các assertion (ngưỡng).
-Workflow `.github/workflows/lighthouse-ci.yml` (đã kèm) chạy build, dựng server, đo, và **fail PR nếu dưới ngưỡng**.
+Ví dụ file `lighthouserc.json` (tự tạo ở gốc dự án đích) khai báo URL cần đo + các assertion (ngưỡng).
+Ví dụ workflow `.github/workflows/lighthouse-ci.yml` (tự thêm ở dự án đích) chạy build, dựng server, đo, và **fail PR nếu dưới ngưỡng**.
 
 > Mẹo chống nhiễu: Lighthouse dao động nhẹ giữa các lần chạy. `lighthouserc.json` đặt
 > `numberOfRuns: 3` (lấy trung vị). Nếu một assertion quá ngặt lúc đầu, hạ về `"warn"` thay vì
@@ -308,7 +315,7 @@ npm install --save-dev @playwright/test
 npx playwright install --with-deps   # tải trình duyệt (bỏ qua nếu môi trường đã có)
 ```
 
-File `playwright.config.ts` (đã kèm) định nghĩa **2 project**: `desktop` (Chromium) và
+Ví dụ file `playwright.config.ts` (tự tạo ở dự án đích) định nghĩa **2 project**: `desktop` (Chromium) và
 `mobile` (Pixel 5) → mọi luồng chính được kiểm trên cả hai kích thước, ép tinh thần mobile-first.
 
 Viết E2E cho **đường đi quan trọng nhất** (đăng nhập → thao tác lõi → đạt mục tiêu), không cố phủ hết.
@@ -562,7 +569,7 @@ gỡ rác, giảm trùng lặp & độ phức tạp, tỉa phụ thuộc, thu nh
 
 > Cụ thể hóa yêu cầu "design tokens nhất quán" của KHUNG 1 (GĐ 2) thành một hệ thống theme dùng được ngay.
 > **Mặc định: nền Dark blue. Có thêm chế độ Light.** Người dùng tự chuyển; lựa chọn được nhớ lại.
-> File tokens kèm theo: `styles/theme.css` (ở gốc repo).
+> Ví dụ file tokens: `styles/theme.css` (tự tạo ở gốc dự án đích).
 
 ## Nguyên tắc
 - **Dùng biến (design tokens), không hard-code màu** trong component → một nguồn sự thật, đổi theme là cả app đổi.
@@ -719,8 +726,8 @@ export function ThemeToggle() {
 npm install next-intl
 ```
 
-File `i18n/request.ts` (đã kèm) chọn locale theo cookie `locale`, mặc định `vi`, fallback `en`.
-Thông điệp ở `messages/vi.json`, `messages/en.json` (đã kèm).
+Ví dụ file `i18n/request.ts` (tự tạo ở dự án đích) chọn locale theo cookie `locale`, mặc định `vi`, fallback `en`.
+Thông điệp ở `messages/vi.json`, `messages/en.json` (tự tạo ở dự án đích).
 
 **Nối plugin vào `next.config`** (xem mục 6 — cấu hình tổng hợp). `createNextIntlPlugin()` tự tìm `i18n/request.ts`.
 
@@ -761,7 +768,7 @@ dùng `useFormatter` của next-intl để đúng theo locale.
 npm install @serwist/next && npm install --save-dev serwist
 ```
 
-File `app/sw.ts` (đã kèm) là service worker. Nối vào `next.config` bằng `withSerwistInit` (mục 6).
+Ví dụ file `app/sw.ts` (tự tạo ở dự án đích) là service worker. Nối vào `next.config` bằng `withSerwistInit` (mục 6).
 
 - Mặc định `@serwist/next` **tự đăng ký** service worker (không cần code thêm).
 - **Tắt ở dev** (`disable: NODE_ENV === 'development'`) để tránh kẹt cache khi phát triển.
@@ -793,13 +800,13 @@ Wizard sẽ tạo/sửa: `instrumentation.ts`, `instrumentation-client.ts`, cấ
 
 - **Metadata:** dùng `export const metadata` (hoặc `generateMetadata`) trong `layout.tsx`/`page.tsx`:
   `title`, `description`, `openGraph`, `twitter`, `metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL!)`.
-- **sitemap & robots:** `app/sitemap.ts` + `app/robots.ts` (đã kèm) — thêm các route quan trọng vào sitemap.
+- **sitemap & robots:** `app/sitemap.ts` + `app/robots.ts` (tự tạo ở dự án đích) — thêm các route quan trọng vào sitemap.
 - **Dữ liệu có cấu trúc (JSON-LD):** nhúng `<script type="application/ld+json">` cho trang sản phẩm/bài viết nếu cần.
 - Đặt `NEXT_PUBLIC_SITE_URL` cho cả Production và Preview.
 
 ---
 
-## 5. Trang lỗi thân thiện (đã kèm)
+## 5. Trang lỗi thân thiện (ví dụ, tự tạo ở dự án đích)
 
 `app/not-found.tsx` (404), `app/error.tsx` (lỗi cấp route), `app/global-error.tsx` (lỗi root layout).
 Không phơi chi tiết kỹ thuật ra người dùng; log để theo dõi. Dùng token theme nên hợp cả Dark blue lẫn Light.
