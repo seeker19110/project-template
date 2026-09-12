@@ -16,7 +16,7 @@
 | 8 | CI/CD & vận hành | ✅ Xong | 1 Trung (F-004), 1 Thấp (F-014); `main` protected=true (xác minh qua GitHub API) | 2026-09-12 |
 | 9 | Tài liệu & đồng bộ code thật | ✅ Xong | 2 Thấp (F-011, F-012); `[ĐIỀN]` ở `CLAUDE.md` §5/§10 là CỐ Ý (§10 ghi rõ) | 2026-09-12 |
 | 10 | Dữ liệu & migration | ✅ Xong | 0 mới (F-009 tính ở Nhóm 2); migration có version + idempotent + rollback documented | 2026-09-12 |
-| 11 | Cấu hình môi trường & bí mật | 🔄 Đang dở | Đã xét: `lib/env.ts` (Zod, tách client/server, `NEXT_PUBLIC_` đúng) ✅; không có `.env` trong `git ls-files` ✅. **CHƯA xét: nội dung `.env.example` đối chiếu `lib/env.ts`** — môi trường phiên chặn đọc file `.env*` (permission denied). Cần chạy lại ở phiên có quyền đọc. | 2026-09-12 |
+| 11 | Cấu hình môi trường & bí mật | ✅ Xong | 0 mới — `lib/env.ts` (Zod, tách client/server, `NEXT_PUBLIC_` đúng) ✅; không có `.env` trong `git ls-files` ✅; đối chiếu `.env.example` ↔ `lib/env.ts`: mọi biến bắt buộc (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) khớp; `SENTRY_DSN` optional khớp; `NEXT_PUBLIC_ANALYTICS_ID` chỉ là placeholder tùy biến (đã ghi chú) | 2026-09-12 (hoàn tất) |
 | 12 | Thống nhất chéo tính năng | ✅ Xong | 3 Trung (F-006, F-007, F-008), 2 Thấp (F-011, F-013) | 2026-09-12 |
 
 ## Tổng hợp mức độ

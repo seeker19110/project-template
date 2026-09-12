@@ -47,11 +47,11 @@
 | W-305 | F-011 | Ràng `.nvmrc` ↔ mọi `node-version:` trong workflow | Lệch → đỏ; có negative test | — | S | ✅ `check-ci-policy.sh` §5 + NT: đổi node-version → rc=1 |
 | W-306 | F-012 | Cập nhật `PROGRESS.md` (SHA, goal, nợ kỹ thuật) | Khớp `main` thật cuối lượt | mọi W | S | ⬜ |
 | W-307 | F-013 | Comment `# cố ý KHÔNG -e` tại 8 file dùng `set -uo pipefail` | 8/8 file có comment; `CONVENTIONS.md` đã ghi (xong ở Pha 0) | — | S | ✅ 9/9 file `set -uo pipefail` có comment giải thích |
-| W-308 | F-014 | Xoá nhánh đã merge; bật auto-delete branch | Còn `main` + nhánh đang mở; ô trong `repository-settings.md` được tick | W-101 | S | ⬜ |
+| W-308 | F-014 | Xoá nhánh đã merge; bật auto-delete branch | Còn `main` + nhánh đang mở; ô trong `repository-settings.md` được tick | W-101 | S | 🔄 đã tra cứu qua GitHub API: 31/32 nhánh có PR `merged_at` thật (danh sách dưới) — 1 nhánh (`claude/opusplan-model-config-2ojq58`, PR #28) **closed KHÔNG merge**, giữ lại. **Bị chặn xoá:** `git push --delete` bị auto-mode classifier từ chối (destructive git) — cần người dùng tự xoá qua GitHub UI/Settings→Branches, hoặc cấp quyền Bash cho lệnh này. Bật auto-delete branch vẫn `⬜` (thuộc `repository-settings.md`, cần chủ repo bật trên GitHub Settings). |
 | W-309 | F-015 | `test-copy-framework.sh` báo RÕ khi bỏ qua `.ps1` (không im lặng) + CI khẳng định đã chạy | Máy không có pwsh → in cảnh báo nổi bật; CI có bước xác nhận đã test `.ps1` | — | S | ✅ cảnh báo nổi bật + `REQUIRE_PWSH=1` trên CI + NT: rc=1 khi thiếu pwsh |
 | W-311 | F-016 | Gỡ 4 file giờ đã tồn tại thật (`docs/CONVENTIONS.md`, `docs/FEATURE-MAP.md`, `docs/ops/COMPLETION-PLAN.md`, `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md`) khỏi `ALLOW_MISSING_PATH` | Xoá một trong 4 file → cổng đỏ | — | S | ✅ gỡ 4 file khỏi allowlist + NT: xoá `docs/FEATURE-MAP.md` → cổng đỏ |
 | W-312 | F-017 | `check-docs-consistency.sh` dùng `git grep` nên **không quét file chưa `git add`** → lượt chạy local báo PASS oan (đã xảy ra thật trong phiên này) | Sửa tham chiếu gãy ở file chưa track → cổng vẫn bắt được | — | S | ✅ `git grep --untracked` + NT: file chưa track có link gãy → cổng đỏ |
-| W-310 | Nhóm 11 | Quét nốt Nhóm 11 (`.env.example` ↔ `lib/env.ts`) ở phiên có quyền đọc `.env*` | `COMPREHENSIVE-AUDIT-STATUS.md` Nhóm 11 → ✅ | — | S | ⬜ |
+| W-310 | Nhóm 11 | Quét nốt Nhóm 11 (`.env.example` ↔ `lib/env.ts`) ở phiên có quyền đọc `.env*` | `COMPREHENSIVE-AUDIT-STATUS.md` Nhóm 11 → ✅ | — | S | ✅ đối chiếu xong, 0 phát hiện mới — `COMPREHENSIVE-AUDIT-STATUS.md` Nhóm 11 → ✅ |
 
 ## Truy vết F → W
 
