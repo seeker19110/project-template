@@ -21,9 +21,11 @@ blockchain, monorepo** (và loại chưa liệt kê). Cách hoạt động:
 
 ## Bắt đầu từ đâu
 
-Đọc **`docs/framework/standard-delivery.md`** trước — đây là Standard Delivery Contract và điểm
-vào duy nhất cho mọi dự án. Sau đó contract sẽ định tuyến tới runbook greenfield, brownfield,
-spec-driven hoặc completion phù hợp; không chọn một quy trình song song bằng cảm tính.
+Mới dùng lần đầu? Đọc **[`docs/framework/quickstart.md`](docs/framework/quickstart.md)** để chọn
+đường Greenfield/Brownfield và hoàn tất adoption preflight. Sau đó đọc
+**`docs/framework/standard-delivery.md`** — đây là Standard Delivery Contract và điểm vào duy nhất
+cho mọi dự án. Contract sẽ định tuyến tới runbook, feature loop hoặc completion phù hợp; không chọn
+một quy trình song song bằng cảm tính.
 
 ## File đã sẵn sàng (chỉ cần giải nén)
 - `CLAUDE.md` — luật cho AI (Claude Code tự đọc). **Nhớ điền các chỗ `[ĐIỀN: ...]`.**

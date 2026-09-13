@@ -6,6 +6,7 @@
 | File | Tên khái niệm (trong văn bản) | Nội dung | Đọc khi nào |
 |------|-------------------------------|----------|-------------|
 | `standard-delivery.md` | **STANDARD** | **Nguồn vào duy nhất:** artifact, Research/Spec gate, AI Goal Loop, DoR/DoD/Complete | Đọc đầu tiên, mọi dự án |
+| `quickstart.md` | QUICKSTART | Định hướng Greenfield/Brownfield trong 10 phút + adoption preflight; không thay Standard Delivery | Lần đầu áp khung |
 | `01-process-and-standards.md` | **KHUNG-1** | Quy trình 9 giai đoạn + cổng + tiêu chuẩn từng giai đoạn | Bắt đầu dự án; trước khi chuyển giai đoạn |
 | `02-ai-rules-and-project-template.md` | **KHUNG-2** | Luật AI (cổng commit/merge, chống ảo giác, báo cáo xác thực) + mẫu `PROJECT.md` | Sinh PROJECT.md/CLAUDE.md; ôn luật |
 | `03-tech-selection-and-proactive-advice.md` | **KHUNG-3** | Research-first: chọn công nghệ/phiên bản + đề xuất chủ động 19 khía cạnh + hồ sơ C1–C10 | GĐ 0–2; thêm/đổi công nghệ |
