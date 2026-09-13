@@ -6,7 +6,7 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#93 đã merge (Universal Subagent Dispatch Protocol, AI Telemetry Engine, Spec-to-Contract Compiler Engine `scripts/spec-compiler.py`, Architectural Health Radar Engine `scripts/arch-health-radar.py`, self-testing suite, và sửa tương thích CRLF/MSYS Windows).
+- Giai đoạn: GĐ 8. PR #69→#96 đã merge. Mốc gần nhất: audit 2026-09-13 đóng A-01→A-04 (PR #95) — 4 engine `scripts/{spec-compiler,arch-health-radar,subagent-dispatch,telemetry-log}.py` nay ĐO/KIỂM ĐƯỢC THẬT, độ phủ cổng CI 18/18 script, điểm radar 100/100, mỗi con số có đối chứng động chứng minh là phép đo chứ không phải hằng số.
 - **Lưu ý khuôn lỗi (PR #82):** auto-merge (squash) có thể merge PR ngay khi CI của commit ĐẦU
   TIÊN xanh — một commit push SAU khi đã bật auto-merge (vd cập nhật PROGRESS.md cùng PR) có thể
   KHÔNG kịp vào trước khi merge xảy ra, dù mới push xong. Xác nhận lại bằng `git log origin/main`/
