@@ -6,11 +6,15 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#75 đã merge (freshness gate, audit reset, G-001, cơ chế branch-
-  protection/auto-merge mượn từ `Claude-Agents`, G-003+G-004). Cả 4 phát hiện Trung của audit
-  toàn diện 2026-09-12 (G-001..G-004) đã đóng — 0 phát hiện mở. Đã quay về `main`, không còn việc dở.
-- Default-branch SHA đã đối chiếu: `d646a32` (`origin/main`, PR #75)
-- Nhánh đang làm: `main`
+- Giai đoạn: GĐ 8. PR #69→#77 đã merge (freshness gate, audit reset, G-001..G-004, cơ chế branch-
+  protection/auto-merge mượn từ `Claude-Agents`, dọn nhánh remote). Người dùng đã import
+  `.github/rulesets/main.json` — `protection-guard` xanh thật. Đang trên nhánh
+  `chore/wire-protection-guard-into-gate` (chưa mở PR): thêm `protection-guard` vào `needs:` của
+  `gate`, xoá khỏi `CP4_BOOTSTRAP_EXEMPT`; đồng thời thêm luật mới (CLAUDE.md §8 + AGENTS.md) —
+  cập nhật tài liệu mô tả một thay đổi PHẢI nằm trong CÙNG PR với thay đổi đó, không tách PR riêng
+  theo sau (đúng nguyên tắc đang áp dụng ngay trong PR này).
+- Default-branch SHA đã đối chiếu: `d5b0b87` (`origin/main`, PR #77)
+- Nhánh đang làm: `chore/wire-protection-guard-into-gate`
 - Ngày cập nhật: 2026-09-13
 
 ## Goal đang active
@@ -51,20 +55,16 @@
 
 ## Đang làm / chờ
 
-- **Không có việc dở phía AI.** Audit toàn diện 2026-09-12 (12/12 nhóm, G-001..G-004) đã đóng hết
-  qua PR #71→#75. Nhánh remote đã dọn sạch — người dùng tự xoá qua GitHub UI, `list_branches` xác
-  nhận chỉ còn `main` (2026-09-13).
-- **Chờ người dùng (duy nhất còn lại):** import `.github/rulesets/main.json` — Settings → Rules →
-  Rulesets → New ruleset → Import a ruleset — để job CI `protection-guard` hết đỏ (đang đỏ đúng
-  chủ đích, chờ bước này; xem `docs/ops/repository-settings.md`).
+- **Không có việc dở.** Audit toàn diện 2026-09-12 (12/12 nhóm, G-001..G-004) đã đóng hết qua PR
+  #71→#75. Nhánh remote đã dọn sạch (2026-09-13). Người dùng đã import `.github/rulesets/main.json`
+  trên GitHub — `protection-guard` xanh thật, đã thêm vào `needs:` của `gate` (nhánh hiện tại), xoá
+  khỏi `CP4_BOOTSTRAP_EXEMPT`. Vòng "mượn cơ chế branch-protection từ Claude-Agents" đã khép kín.
 
 ## Tiếp theo
 
 - **Ngay lập tức:** không có việc dở — chờ yêu cầu tiếp theo của người dùng.
-- **Chờ bạn:** import `.github/rulesets/main.json` trên GitHub Settings → Rules → Rulesets (chỉ chủ
-  repo làm được) để `protection-guard` thật sự có gì để đối chiếu.
 - Cả 4 phát hiện Trung của audit toàn diện 2026-09-12 đã đóng: G-001 (PR #72), G-002 (dọn trong PR
-  #73), G-003 + G-004 (nhánh hiện tại).
+  #73), G-003 + G-004 (PR #75).
 - Có thể làm khi được yêu cầu: bắt đầu dự án đích mới bằng khung này (`/consult` hoặc `/auto`), tiếp
   tục quét thêm repo dẫn xuất khác (gói D–I của lượt quét 2026-09-12: script `check-*` của `xboss`,
   hook `block-dangerous-git.sh`, gitleaks pre-commit, gate-agent `sc-gate-*`, `eval-record.yml`),
