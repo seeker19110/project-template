@@ -6,13 +6,13 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#89 đã merge (Universal Subagent Dispatch Protocol `scripts/subagent-dispatch.py`, AI Telemetry & Observability Engine `scripts/telemetry-log.py`, self-testing suite `scripts/test-telemetry-and-dispatch.sh`, và sửa tương thích CRLF/MSYS Windows).
+- Giai đoạn: GĐ 8. PR #69→#91 đã merge (Universal Subagent Dispatch Protocol, AI Telemetry Engine, Spec-to-Contract Compiler Engine `scripts/spec-compiler.py`, Architectural Health Radar Engine `scripts/arch-health-radar.py`, self-testing suite, và sửa tương thích CRLF/MSYS Windows).
 - **Lưu ý khuôn lỗi (PR #82):** auto-merge (squash) có thể merge PR ngay khi CI của commit ĐẦU
   TIÊN xanh — một commit push SAU khi đã bật auto-merge (vd cập nhật PROGRESS.md cùng PR) có thể
   KHÔNG kịp vào trước khi merge xảy ra, dù mới push xong. Xác nhận lại bằng `git log origin/main`/
   `git show <sha> --stat` trước khi tin PROGRESS.md trong PR đã vào `main`; nếu thiếu, mở PR sync
   riêng — không coi im lặng là "đã vào".
-- Default-branch SHA đã đối chiếu: `62d3eef` (`origin/main`, PR #89)
+- Default-branch SHA đã đối chiếu: `26e5529` (`origin/main`, PR #91)
 - Nhánh đang làm: `main`
 - Ngày cập nhật: 2026-09-13
 
