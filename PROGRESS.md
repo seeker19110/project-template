@@ -17,7 +17,7 @@
   KHÔNG kịp vào trước khi merge xảy ra, dù mới push xong. Xác nhận lại bằng `git log origin/main`/
   `git show <sha> --stat` trước khi tin PROGRESS.md trong PR đã vào `main`; nếu thiếu, mở PR sync
   riêng (như PR này) — không coi im lặng là "đã vào".
-- Default-branch SHA đã đối chiếu: `f29afd4` (`origin/main`, PR #82)
+- Default-branch SHA đã đối chiếu: `1bc167c` (`origin/main`, PR #83)
 - Nhánh đang làm: `main`
 - Ngày cập nhật: 2026-09-13
 
