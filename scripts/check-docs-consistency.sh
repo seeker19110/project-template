@@ -184,6 +184,42 @@ while IFS= read -r hit; do
 done < <(git grep --untracked -noE 'Opus[[:space:]]*·[[:space:]]*\*{0,2}high' -- '*.md' '*.sh' '*.ps1' 2>/dev/null || true)
 
 
+# ── 6. Mọi script trong scripts/ phải được CODEMAP.md khai (audit 2026-09-13, CAO-2). ──
+# VÌ SAO: PR #89/#91 thêm 4 engine (~650 dòng Python) mà KHÔNG thêm dòng nào vào CODEMAP.md và
+# không khai trong CLAUDE.md §1. Hậu quả không phải "docs xấu" mà là CODE CHẾT: một phiên AI mới
+# chỉ đọc CLAUDE.md/CODEMAP.md nên không bao giờ biết 4 engine đó tồn tại. Cổng cũ chỉ kiểm hai
+# chiều LỆNH ↔ CLAUDE.md (mục 3), không kiểm SCRIPT ↔ CODEMAP — nên lỗ hổng này lọt sạch.
+# CỐ Ý chỉ kiểm SỰ CÓ MẶT của tên file trong CODEMAP.md, không kiểm nội dung mô tả: ép nội dung sẽ
+# biến cổng thành vật cản mỗi lần sửa một dòng bảng (cùng lý lẽ với ci-workflow-policy.test.ts).
+echo "== 6. Script (scripts/) ↔ CODEMAP.md =="
+CODEMAP_FILE="CODEMAP.md"
+# Script phụ trợ CỐ Ý không cần dòng riêng trong CODEMAP (bản wrapper mỏng gọi thẳng file .py cùng
+# tên đã được khai, hoặc dữ liệu đi kèm). Thêm vào đây phải kèm lý do, không thêm để né cổng.
+CODEMAP_EXEMPT=(
+  "arch-health-radar.sh" "spec-compiler.sh" "subagent-dispatch.sh" "telemetry-log.sh"
+)
+if [ ! -f "$CODEMAP_FILE" ]; then
+  echo "::error::Không tìm thấy $CODEMAP_FILE — không đối chiếu được script ↔ bản đồ sửa-ở-đâu."
+  fail=1
+else
+  seen_any=0
+  for f in scripts/*.sh scripts/*.py scripts/*.json scripts/*.ts; do
+    [ -e "$f" ] || continue
+    seen_any=1
+    base="$(basename "$f")"
+    is_in "$base" "${CODEMAP_EXEMPT[@]}" && continue
+    if ! grep -qF "$base" "$CODEMAP_FILE"; then
+      echo "::error file=$CODEMAP_FILE::Script '$f' tồn tại nhưng KHÔNG được khai trong $CODEMAP_FILE — thêm một dòng 'sửa ở đâu → cổng nào chặn' cho nó (CLAUDE.md §8 bước 0: tài liệu đi CÙNG PR), hoặc khai lý do miễn trừ ở CODEMAP_EXEMPT trong $0."
+      fail=1
+    fi
+  done
+  # Tự bảo vệ khỏi test rỗng luôn xanh (cùng nguyên tắc F-002): glob không khớp gì là bất thường.
+  if [ "$seen_any" -eq 0 ]; then
+    echo "::error::Không tìm thấy script nào trong scripts/ — glob hỏng, mục 6 đang xanh giả."
+    fail=1
+  fi
+fi
+
 if [ "$fail" -eq 0 ]; then
   echo "OK — không phát hiện link gãy, tên cũ sót lại, hay lệnh lệch với CLAUDE.md."
 fi

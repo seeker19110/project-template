@@ -43,6 +43,15 @@ jobs:
       - name: 3 gate chính của khung thật sự bắt được lỗi (docs-consistency/ci-policy/progress-freshness)
         run: bash scripts/test-check-scripts.sh
 
+      # 4 engine (spec-compiler, arch-health-radar, subagent-dispatch, telemetry-log) được thêm ở
+      # PR #89/#91 KÈM self-test, nhưng self-test không được nối vào CI — nên ~650 dòng Python chạy
+      # được mà không cổng nào bảo vệ (audit 2026-09-13, mục CAO-1; khuôn lỗi ghi ở TRAPS.md).
+      - name: Engine next-gen chạy đúng (spec-compiler + arch-health-radar)
+        run: bash scripts/test-next-gen-engines.sh
+
+      - name: Engine telemetry + subagent-dispatch chạy đúng
+        run: bash scripts/test-telemetry-and-dispatch.sh
+
       - name: Cài ShellCheck (không dựa vào gói có sẵn của runner)
         run: sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
 
@@ -51,10 +60,16 @@ jobs:
           find . -name '*.sh' -not -path './node_modules/*' -print0 \
             | xargs -0 shellcheck --severity=error
 
+      - name: Cú pháp Python (py_compile — mọi scripts/*.py)
+        run: |
+          set -e
+          find scripts -name '*.py' -print0 | xargs -0 -n1 python3 -m py_compile
+          echo "OK: cú pháp Python sạch"
+
       - name: JSON cấu hình hợp lệ (jq)
         run: |
           set -e
-          for f in .claude/settings.json .claude/settings-shared-opusplan.json .mcp.json; do
+          for f in .claude/settings.json .claude/settings-shared-opusplan.json .mcp.json scripts/model-rates.json; do
             if [ -f "$f" ]; then jq empty "$f" && echo "OK $f"; fi
           done
 

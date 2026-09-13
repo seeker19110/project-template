@@ -161,3 +161,50 @@ tồn tại không; `git log origin/main` xem SHA "đã đối chiếu" có ph�
 HEAD; PF-2: nhánh nêu trong "Nhánh đang làm" còn tồn tại trên remote) + job CI `progress-freshness`
 (chỉ chạy khi push vào `main`, `needs:` của `gate`) + `CLAUDE.md` §8 bắt buộc cập nhật `PROGRESS.md`
 ngay sau khi quay về `main`.
+
+## 11. Thêm code chạy được mà không nối cổng CI → code chết, không ai biết nó tồn tại
+
+*Ngày: 2026-09-13 · PR #89, #91 (mắc) → PR sửa: audit 2026-09-13.*
+
+PR #89 và #91 thêm 4 engine Python (`spec-compiler.py`, `arch-health-radar.py`,
+`subagent-dispatch.py`, `telemetry-log.py`, ~650 dòng) **kèm cả self-test** —
+`test-next-gen-engines.sh` và `test-telemetry-and-dispatch.sh` — nhưng **không nối self-test nào
+vào `ci.yml`**, và không thêm dòng nào vào `CODEMAP.md` hay `CLAUDE.md` §1.
+
+Hai hậu quả, cái thứ hai nặng hơn: (a) code không có cổng bảo vệ, sửa gãy không ai bắt; (b) **code
+chết trên thực tế** — một phiên AI mới chỉ đọc `CLAUDE.md`/`CODEMAP.md` nên không bao giờ biết 4
+engine đó tồn tại, dù chúng chạy hoàn hảo. Viết self-test rồi không cắm vào CI tạo cảm giác an toàn
+giả: `ls scripts/` thấy có test, nhưng không lần chạy nào là bắt buộc.
+
+Lỗ hổng lọt vì cổng cũ chỉ kiểm hai chiều **lệnh ↔ `CLAUDE.md`** (mục 3 của
+`check-docs-consistency.sh`), không kiểm **script ↔ `CODEMAP.md`**. Khi thêm cổng mới, nó bắt luôn
+2 script cũ cũng chưa khai (`usage-estimate.sh`, `ci-workflow-policy.test.ts`) — tức khuôn này đã
+âm thầm lặp lại nhiều lần trước đó.
+
+**Cách rà:** với mọi PR thêm file vào `scripts/`, hỏi đúng 3 câu — (1) có job/step CI nào *bắt buộc*
+chạy nó không? (2) có dòng trong `CODEMAP.md` không? (3) một phiên AI mới, chỉ đọc `CLAUDE.md`, có
+biết nó tồn tại không? Không đủ 3 thì chưa xong, dù test có xanh.
+
+**Cổng chốt chặn:** `scripts/check-docs-consistency.sh` **mục 6** (mọi `scripts/*.{sh,py,json,ts}`
+phải được `CODEMAP.md` khai; miễn trừ phải ghi lý do ở `CODEMAP_EXEMPT`) + 2 step mới trong job CI
+`framework-lint` chạy `test-next-gen-engines.sh` và `test-telemetry-and-dispatch.sh` + negative-test
+của chính mục 6 trong `scripts/test-check-scripts.sh` (cả chiều đỏ lẫn chiều xanh).
+
+## 12. `test-check-scripts.sh` chỉ kiểm được cổng ĐÃ COMMIT — sửa cổng mà chưa commit thì test mới xanh giả
+
+*Ngày: 2026-09-13 · phát hiện khi thêm mục 6 ở trên.*
+
+`setup_repo()` dựng sandbox bằng `git archive HEAD` — **chỉ lấy file đã commit**. Nên khi vừa thêm
+mục kiểm mới vào `check-docs-consistency.sh` (chưa commit) rồi chạy `test-check-scripts.sh` ngay,
+sandbox vẫn chạy **bản cũ** của cổng: ca negative (`rc` phải = 1) đỏ vì cổng cũ không có mục đó, còn
+ca đối chứng (`rc` phải = 0) **xanh giả** — xanh vì cổng không kiểm gì, không phải vì nó kiểm đúng.
+
+Nguy hiểm ở chỗ nếu chỉ viết ca đối chứng (không viết ca negative), bộ test sẽ báo xanh toàn bộ và
+người viết tin rằng cổng mới đã hoạt động. Đây là lý do mỗi mục kiểm **phải có cả ca đỏ lẫn ca xanh**
+(nguyên tắc F-002/G-001 áp cho chính mình).
+
+**Cách rà:** sửa bất kỳ `check-*.sh` nào → **commit trước** rồi mới chạy `test-check-scripts.sh`;
+nếu một ca negative mới báo `rc=0`, nghi ngờ "chưa commit" *trước* khi nghi ngờ logic cổng.
+
+**Cổng chốt chặn:** không có cổng máy (bản chất là thứ tự thao tác) — chốt bằng chính mục này +
+ghi chú trong đầu `scripts/test-check-scripts.sh`.
