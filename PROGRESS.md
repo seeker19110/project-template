@@ -6,11 +6,12 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#78 đã merge (freshness gate, audit reset, G-001..G-004, cơ chế branch-
+- Giai đoạn: GĐ 8. PR #69→#80 đã merge (freshness gate, audit reset, G-001..G-004, cơ chế branch-
   protection/auto-merge mượn từ `Claude-Agents`, dọn nhánh remote, `protection-guard` nay thật sự
-  nằm trong `needs:` của `gate`). Luật mới: cập nhật tài liệu mô tả một thay đổi PHẢI nằm trong
+  nằm trong `needs:` của `gate`, rà toàn bộ CLAUDE.md — PR #80 bổ sung 2 script tự kiểm còn thiếu
+  trong ghi chú §10). Luật mới: cập nhật tài liệu mô tả một thay đổi PHẢI nằm trong
   CÙNG PR với thay đổi đó, không tách PR riêng theo sau (CLAUDE.md §8, AGENTS.md). Không còn việc dở.
-- Default-branch SHA đã đối chiếu: `166eee5` (`origin/main`, PR #78)
+- Default-branch SHA đã đối chiếu: `b8eaea2` (`origin/main`, PR #80)
 - Nhánh đang làm: `main`
 - Ngày cập nhật: 2026-09-13
 
