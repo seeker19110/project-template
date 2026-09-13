@@ -6,13 +6,13 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#100 đã merge. Mốc gần nhất: 3 việc còn treo đã đóng — PF-3 (`check-progress-freshness.sh`, PR #98), độ phủ DÒNG 71%→97% cho 4 engine Python (`scripts/test-py-coverage.sh`, PR #99), tách 2 tài liệu dài thành hub + phần giữ nguyên tên file gốc (PR #100). Toàn bộ 10 cổng xanh; độ phủ cổng 100%, điểm radar 100/100.
+- Giai đoạn: GĐ 8. PR #69→#102 đã merge. Mốc gần nhất: audit toàn diện 2026-09-13 (lượt 2) phát hiện B-01→B-03 và đã đóng cả ba bằng CỔNG MÁY (PR #102) — `pr-policy.yml` soi cả tiêu đề PR lẫn tiêu đề từng commit (bịt đường né Feature gate qua squash), `check-docs-consistency.sh` mục 7 đối chiếu danh sách engine `CLAUDE.md` ↔ `AGENTS.md`, CI nâng lên `shellcheck --severity=warning` đúng luật §5. 10/10 cổng xanh, repo sạch ở mức warning, radar 100/100.
 - **Lưu ý khuôn lỗi (PR #82):** auto-merge (squash) có thể merge PR ngay khi CI của commit ĐẦU
   TIÊN xanh — một commit push SAU khi đã bật auto-merge (vd cập nhật PROGRESS.md cùng PR) có thể
   KHÔNG kịp vào trước khi merge xảy ra, dù mới push xong. Xác nhận lại bằng `git log origin/main`/
   `git show <sha> --stat` trước khi tin PROGRESS.md trong PR đã vào `main`; nếu thiếu, mở PR sync
   riêng — không coi im lặng là "đã vào".
-- Default-branch SHA đã đối chiếu: `1bae0db` (`origin/main`, PR #98)
+- Default-branch SHA đã đối chiếu: `7ffb645` (`origin/main`, PR #102)
 - Nhánh đang làm: `main`
 - Ngày cập nhật: 2026-09-13
 
