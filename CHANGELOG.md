@@ -11,6 +11,13 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## [Unreleased]
 
+### Added (Thêm)
+
+- **Quick Start + adoption preflight** — thêm `docs/framework/quickstart.md` để định hướng nhanh
+  Greenfield/Brownfield, dẫn về Standard Delivery Contract và cung cấp checklist xác nhận lệnh/gate
+  thật của ứng dụng, CI, bảo mật, ruleset và vận hành. README cùng framework index đã liên kết tới
+  trang này. Checklist là preflight thủ công, không thay thế quality gate hay evidence theo profile.
+
 ### Removed (Bỏ)
 
 - **Gỡ hẳn scaffold Web mặc định (Next.js + Supabase) khỏi repo khung — ADR-0004.** Xoá `app/`,
