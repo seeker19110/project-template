@@ -6,15 +6,11 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#74 đã merge (freshness gate, audit reset, G-001, cơ chế branch-
-  protection/auto-merge mượn từ `Claude-Agents`, dọn PROGRESS.md). Đang trên nhánh
-  `fix/g003-g004-stale-effort-label` (chưa mở PR): xử lý 2 phát hiện Trung còn lại từ audit —
-  G-003 (dòng sơ đồ ASCII `orchestration-3-tier.md` còn "Opus · high", sửa thành "Opus · medium")
-  + G-004 (thêm mục 5 vào `check-docs-consistency.sh`: cấm chuỗi "Opus · high" đã rút lại sống lại
-  ở bất kỳ *.md/*.sh/*.ps1 nào ngoài nhật ký lịch sử — cố ý không xây trình phân tích ngữ nghĩa
-  tổng quát). Cả 4 phát hiện Trung của audit 2026-09-12 giờ đã đóng.
-- Default-branch SHA đã đối chiếu: `8d00a44` (`origin/main`, PR #74)
-- Nhánh đang làm: `fix/g003-g004-stale-effort-label`
+- Giai đoạn: GĐ 8. PR #69→#75 đã merge (freshness gate, audit reset, G-001, cơ chế branch-
+  protection/auto-merge mượn từ `Claude-Agents`, G-003+G-004). Cả 4 phát hiện Trung của audit
+  toàn diện 2026-09-12 (G-001..G-004) đã đóng — 0 phát hiện mở. Đã quay về `main`, không còn việc dở.
+- Default-branch SHA đã đối chiếu: `d646a32` (`origin/main`, PR #75)
+- Nhánh đang làm: `main`
 - Ngày cập nhật: 2026-09-12
 
 ## Goal đang active
@@ -69,8 +65,7 @@
 
 ## Tiếp theo
 
-- **Ngay lập tức:** mở PR cho nhánh `fix/g003-g004-stale-effort-label`, đăng ký theo dõi, merge khi
-  CI xanh.
+- **Ngay lập tức:** không có việc dở — chờ yêu cầu tiếp theo của người dùng.
 - **Chờ bạn:** import `.github/rulesets/main.json` trên GitHub Settings → Rules → Rulesets (chỉ chủ
   repo làm được) để `protection-guard` thật sự có gì để đối chiếu.
 - Cả 4 phát hiện Trung của audit toàn diện 2026-09-12 đã đóng: G-001 (PR #72), G-002 (dọn trong PR
