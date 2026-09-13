@@ -689,6 +689,30 @@ Các phần còn lại (Dependabot, Lighthouse CI...) thêm dần sau.
 - [ ] **Dependabot alerts** + **security updates**: bật trong Code security (file `dependabot.yml` đã có sẵn).
 - [ ] **Secret scanning** (GitHub native) — bật nếu repo hỗ trợ (bổ trợ cho gitleaks).
 
+### 4b. Danh tính commit cho phiên AI (bắt buộc nếu để AI mở PR)
+
+**Vì sao có mục này:** nếu ruleset bật `require_extra_approval_for_unattributed_changes`
+(bản mẫu `.github/rulesets/main.json` có bật), GitHub **chặn auto-merge** mọi PR có commit
+không gắn được vào một tài khoản GitHub. Phiên AI hay commit bằng một email chưa liên kết
+tài khoản → **mọi PR do AI tạo đều kẹt**, mỗi phiên một lần, và triệu chứng
+(`blocked` dù CI xanh hết) không nói ra nguyên nhân. Đã xảy ra thật ở PR #93 của repo khung.
+
+Git tách **author** (người viết — quyết định GitHub gán commit cho ai) khỏi **committer**
+(người tạo commit — quyết định chữ ký), nên **không phải đánh đổi**:
+
+```bash
+# author = email ĐÃ LIÊN KẾT tài khoản GitHub của bạn (Settings → Emails)
+# committer = danh tính của harness, để commit được ký Verified
+git -c user.email=noreply@anthropic.com -c user.name=Claude \
+    commit --author="<Tên bạn> <email-đã-liên-kết@example.com>" -m "feat: ..."
+```
+
+- [ ] Xác minh email tác giả **đã liên kết** tài khoản: `Settings → Emails` trên GitHub.
+- [ ] Kiểm chứng sau commit đầu tiên: `git log -1 --format='%an <%ae> | %cn <%ce>'`, rồi mở
+      commit trên GitHub xem avatar tác giả có hiện không (không hiện = chưa gắn được).
+- [ ] Nếu đã lỡ commit bằng email chưa liên kết: `git commit --amend --author="..."` rồi
+      force-push **nhánh của chính mình** (không bao giờ force-push nhánh người khác).
+
 ## 5. Bí mật & biến môi trường (KHÔNG commit — đặt qua dashboard)
 
 - [ ] **GitHub Actions secrets** (dùng bởi `lighthouse-ci.yml`, job `e2e`): `NEXT_PUBLIC_SUPABASE_URL`,
