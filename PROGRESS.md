@@ -6,20 +6,14 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#87 đã merge (freshness gate, audit reset, G-001..G-004, cơ chế branch-
-  protection/auto-merge mượn từ `Claude-Agents`, dọn nhánh remote, `protection-guard` nay thật sự
-  nằm trong `needs:` của `gate`, rà toàn bộ CLAUDE.md, quickstart adoption preflight (PR #85), và
-  PR #87 bổ sung "deletion test" + quy tắc report trực quan ra thư mục tạm vào
-  `docs/ops/code-optimization-audit-prompt.md` (tham khảo repo `mattpocock/skills`).
-  Luật mới: cập nhật tài liệu mô tả một thay đổi PHẢI nằm trong CÙNG PR với thay đổi đó, không tách
-  PR riêng theo sau (CLAUDE.md §8, AGENTS.md). Không còn việc dở.
+- Giai đoạn: GĐ 8. PR #69→#89 đã merge (Universal Subagent Dispatch Protocol `scripts/subagent-dispatch.py`, AI Telemetry & Observability Engine `scripts/telemetry-log.py`, self-testing suite `scripts/test-telemetry-and-dispatch.sh`, và sửa tương thích CRLF/MSYS Windows).
 - **Lưu ý khuôn lỗi (PR #82):** auto-merge (squash) có thể merge PR ngay khi CI của commit ĐẦU
   TIÊN xanh — một commit push SAU khi đã bật auto-merge (vd cập nhật PROGRESS.md cùng PR) có thể
   KHÔNG kịp vào trước khi merge xảy ra, dù mới push xong. Xác nhận lại bằng `git log origin/main`/
   `git show <sha> --stat` trước khi tin PROGRESS.md trong PR đã vào `main`; nếu thiếu, mở PR sync
   riêng — không coi im lặng là "đã vào".
-- Default-branch SHA đã đối chiếu: `1d14fd4` (`feat/universal-harness-interoperability`)
-- Nhánh đang làm: `feat/universal-harness-interoperability`
+- Default-branch SHA đã đối chiếu: `62d3eef` (`origin/main`, PR #89)
+- Nhánh đang làm: `main`
 - Ngày cập nhật: 2026-09-13
 
 ## Goal đang active
