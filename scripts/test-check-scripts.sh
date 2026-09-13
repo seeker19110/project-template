@@ -8,6 +8,9 @@
 # sửa tương lai có thể vô tình làm gate mất khả năng phát hiện lỗi mà CI không hề biết (gate
 # "xanh giả" — cùng khuôn F-002 mà `test-hooks-gate.sh` đã chốt chặn cho hook, giờ áp cho 3 script này).
 #
+# LƯU Ý THỨ TỰ (TRAPS.md mục 12): sandbox dựng bằng `git archive HEAD` nên chỉ chứa bản ĐÃ COMMIT
+# của các cổng. Sửa một check-*.sh rồi chạy test này NGAY khi chưa commit → sandbox vẫn chạy bản cũ:
+# ca negative đỏ oan, ca đối chứng XANH GIẢ. Commit trước, rồi mới chạy.
 # Cách làm: dựng bản sao TOÀN BỘ cây file đã track (git archive HEAD) vào thư mục scratch, git init
 # lại (lịch sử mới, sạch), rồi mutate từng ca — không đụng gì vào repo thật.
 #
@@ -84,6 +87,22 @@ stale_word="hi"; stale_word="${stale_word}gh"
 sed -i "s/Opus · medium/Opus · ${stale_word}/" "$d/docs/framework/orchestration-3-tier.md"
 rc="$(run_check "$d" check-docs-consistency.sh)"
 [ "$rc" = "1" ] && ok "bắt được nhãn effort đã rút lại sống lại (mục 5, G-003/G-004)" || bad "KHÔNG bắt được nhãn effort cũ sống lại (rc=$rc)"
+
+d="$(setup_repo)"
+# Mục 6 (audit 2026-09-13, CAO-2): script mới mà quên khai trong CODEMAP.md phải làm ĐỎ.
+printf '#!/usr/bin/env bash\nexit 0\n' > "$d/scripts/script-moi-chua-khai.sh"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && ok "bắt được script mới chưa khai trong CODEMAP.md (mục 6)" || bad "KHÔNG bắt được script chưa khai CODEMAP (rc=$rc)"
+
+d="$(setup_repo)"
+# Chiều ngược: khai đủ thì phải XANH — chứng minh mục 6 không đỏ oan mọi lúc.
+printf '#!/usr/bin/env bash\nexit 0\n' > "$d/scripts/script-moi-da-khai.sh"
+# CỐ Ý không bọc backtick quanh đường dẫn fixture: mục 1 quét đường dẫn trong backtick ở mọi
+# *.sh và sẽ báo file giả lập này "không tồn tại" (đã mắc thật khi viết ca test này). Mục 6 chỉ
+# grep tên file nên không cần backtick.
+printf '| Việc giả lập | scripts/script-moi-da-khai.sh | test |\n' >> "$d/CODEMAP.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "0" ] && ok "script đã khai trong CODEMAP.md thì mục 6 XANH (không đỏ oan)" || bad "mục 6 đỏ oan với script đã khai (rc=$rc)"
 
 ## ============================================================
 ## 2. check-ci-policy.sh

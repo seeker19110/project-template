@@ -18,7 +18,9 @@
 .claude/usage-budget.sh
 .claude/.winddown-nudged
 
-# Dữ liệu nhật ký telemetry động cục bộ
+# Dữ liệu nhật ký telemetry động cục bộ (telemetry-log.py)
+.ai-telemetry/
+# tên cũ, giữ lại để repo đã clone trước 2026-09-13 không commit nhầm log cũ
 .hermes/
 
 # Contract tests tự động sinh bởi spec-compiler.py
