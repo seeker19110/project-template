@@ -6,18 +6,19 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#82 đã merge (freshness gate, audit reset, G-001..G-004, cơ chế branch-
+- Giai đoạn: GĐ 8. PR #69→#87 đã merge (freshness gate, audit reset, G-001..G-004, cơ chế branch-
   protection/auto-merge mượn từ `Claude-Agents`, dọn nhánh remote, `protection-guard` nay thật sự
-  nằm trong `needs:` của `gate`, rà toàn bộ CLAUDE.md — PR #80 bổ sung 2 script tự kiểm còn thiếu
-  trong ghi chú §10, PR #82 mở rộng quy ước: chỉ bật auto-merge SAU KHI mô tả PR đủ mục template).
+  nằm trong `needs:` của `gate`, rà toàn bộ CLAUDE.md, quickstart adoption preflight (PR #85), và
+  PR #87 bổ sung "deletion test" + quy tắc report trực quan ra thư mục tạm vào
+  `docs/ops/code-optimization-audit-prompt.md` (tham khảo repo `mattpocock/skills`).
   Luật mới: cập nhật tài liệu mô tả một thay đổi PHẢI nằm trong CÙNG PR với thay đổi đó, không tách
   PR riêng theo sau (CLAUDE.md §8, AGENTS.md). Không còn việc dở.
-- **Lưu ý khuôn lỗi mới (PR #82):** auto-merge (squash) có thể merge PR ngay khi CI của commit ĐẦU
+- **Lưu ý khuôn lỗi (PR #82):** auto-merge (squash) có thể merge PR ngay khi CI của commit ĐẦU
   TIÊN xanh — một commit push SAU khi đã bật auto-merge (vd cập nhật PROGRESS.md cùng PR) có thể
   KHÔNG kịp vào trước khi merge xảy ra, dù mới push xong. Xác nhận lại bằng `git log origin/main`/
   `git show <sha> --stat` trước khi tin PROGRESS.md trong PR đã vào `main`; nếu thiếu, mở PR sync
-  riêng (như PR này) — không coi im lặng là "đã vào".
-- Default-branch SHA đã đối chiếu: `1bc167c` (`origin/main`, PR #83)
+  riêng — không coi im lặng là "đã vào".
+- Default-branch SHA đã đối chiếu: `9bea231` (`origin/main`, PR #87)
 - Nhánh đang làm: `main`
 - Ngày cập nhật: 2026-09-13
 
