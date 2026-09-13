@@ -44,7 +44,16 @@ GIAI ĐOẠN 1 — ĐO BASELINE (chỉ đọc & đo, KHÔNG sửa gì):
 3) Tổng hợp BÁO CÁO AUDIT thành bảng theo 4 nhóm
    (dead code · trùng lặp/độ phức tạp · dependency · bundle). Mỗi mục ghi:
    vị trí (file:dòng) · mức độ · đề xuất xử lý · rủi ro · đã có test che chưa.
-   Xếp theo ưu tiên. RỒI DỪNG LẠI, chờ tôi duyệt — chưa được sửa.
+   Với module/khối nghi ngờ "nông" (interface đơn giản nhưng logic bên trong rối,
+   khái niệm rải rác nhiều file) — áp DELETION TEST để quyết có đáng gộp/đào sâu
+   (deepen) hay không: giả định xóa module đó, nếu độ phức tạp CHỈ DỜI CHỖ (dời
+   sang nơi gọi nó) thì KHÔNG đáng động vào; nếu độ phức tạp DỒN LẠI một chỗ rõ hơn
+   (tín hiệu module đang gánh trách nhiệm phân mảnh không cần thiết) thì đáng ưu
+   tiên xử lý. Ghi kết quả deletion test (dồn lại / chỉ dời chỗ) vào cột lý do.
+   Xếp theo ưu tiên. Nếu có tạo report trực quan (HTML/hình) để dễ trình bày,
+   ghi ra thư mục tạm ngoài repo (không commit) — báo cáo audit chính thức vẫn
+   là bảng markdown ở bước này, report trực quan chỉ là phụ trợ khi trình bày.
+   RỒI DỪNG LẠI, chờ tôi duyệt — chưa được sửa.
 
 GIAI ĐOẠN 2 — HẠ DẦN (chỉ sau khi tôi duyệt):
 - Làm từng PR nhỏ theo thứ tự ưu tiên. Mỗi PR:
