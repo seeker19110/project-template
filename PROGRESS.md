@@ -18,8 +18,8 @@
   KHÔNG kịp vào trước khi merge xảy ra, dù mới push xong. Xác nhận lại bằng `git log origin/main`/
   `git show <sha> --stat` trước khi tin PROGRESS.md trong PR đã vào `main`; nếu thiếu, mở PR sync
   riêng — không coi im lặng là "đã vào".
-- Default-branch SHA đã đối chiếu: `9bea231` (`origin/main`, PR #87)
-- Nhánh đang làm: `main`
+- Default-branch SHA đã đối chiếu: `1d14fd4` (`feat/universal-harness-interoperability`)
+- Nhánh đang làm: `feat/universal-harness-interoperability`
 - Ngày cập nhật: 2026-09-13
 
 ## Goal đang active

@@ -15,6 +15,7 @@
 set -uo pipefail   # cố ý KHÔNG -e: một ca lỗi không được làm chết cả lượt chạy (docs/CONVENTIONS.md §A)
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+if command -v cygpath >/dev/null 2>&1; then ROOT="$(cygpath -m "$ROOT")"; fi
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
@@ -29,6 +30,7 @@ bad() { echo "  ❌ $1"; fails=$((fails+1)); }
 setup_repo() {   # echo ra đường dẫn thư mục scratch
   local dir="$WORK/repo-$RANDOM-$RANDOM"
   mkdir -p "$dir"
+  if command -v cygpath >/dev/null 2>&1; then dir="$(cygpath -m "$dir")"; fi
   git -C "$ROOT" archive HEAD | (cd "$dir" && tar -x)
   git -C "$dir" init -q
   git -C "$dir" -c user.email=t@t.local -c user.name=test add -A
