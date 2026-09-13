@@ -157,10 +157,14 @@ Cho mỗi lựa chọn (framework, CSDL, hosting, thư viện lõi), chấm theo
 > **Mọi phiên bản bên dưới là ảnh chụp ngày 2026-06-29 — XÁC MINH LẠI tại thời điểm khởi tạo dự án** (Nguyên tắc số 1).
 > Cột "Cổng chất lượng đặc thù" cho biết hồ sơ đó thay/bổ sung gì so với các cổng web trong KHUNG 1.
 
-## C1 — Hồ sơ Web app (MẶC ĐỊNH)
+## C1 — Hồ sơ Web app
 
-> Mặc định cho **web app điển hình** (CRUD + auth + realtime nhẹ). Đây cũng là stack mà các file cấu hình trong
-> bộ khung này (CI, hook, `lib/env.ts`, `styles/theme.css`, Lighthouse, Playwright) đang giả định.
+> **Lưu ý:** "MẶC ĐỊNH" ở đây có nghĩa đây là hồ sơ mà các **file cấu hình drop-in** (CI, hook,
+> `lib/env.ts`, `styles/theme.css`, Lighthouse, Playwright) giả định — **không phải** mặc định áp đặt
+> cho mọi dự án. Nếu ý tưởng không phải web app điển hình, bắt buộc phân loại lại qua PHẦN A0 trước.
+> Xem thêm `TRAPS.md` §9.
+>
+> Mặc định cho **web app điển hình** (CRUD + auth + realtime nhẹ).
 
 | Vai trò | Lựa chọn | Phiên bản (xác minh 2026-06-29) | Vì sao (cân bằng phổ biến ↔ năng lực) |
 |---------|----------|-------------------------------|----------------------------------------|
