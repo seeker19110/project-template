@@ -33,5 +33,6 @@
 | Thêm **script mới bất kỳ** vào `scripts/` | Chính script đó **+** một dòng trong bảng này (đây là chỗ duy nhất một phiên AI mới biết script tồn tại) | `scripts/check-docs-consistency.sh` mục 6 (script ↔ CODEMAP); miễn trừ phải khai lý do ở `CODEMAP_EXEMPT` |
 | Đổi **bản vitest chính sách CI phát cho dự án đích** | `scripts/ci-workflow-policy.test.ts` (vào dropins qua `copy-framework.sh`; repo khung KHÔNG chạy được vì không có `package.json`) — thêm/bỏ một `CP-*` phải khai ở **cả** bản shell | `scripts/check-ci-policy.sh` mục 7 (đối chiếu bảng kiểm `CP-*` hai chiều shell ↔ vitest) |
 | Đổi **ước tính hạn mức dùng model** | `scripts/usage-estimate.sh` | `scripts/test-usage-estimate.sh` (job CI `framework-lint`) — có đối chứng định lượng: đổi budget thì % phải đổi theo |
+| Đổi **ngưỡng/ca đo độ phủ dòng** của 4 engine Python | `scripts/test-py-coverage.sh` — sàn mặc định 95% (`PY_COVERAGE_MIN`); thêm ca test để NÂNG, hạ sàn phải nêu lý do trong PR | chính nó, chạy trong job CI `framework-lint` (cần `coverage.py`) |
 | Ghi nhận thay đổi đáng kể | `CHANGELOG.md` mục `## [Unreleased]` | — |
 | Cập nhật trạng thái dự án sau mỗi mốc | `PROGRESS.md` | — |
