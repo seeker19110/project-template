@@ -6,15 +6,12 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#77 đã merge (freshness gate, audit reset, G-001..G-004, cơ chế branch-
-  protection/auto-merge mượn từ `Claude-Agents`, dọn nhánh remote). Người dùng đã import
-  `.github/rulesets/main.json` — `protection-guard` xanh thật. Đang trên nhánh
-  `chore/wire-protection-guard-into-gate` (chưa mở PR): thêm `protection-guard` vào `needs:` của
-  `gate`, xoá khỏi `CP4_BOOTSTRAP_EXEMPT`; đồng thời thêm luật mới (CLAUDE.md §8 + AGENTS.md) —
-  cập nhật tài liệu mô tả một thay đổi PHẢI nằm trong CÙNG PR với thay đổi đó, không tách PR riêng
-  theo sau (đúng nguyên tắc đang áp dụng ngay trong PR này).
-- Default-branch SHA đã đối chiếu: `d5b0b87` (`origin/main`, PR #77)
-- Nhánh đang làm: `chore/wire-protection-guard-into-gate`
+- Giai đoạn: GĐ 8. PR #69→#78 đã merge (freshness gate, audit reset, G-001..G-004, cơ chế branch-
+  protection/auto-merge mượn từ `Claude-Agents`, dọn nhánh remote, `protection-guard` nay thật sự
+  nằm trong `needs:` của `gate`). Luật mới: cập nhật tài liệu mô tả một thay đổi PHẢI nằm trong
+  CÙNG PR với thay đổi đó, không tách PR riêng theo sau (CLAUDE.md §8, AGENTS.md). Không còn việc dở.
+- Default-branch SHA đã đối chiếu: `166eee5` (`origin/main`, PR #78)
+- Nhánh đang làm: `main`
 - Ngày cập nhật: 2026-09-13
 
 ## Goal đang active
