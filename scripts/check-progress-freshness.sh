@@ -14,6 +14,8 @@
 #   PF-1  "Default-branch SHA đã đối chiếu" phải là tổ tiên (ancestor) của HEAD hiện tại
 #   PF-2  Nếu PROGRESS.md nêu tên "Nhánh đang làm" thì nhánh đó phải còn tồn tại trên remote
 #         (nhánh đã merge/xoá mà PROGRESS.md vẫn nói "đang làm" = lỗi thời)
+#   PF-3  Số PR trong dòng "Giai đoạn" phải >= số PR của commit mà "SHA đã đối chiếu" trỏ tới
+#         (hai dòng cùng mô tả MỘT mốc đối chiếu, lệch nhau là lỗi thời)
 #
 # Job wiring (ci.yml): job này CHỈ chạy khi push thẳng vào main (sau khi một PR vừa merge) — lúc
 # PR còn mở, nhánh vẫn tồn tại là bình thường, kiểm lúc đó sẽ báo oan. Cần lịch sử đầy đủ
@@ -83,8 +85,35 @@ else
   fi
 fi
 
+# --- PF-3: dòng "Giai đoạn" phải nhất quán với "SHA đã đối chiếu" (audit 2026-09-13). ---
+# VÌ SAO: PR #96 cập nhật SHA + "Nhánh đang làm" nhưng SÓT dòng "Giai đoạn" (vẫn ghi PR #69→#93
+# trong khi SHA trỏ tới PR #95). PF-1/PF-2 đều xanh vì hai trường đó đúng — không cổng nào bắt.
+#
+# CỐ Ý so với SỐ PR CỦA CHÍNH SHA ĐÃ ĐỐI CHIẾU, không so với PR mới nhất trên main: hai dòng này
+# cùng mô tả MỘT mốc nên phải khớp nhau, và cách so này KHÔNG bị đệ quy (so với PR mới nhất thì
+# mỗi PR đồng bộ PROGRESS.md lại tự làm file lệch thêm một bậc, không bao giờ xanh được).
+echo "== PF-3: dòng 'Giai đoạn' nhất quán với SHA đã đối chiếu =="
+stage_line="$(grep -m1 -E '^- Giai đoạn:' "$PROGRESS_FILE" || true)"
+if [ -z "$stage_line" ] || [ -z "${recorded_sha:-}" ]; then
+  echo "OK — thiếu dòng 'Giai đoạn' hoặc SHA đã đối chiếu (không áp dụng)."
+else
+  # Số PR LỚN NHẤT nêu trong dòng "Giai đoạn" (dòng hay viết dạng "PR #69→#96").
+  stage_pr="$(printf '%s' "$stage_line" | grep -oE '#[0-9]+' | tr -d '#' | sort -n | tail -1)"
+  # Số PR của commit mà SHA trỏ tới — squash merge để lại "(#NN)" ở cuối tiêu đề.
+  sha_subject="$(git log -1 --format=%s "$recorded_sha" 2>/dev/null || true)"
+  sha_pr="$(printf '%s' "$sha_subject" | grep -oE '\(#[0-9]+\)' | tr -d '(#)' | sort -n | tail -1)"
+  if [ -z "$stage_pr" ] || [ -z "$sha_pr" ]; then
+    echo "OK — không đọc được số PR ở một trong hai dòng (không áp dụng)."
+  elif [ "$stage_pr" -ge "$sha_pr" ]; then
+    echo "OK: dòng 'Giai đoạn' nêu PR #$stage_pr >= PR #$sha_pr của SHA đã đối chiếu."
+  else
+    echo "::error file=$PROGRESS_FILE::Dòng 'Giai đoạn' nêu PR #$stage_pr nhưng 'SHA đã đối chiếu' ($recorded_sha) trỏ tới PR #$sha_pr — hai dòng cùng mô tả MỘT mốc nên lệch nhau là PROGRESS.md lỗi thời. Cập nhật dòng 'Giai đoạn' cho khớp (khuôn lỗi: PR #96 sửa SHA nhưng quên dòng này)."
+    fail=1
+  fi
+fi
+
 if [ "$fail" -eq 0 ]; then
-  echo "OK — PROGRESS.md khớp git thật (PF-1, PF-2)."
+  echo "OK — PROGRESS.md khớp git thật (PF-1, PF-2, PF-3)."
 fi
 
 exit "$fail"
