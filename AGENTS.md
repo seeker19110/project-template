@@ -36,9 +36,11 @@ Xem `CLAUDE.md` §10 (tech stack, lệnh dev/build/test/lint) — dự án thậ
 
 **Điểm vào lệnh chuẩn — dùng cho MỌI agent, MỌI stack:** đừng đoán/hardcode lệnh (`npm run ...`, `pytest`, `go test`...) — gọi `scripts/dev-task.sh <task>` (`format|lint|typecheck|test|build|gate`). Script tự dò đúng lệnh theo hệ sinh thái dự án (Node/Python/Go/Rust/Make) hoặc theo khai báo ở `.claude/project-commands.sh` nếu có, và no-op an toàn nếu không dò được. `dev-task.sh gate` = chạy đủ build→typecheck→lint→test, đỏ 1 cái là dừng — dùng đúng lệnh này trước khi commit (khớp §5 CLAUDE.md) cho dù agent đang chạy là Claude Code, Codex, Cursor hay công cụ khác.
 
-**Định tuyến Subagent & Telemetry đa-harness:**
+**4 engine chạy được trong `scripts/` (bản đầy đủ: `CODEMAP.md`; khai ở `CLAUDE.md` §1):**
 - **Subagent Dispatch Engine:** Gọi `scripts/subagent-dispatch.sh --agent <tên> --task "<mô tả>" --harness <hermes|claude|codex|generic>` để nạp đúng vai trò và system prompt từ `.claude/agents/*.md` cho bất kỳ AI Runner/Harness nào.
 - **AI Telemetry & Cost Engine:** Gọi `scripts/telemetry-log.sh --record --agent <tên> --harness <tên> --duration <giây> --test-status PASSED|FAILED` để ghi nhận nhật ký vận hành, ước tính chi phí API và sinh báo cáo `scripts/telemetry-log.sh --summary` hoặc widget HTML `scripts/telemetry-log.sh --widget`.
+- **Spec-to-Contract Compiler:** Gọi `scripts/spec-compiler.sh --compile-all` để biên dịch `docs/specs/*.md` thành contract test `unittest` trong `tests/contracts/`. Kiểm 3 hợp đồng: spec khai `State`; spec khai ≥ 1 mã yêu cầu (`FR-`/`AC-`/`NFR-`/`W-`); mọi đường dẫn trong mục "11. Architecture và code touchpoints" của spec **đã Approved** phải tồn tại thật. Miễn trừ phải khai kèm lý do: `<!-- contract-exempt: <path> — <lý do> -->`.
+- **Repo Health & Tech Debt Radar:** Gọi `scripts/arch-health-radar.sh --scan` để đo độ phủ cổng CI, chất lượng spec, kỷ luật kích thước file mã, mật độ chú thích và nợ TODO. Báo cáo IN RA công thức chấm điểm; nó **không** đo coupling/cyclomatic complexity — đừng đọc con số như điểm kiến trúc tổng quát.
 
 ## Hàng rào an toàn thủ công (agent không có hook phải tự tuân thủ)
 

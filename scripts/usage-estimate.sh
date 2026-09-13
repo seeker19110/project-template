@@ -23,6 +23,7 @@ BUDGET_FILE="$ROOT/.claude/usage-budget.sh"
 CACHE_READ_WEIGHT=0.1
 WINDDOWN_THRESHOLD=70
 BUDGET_OPUS=0; BUDGET_SONNET=0; BUDGET_HAIKU=0; BUDGET_FABLE=0
+# shellcheck source=/dev/null  # đường dẫn động do người dùng cấu hình — không phân tích tĩnh được
 if [ -f "$BUDGET_FILE" ]; then . "$BUDGET_FILE"; fi
 export CACHE_READ_WEIGHT WINDDOWN_THRESHOLD BUDGET_OPUS BUDGET_SONNET BUDGET_HAIKU BUDGET_FABLE
 

@@ -7,7 +7,7 @@
 # Chạy: bash scripts/test-copy-framework.sh
 set -uo pipefail   # cố ý KHÔNG -e: không được làm chết phiên/lượt chạy (xem docs/CONVENTIONS.md §A)
 
-cd "$(git rev-parse --show-toplevel)"
+cd "$(git rev-parse --show-toplevel)" || exit 1
 REPO_ROOT="$(pwd)"
 fail=0
 tmp_dirs=()
