@@ -61,16 +61,19 @@ jobs:
       # cổng 100% mà độ phủ dòng ~ 0. Sàn 95%, nâng khi thêm ca — hạ phải nêu lý do trong PR.
       - name: Độ phủ dòng của 4 engine Python (coverage.py)
         run: |
-          python3 -m pip install --quiet coverage
+          python3 -m pip install --quiet "coverage==7.16.0"   # ghim: đứt nguồn cung/đổi hành vi sẽ làm sai số đo
           bash scripts/test-py-coverage.sh
 
       - name: Cài ShellCheck (không dựa vào gói có sẵn của runner)
         run: sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
 
-      - name: ShellCheck (mức error)
+      # CLAUDE.md §5 ghi "Lint 0 cảnh báo" nhưng cổng này từng chạy --severity=error, tức luật
+      # nói một đằng CI làm một nẻo (audit 2026-09-13, B-03). Nay chạy đúng mức luật quy định.
+      # Cảnh báo hợp lệ phải khai directive KÈM LÝ DO ngay tại chỗ, không tắt mù cả file.
+      - name: ShellCheck (mức warning — đúng luật "0 cảnh báo" của CLAUDE.md §5)
         run: |
           find . -name '*.sh' -not -path './node_modules/*' -print0 \
-            | xargs -0 shellcheck --severity=error
+            | xargs -0 shellcheck --severity=warning
 
       - name: Cú pháp Python (py_compile — mọi scripts/*.py)
         run: |

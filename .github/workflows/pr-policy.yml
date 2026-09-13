@@ -34,11 +34,30 @@ jobs:
               "## Validation", "## Risk, rollout and rollback", "## Definition of Done"];
             const missing = headings.filter(h => !body.includes(h));
             if (missing.length) core.setFailed(`Missing PR sections: ${missing.join(", ")}`);
-            if (/^feat(\(|:)/.test(pr.title)) {
+            // Feature gate phải soi CẢ tiêu đề PR LẪN tiêu đề từng commit (audit 2026-09-13, B-01).
+            // VÌ SAO: squash merge dùng tiêu đề COMMIT khi PR chỉ có MỘT commit, nên trước đây một
+            // PR đặt tiêu đề `test:` mà commit ghi `feat:` sẽ đưa commit feat: vào main mà KHÔNG
+            // qua Feature gate. Xảy ra thật ở PR #99 (main nhận 76fc65e "feat(test): ...").
+            // Chuỗi nào CÓ THỂ thành tiêu đề commit trên main thì chuỗi đó phải bị soi.
+            const commits = await github.paginate(github.rest.pulls.listCommits, {
+              owner: context.repo.owner, repo: context.repo.repo, pull_number: pr.number,
+            });
+            const commitSubjects = commits.map(c => (c.commit.message || "").split("\n")[0]);
+            const badSubjects = commitSubjects.filter(sub => !title.test(sub));
+            if (badSubjects.length) {
+              core.setFailed(
+                "Mọi commit phải theo Conventional Commits (squash có thể lấy tiêu đề commit làm " +
+                "tiêu đề commit trên main). Vi phạm: " + badSubjects.join(" | "));
+            }
+
+            const featureSubjects = [pr.title, ...commitSubjects].filter(t => /^feat(\(|:)/.test(t));
+            if (featureSubjects.length) {
               if (!/docs\/specs\/\d{4}-\d{2}-\d{2}-[a-z0-9-]+\.md/.test(body)) {
-                core.setFailed("Feature PR must link docs/specs/YYYY-MM-DD-slug.md.");
+                core.setFailed("Feature PR must link docs/specs/YYYY-MM-DD-slug.md. " +
+                  "Tiêu đề kiểu feat: " + featureSubjects.join(" | "));
               }
               if (!/Approved for implementation/i.test(body)) {
-                core.setFailed("Feature spec must be Approved for implementation.");
+                core.setFailed("Feature spec must be Approved for implementation. " +
+                  "Tiêu đề kiểu feat: " + featureSubjects.join(" | "));
               }
             }

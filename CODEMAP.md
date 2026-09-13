@@ -8,6 +8,7 @@
 | --- | --- | --- |
 | Thêm slash command mới | `.claude/commands/<tên>.md` **+** khai TRIGGER trong `CLAUDE.md` §1 (mục tương ứng) | `scripts/check-docs-consistency.sh` (kiểm hai chiều lệnh ↔ CLAUDE.md) |
 | Sửa logic một trong 3 gate chính (`check-docs-consistency.sh`, `check-ci-policy.sh`, `check-progress-freshness.sh`) | Đúng script đó | `scripts/test-check-scripts.sh` (negative-test — PHẢI còn bắt được lỗi sau khi sửa, không chỉ hết crash; audit 2026-09-12 G-001) |
+| Đổi **quy tắc Feature gate / kiểm tiêu đề PR-commit** | `.github/workflows/pr-policy.yml` — soi CẢ tiêu đề PR LẪN tiêu đề từng commit (squash lấy tiêu đề commit khi PR chỉ có 1 commit) | chính job `metadata`; đổi luật phải sửa kèm `CLAUDE.md` §8 |
 | Thêm job cổng mới vào `ci.yml` | job mới **+** `needs:` của job `gate` **+** bản kê trong `docs/ops/repository-settings.md` (branch protection KHÔNG cần sửa — ADR-0003) | `scripts/check-ci-policy.sh` |
 | Nâng/ghim phiên bản GitHub Action | `uses: <action>@<sha40> # <tag>` (lấy SHA: `git ls-remote --tags https://github.com/<action>`) | `scripts/check-ci-policy.sh` (bắt action chưa ghim SHA) |
 | Đổi/thêm job trong `ci.yml` hoặc `pr-policy.yml` | `.github/workflows/{ci,pr-policy}.yml` **+** danh sách "Required checks — nguồn sự thật" trong `docs/ops/repository-settings.md` (khối ` ``` `) | `scripts/check-ci-policy.sh` (đối chiếu hai chiều job id) |
@@ -24,7 +25,7 @@
 | Sửa luật/mẫu golden test (cơ chế, không có ví dụ chạy thật trong repo khung) | Luật cập nhật golden ở `CLAUDE.md` §5 và `.claude/commands/gate.md`; mẫu tài liệu: `docs/framework/templates/GOLDEN-TEST.template.md` | `scripts/check-docs-consistency.sh` |
 | Đổi bản đồ tính năng / quy ước của chính khung | `docs/FEATURE-MAP.md`, `docs/CONVENTIONS.md` | `scripts/check-docs-consistency.sh`; đối chiếu khi audit Nhóm 12 (`/completion` Pha 1) |
 | Ghi bẫy vừa mắc / tra bẫy cũ trước khi chẩn đoán | `TRAPS.md` (gốc repo khung; mẫu rỗng `docs/framework/templates/TRAPS.template.md`) | không có cổng máy — review bằng mắt khi duyệt PR |
-| Đổi luật cốt lõi (giai đoạn, cổng, feature gate…) | `CLAUDE.md` **trước**, rồi soát lại `AGENTS.md` cho khớp (CLAUDE.md là nguồn sự thật) | `scripts/check-docs-consistency.sh` |
+| Đổi luật cốt lõi (giai đoạn, cổng, feature gate…) | `CLAUDE.md` **trước**, rồi soát lại `AGENTS.md` cho khớp (CLAUDE.md là nguồn sự thật) | `scripts/check-docs-consistency.sh` — mục 7 đối chiếu DANH SÁCH ENGINE hai file (cố ý không so ngữ nghĩa toàn văn); phần luật văn xuôi vẫn phải review bằng mắt |
 | Sửa **engine biên dịch spec** (spec → contract test) | `scripts/spec-compiler.py` (wrapper mỏng: `spec-compiler.sh`) — đọc `docs/specs/*.md`, sinh `tests/contracts/` (đã gitignore) | `scripts/test-next-gen-engines.sh` (job CI `framework-lint`) |
 | Sửa **radar sức khỏe kiến trúc / nợ kỹ thuật** | `scripts/arch-health-radar.py` (wrapper: `arch-health-radar.sh`) | `scripts/test-next-gen-engines.sh` (job CI `framework-lint`) |
 | Sửa **bộ điều phối subagent đa-harness** | `scripts/subagent-dispatch.py` (wrapper: `subagent-dispatch.sh`) — nạp vai từ `.claude/agents/*.md` theo nhãn `route:` | `scripts/test-telemetry-and-dispatch.sh` (job CI `framework-lint`) |

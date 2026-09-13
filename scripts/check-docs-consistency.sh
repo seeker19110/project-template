@@ -220,6 +220,37 @@ else
   fi
 fi
 
+# ── 7. Engine khai ở CLAUDE.md §1 phải có mặt trong AGENTS.md (audit 2026-09-13, B-02). ──
+# VÌ SAO: CLAUDE.md §1 bắt "sửa luật cốt lõi ở đây thì soát lại AGENTS.md cho khớp", nhưng KHÔNG
+# cổng nào kiểm — nên CLAUDE.md khai 4 engine trong khi AGENTS.md chỉ kê 2, lệch âm thầm suốt
+# nhiều PR. Đúng khuôn TRAPS.md mục 11: luật có, cơ chế thi hành không có.
+# CỐ Ý hẹp: chỉ đối chiếu DANH SÁCH ENGINE (thứ agent ngoài Claude Code cần biết để gọi), không
+# so ngữ nghĩa toàn văn hai file — prose mỗi bên viết một kiểu, so toàn văn sẽ báo oan liên tục
+# (cùng lý lẽ đã ghi ở mục 5).
+echo "== 7. Engine trong CLAUDE.md §1 ↔ AGENTS.md =="
+if [ ! -f AGENTS.md ] || [ ! -f CLAUDE.md ]; then
+  echo "OK — thiếu CLAUDE.md hoặc AGENTS.md (không áp dụng)."
+else
+  engine_line="$(grep -m1 -F 'Engine chạy được trong' CLAUDE.md || true)"
+  if [ -z "$engine_line" ]; then
+    echo "OK — CLAUDE.md không có mục khai engine (không áp dụng)."
+  else
+    mapfile -t engines < <(printf '%s' "$engine_line" | grep -oE '`scripts/[a-z0-9-]+\.sh`' | tr -d '\`' | sort -u)
+    if [ "${#engines[@]}" -eq 0 ]; then
+      echo "::error file=CLAUDE.md::Có mục 'Engine chạy được trong scripts/' nhưng không đọc được tên engine nào trong dấu \`...\` — mục 7 đang xanh giả."
+      fail=1
+    else
+      for eng in "${engines[@]}"; do
+        base="$(basename "$eng")"
+        if ! grep -qF "$base" AGENTS.md; then
+          echo "::error file=AGENTS.md::CLAUDE.md §1 khai engine '$eng' nhưng AGENTS.md KHÔNG nhắc tới — agent ngoài Claude Code sẽ không biết engine này tồn tại. Bổ sung vào mục engine của AGENTS.md (CLAUDE.md §1: sửa luật ở CLAUDE.md thì soát lại AGENTS.md cho khớp)."
+          fail=1
+        fi
+      done
+    fi
+  fi
+fi
+
 if [ "$fail" -eq 0 ]; then
   echo "OK — không phát hiện link gãy, tên cũ sót lại, hay lệnh lệch với CLAUDE.md."
 fi

@@ -104,6 +104,18 @@ printf '| Việc giả lập | scripts/script-moi-da-khai.sh | test |\n' >> "$d/
 rc="$(run_check "$d" check-docs-consistency.sh)"
 [ "$rc" = "0" ] && ok "script đã khai trong CODEMAP.md thì mục 6 XANH (không đỏ oan)" || bad "mục 6 đỏ oan với script đã khai (rc=$rc)"
 
+d="$(setup_repo)"
+# Mục 7 (audit 2026-09-13, B-02): engine khai ở CLAUDE.md §1 mà AGENTS.md không nhắc -> ĐỎ.
+# Xoá đúng một tên engine khỏi AGENTS.md để tái hiện hình dạng lệch đã xảy ra thật.
+sed -i 's|scripts/spec-compiler.sh|scripts/DA-XOA-KHOI-AGENTS.sh|g' "$d/AGENTS.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && ok "bắt được engine khai ở CLAUDE.md nhưng thiếu trong AGENTS.md (mục 7)" || bad "KHÔNG bắt được lệch CLAUDE.md/AGENTS.md (rc=$rc)"
+
+d="$(setup_repo)"
+# Đối chứng: không đụng gì thì mục 7 phải XANH (bản sao sạch đã có đủ 4 engine ở cả hai file).
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "0" ] && ok "mục 7 XANH khi CLAUDE.md và AGENTS.md khớp (không đỏ oan)" || bad "mục 7 đỏ oan trên bản sao sạch (rc=$rc)"
+
 ## ============================================================
 ## 2. check-ci-policy.sh
 ## ============================================================
