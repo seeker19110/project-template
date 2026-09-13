@@ -17,3 +17,6 @@
 # Ước tính usage (tự hiệu chỉnh) + marker
 .claude/usage-budget.sh
 .claude/.winddown-nudged
+
+# Dữ liệu nhật ký telemetry động cục bộ
+.hermes/

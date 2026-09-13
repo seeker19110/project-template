@@ -47,6 +47,7 @@ for wf in "${WORKFLOWS[@]}"; do
   fi
   in_jobs=0
   while IFS= read -r line; do
+    line="${line%$'\r'}"
     if [[ "$line" == "jobs:" ]]; then
       in_jobs=1
       continue
@@ -60,7 +61,7 @@ for wf in "${WORKFLOWS[@]}"; do
         in_jobs=0
       fi
     fi
-  done < "$f"
+  done < <(tr -d '\r' < "$f")
 done
 
 # --- 2. Trích danh sách khai báo từ khối fenced code block "```" đầu tiên trong repository-settings.md. ---
@@ -72,6 +73,7 @@ fi
 declare -A declared_jobs=() # key "wf:job" -> 1
 in_block=0
 while IFS= read -r line; do
+  line="${line%$'\r'}"
   if [[ "$line" == '```' ]]; then
     if [ "$in_block" -eq 0 ]; then in_block=1; continue; else break; fi
   fi
@@ -80,7 +82,7 @@ while IFS= read -r line; do
       declared_jobs["${BASH_REMATCH[1]}:${BASH_REMATCH[2]}"]=1
     fi
   fi
-done < "$SETTINGS_FILE"
+done < <(tr -d '\r' < "$SETTINGS_FILE")
 
 if [ "${#declared_jobs[@]}" -eq 0 ]; then
   echo "::error::Không đọc được mục nào trong khối 'Required checks — nguồn sự thật' của $SETTINGS_FILE"
@@ -110,6 +112,7 @@ done
 # mà không có PR nào. Trước kiểm này không gì bắt được chuyện đó; dependabot chỉ nâng cái đã ghim.
 echo "== Action chưa ghim full commit SHA =="
 while IFS= read -r line; do
+  line="${line%$'\r'}"
   file="${line%%:*}"; rest="${line#*:}"; lineno="${rest%%:*}"
   ref="$(printf '%s' "$line" | sed -E 's/.*uses:[[:space:]]*//; s/[[:space:]]*#.*$//; s/[[:space:]]*$//')"
   # Bỏ qua action local (./.github/...) và docker://
@@ -127,6 +130,7 @@ echo "== node-version trong workflow khớp .nvmrc =="
 if [ -f .nvmrc ]; then
   nvmrc="$(tr -d ' \n\r' < .nvmrc)"
   while IFS= read -r line; do
+    line="${line%$'\r'}"
     file="${line%%:*}"; rest="${line#*:}"; lineno="${rest%%:*}"
     val="$(printf '%s' "$line" | sed -E 's/.*node-version:[[:space:]]*//; s/[[:space:]]*$//' | tr -d "'\"")"
     case "$val" in \$\{\{*) continue ;; esac   # biểu thức matrix → bỏ qua

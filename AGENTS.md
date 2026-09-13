@@ -36,6 +36,10 @@ Xem `CLAUDE.md` §10 (tech stack, lệnh dev/build/test/lint) — dự án thậ
 
 **Điểm vào lệnh chuẩn — dùng cho MỌI agent, MỌI stack:** đừng đoán/hardcode lệnh (`npm run ...`, `pytest`, `go test`...) — gọi `scripts/dev-task.sh <task>` (`format|lint|typecheck|test|build|gate`). Script tự dò đúng lệnh theo hệ sinh thái dự án (Node/Python/Go/Rust/Make) hoặc theo khai báo ở `.claude/project-commands.sh` nếu có, và no-op an toàn nếu không dò được. `dev-task.sh gate` = chạy đủ build→typecheck→lint→test, đỏ 1 cái là dừng — dùng đúng lệnh này trước khi commit (khớp §5 CLAUDE.md) cho dù agent đang chạy là Claude Code, Codex, Cursor hay công cụ khác.
 
+**Định tuyến Subagent & Telemetry đa-harness:**
+- **Subagent Dispatch Engine:** Gọi `scripts/subagent-dispatch.sh --agent <tên> --task "<mô tả>" --harness <hermes|claude|codex|generic>` để nạp đúng vai trò và system prompt từ `.claude/agents/*.md` cho bất kỳ AI Runner/Harness nào.
+- **AI Telemetry & Cost Engine:** Gọi `scripts/telemetry-log.sh --record --agent <tên> --harness <tên> --duration <giây> --test-status PASSED|FAILED` để ghi nhận nhật ký vận hành, ước tính chi phí API và sinh báo cáo `scripts/telemetry-log.sh --summary` hoặc widget HTML `scripts/telemetry-log.sh --widget`.
+
 ## Hàng rào an toàn thủ công (agent không có hook phải tự tuân thủ)
 
 Claude Code có thể thi hành các luật dưới đây bằng hook (`.claude/hooks/*.sh`); agent khác **không có cơ chế chặn tự động** nên phải tự áp dụng đúng như một quy tắc cứng, không suy diễn khác đi:
