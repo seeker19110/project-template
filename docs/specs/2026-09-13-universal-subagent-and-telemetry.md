@@ -30,3 +30,33 @@ Bộ khung hiện chỉ hỗ trợ subagent native qua Claude Code CLI (`.claude
 ## 5. Scope / non-goals
 
 Trong phạm vi: Subagent Dispatch Engine, AI Telemetry Logger, HTML Widget & Markdown summary, test suite, cross-platform fix cho Windows/MSYS.
+
+## 7. Functional requirements
+
+- **FR-1** `subagent-dispatch.py` đọc `.claude/agents/*.md` và xuất chỉ dẫn giao việc cho harness đích.
+- **FR-2** Chỉ khai những harness **thật sự có nhánh xử lý**; không kê tên harness chưa hỗ trợ.
+- **FR-3** Đầu ra cho mỗi harness phải là **cơ chế có thật** của harness đó — không sinh lệnh không tồn tại.
+- **FR-4** `telemetry-log.py` ghi thời gian, LOC, trạng thái test và ước tính chi phí mỗi tác vụ AI.
+- **FR-5** Bảng giá model **không hard-code** trong `.py`; đặt ở `scripts/model-rates.json` kèm
+  `_verified_on` + `_source`. Model không khớp bảng → cảnh báo `stderr`, không im lặng dùng `default`.
+- **FR-6** Mọi giá trị do người dùng nhập khi xuất HTML/Markdown phải được escape.
+
+## 9. Acceptance criteria
+
+| ID | Given / When / Then | Cách kiểm |
+| --- | --- | --- |
+| **AC-1** | Given `--agent <tên>` hợp lệ · Then xuất chỉ dẫn kèm đúng vai từ `.claude/agents/<tên>.md` | `scripts/test-telemetry-and-dispatch.sh` |
+| **AC-2** | Given `--harness` không nằm trong danh sách hỗ trợ · Then báo lỗi rõ ràng, không đoán | chạy thật |
+| **AC-3** | Given `--model claude-haiku-4-5`, 1M in + 1M out · Then chi phí = `$6.0000` (1.00 + 5.00) | chạy thật, đối chiếu `model-rates.json` |
+| **AC-4** | Given model không có trong bảng giá · Then in cảnh báo ra `stderr` | chạy thật |
+| **AC-5** | Given task chứa `<script>` · Then widget HTML xuất `&lt;script&gt;` | chạy thật |
+| **AC-6** | Given thiếu/hỏng `model-rates.json` · Then thoát mã ≠ 0, không ước tính bằng số bịa | chạy thật |
+
+## 11. Architecture và code touchpoints
+
+- `scripts/subagent-dispatch.py` + `scripts/subagent-dispatch.sh`
+- `scripts/telemetry-log.py` + `scripts/telemetry-log.sh`
+- `scripts/model-rates.json`
+- `scripts/test-telemetry-and-dispatch.sh` (self-test, chạy trong job CI `framework-lint`)
+- `.claude/agents/`
+- `CODEMAP.md`
