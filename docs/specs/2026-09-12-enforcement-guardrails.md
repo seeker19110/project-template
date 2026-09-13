@@ -183,3 +183,6 @@ trạng thái ngoài Git. Hook mới chỉ ảnh hưởng máy local của ngư�
 | Branch protection phải đổi tay sau merge | Ghi trong ADR-0003 + `repository-settings.md` + mục 18 | Người dùng | sau merge | ⚠️ chưa tự động hoá được |
 | W-202/W-303 cần môi trường thật | Hoãn có lý do, ghi trong `COMPLETION-PLAN.md` | AI | đợt sau | ⚠️ để mở |
 | `git checkout <file>` vẫn xoá được việc chưa commit | Không chặn (dùng hợp lệ hàng ngày); chốt bằng quy ước + `TRAPS.md` mục 6 | AI | xong | ✅ chấp nhận rủi ro có chủ đích |
+
+<!-- contract-exempt: scripts/verify-dropins.sh — gỡ khỏi repo khung theo ADR-0004 (bỏ scaffold Web mặc định, commit 98546db); spec này viết TRƯỚC quyết định đó nên giữ nguyên làm hồ sơ lịch sử -->
+<!-- contract-exempt: package.json — file của DỰ ÁN ĐÍCH, repo khung cố ý không có (CLAUDE.md §10) -->

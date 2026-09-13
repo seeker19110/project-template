@@ -208,3 +208,47 @@ nếu một ca negative mới báo `rc=0`, nghi ngờ "chưa commit" *trước* 
 
 **Cổng chốt chặn:** không có cổng máy (bản chất là thứ tự thao tác) — chốt bằng chính mục này +
 ghi chú trong đầu `scripts/test-check-scripts.sh`.
+
+## 13. Commit của phiên AI không gắn được tài khoản GitHub → auto-merge kẹt, triệu chứng không nói ra nguyên nhân
+
+*Ngày: 2026-09-13 · PR #93.*
+
+Ruleset `.github/rulesets/main.json` bật `require_extra_approval_for_unattributed_changes`.
+Phiên AI commit bằng một email **chưa liên kết** tài khoản GitHub → GitHub coi đó là thay đổi
+"unattributed" và **chặn auto-merge**, dù `required_approving_review_count` = 0 và **toàn bộ
+required check đều xanh**.
+
+Triệu chứng đánh lạc hướng: PR ở trạng thái `blocked` nhưng mọi cổng đều ✅, không thông báo nào
+nói lý do. Rất dễ đi tìm nhầm trong CI. Dấu hiệu nhận ra: gọi API commit thấy **thiếu** trường
+`author.login` (commit đã gắn được sẽ có), và trên giao diện GitHub avatar tác giả không hiện.
+
+Điểm dễ mắc thứ hai: sửa bằng `--reset-author` sẽ đặt **cả** author lẫn committer, làm mất danh
+tính harness (và mất chữ ký Verified). Git tách hai trường này nên **không phải đánh đổi**:
+author quyết định attribution, committer quyết định chữ ký.
+
+**Cách rà:** trước khi mở PR từ phiên AI — `git log -1 --format='%an <%ae> | %cn <%ce>'`; email
+author phải nằm trong `Settings → Emails` của tài khoản GitHub.
+
+**Cổng chốt chặn:** không có cổng máy trong repo (thuộc cấu hình môi trường chạy, không phải nội
+dung repo) — chốt bằng mục **4b** trong `docs/framework/new-project-runbook.md` + mục này.
+
+## 14. `git checkout -b` thất bại vì nhánh đã tồn tại → commit rơi nhầm vào `main`
+
+*Ngày: 2026-09-13 · mắc ngay trong phiên xử lý audit 2026-09-13.*
+
+`git checkout -b <nhánh>` báo `fatal: a branch named '<nhánh>' already exists` và **giữ nguyên
+nhánh đang đứng**. Nếu lệnh đó nằm trong một chuỗi `&&`/nhiều lệnh và output không được đọc kỹ,
+các lệnh sau vẫn chạy — nhưng trên **nhánh cũ**. Hậu quả trong phiên này: commit đồng bộ
+`PROGRESS.md` rơi vào `main` cục bộ, rồi `git push origin <nhánh>` lại đẩy **nhánh cũ** (nội dung
+đã merge từ trước) lên, tạo PR #94 sai nội dung mà vẫn bật auto-merge.
+
+May mắn PR đó squash ra **commit rỗng** nên `main` không thụt lùi — nhưng đó là may, không phải
+do cổng nào chặn.
+
+**Cách rà:** sau mỗi lần chuyển nhánh, xác nhận bằng `git branch --show-current` **trước khi**
+commit; đừng tin lệnh checkout đã thành công chỉ vì các lệnh sau nó không lỗi. Dùng
+`git switch -c <nhánh> || git switch <nhánh>` để ý định "tạo hoặc chuyển sang" là tường minh.
+Trước khi push, đối chiếu `git log --oneline -1 <nhánh>` với commit vừa tạo.
+
+**Cổng chốt chặn:** không có cổng máy (thuộc thao tác, không phải nội dung repo) — chốt bằng mục
+này. Dấu hiệu sớm: hook `stop-hook-git-check` báo "unpushed commit(s) on branch 'main'".

@@ -32,6 +32,6 @@
 | Cập nhật **giá API để ước tính chi phí** | `scripts/model-rates.json` — sửa số **và** `_verified_on` + `_source`; KHÔNG hard-code giá vào `.py` (sai giá không làm đỏ CI nên sẽ âm thầm sai mãi) | `jq empty` trong job `framework-lint`; model không khớp bảng → cảnh báo stderr lúc chạy |
 | Thêm **script mới bất kỳ** vào `scripts/` | Chính script đó **+** một dòng trong bảng này (đây là chỗ duy nhất một phiên AI mới biết script tồn tại) | `scripts/check-docs-consistency.sh` mục 6 (script ↔ CODEMAP); miễn trừ phải khai lý do ở `CODEMAP_EXEMPT` |
 | Đổi **bản vitest chính sách CI phát cho dự án đích** | `scripts/ci-workflow-policy.test.ts` (vào dropins qua `copy-framework.sh`; repo khung KHÔNG chạy được vì không có `package.json`) — thêm/bỏ một `CP-*` phải khai ở **cả** bản shell | `scripts/check-ci-policy.sh` mục 7 (đối chiếu bảng kiểm `CP-*` hai chiều shell ↔ vitest) |
-| Đổi **ước tính hạn mức dùng model** | `scripts/usage-estimate.sh` | không có cổng máy — review bằng mắt khi duyệt PR |
+| Đổi **ước tính hạn mức dùng model** | `scripts/usage-estimate.sh` | `scripts/test-usage-estimate.sh` (job CI `framework-lint`) — có đối chứng định lượng: đổi budget thì % phải đổi theo |
 | Ghi nhận thay đổi đáng kể | `CHANGELOG.md` mục `## [Unreleased]` | — |
 | Cập nhật trạng thái dự án sau mỗi mốc | `PROGRESS.md` | — |

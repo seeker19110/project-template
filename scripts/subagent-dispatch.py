@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """
 subagent-dispatch.py — Universal Subagent Dispatcher Engine
-Giao thức điều phối Subagent đa-harness (Claude Code, Hermes Agent, Codex CLI, Cursor, Windsurf, Gemini).
+Giao thức điều phối Subagent đa-harness.
+
+Harness ĐƯỢC HỖ TRỢ THẬT (mỗi cái có một nhánh xử lý riêng): claude, hermes, codex, generic.
+KHÔNG kê tên harness chưa có nhánh xử lý — bản đầu ghi cả Cursor/Windsurf/Gemini trong
+docstring dù `--harness` chỉ nhận 4 giá trị, khiến người đọc tưởng đã hỗ trợ (A-03).
+Harness chưa có nhánh riêng dùng `generic`: trả về system prompt thô để tự dán.
 
 Cho phép MỌI AI Coding Harness nạp và điều phối các subagent trong `.claude/agents/*.md`
 theo đúng quy ước 3-Tier Architecture (docs/framework/orchestration-3-tier.md).
@@ -83,9 +88,17 @@ def build_dispatch_payload(agent_info, task_text, harness_type):
             "agent": agent_info
         }
     elif harness_type == "claude":
+        # Claude Code KHÔNG có lệnh `/subagent` (audit 2026-09-13, A-03: bản cũ sinh ra chuỗi
+        # đó, dán vào Claude Code sẽ không chạy). Cơ chế THẬT là tool Task/Agent với
+        # subagent_type = tên file trong .claude/agents/. Trả về đúng hình dạng lời gọi đó.
         return {
             "harness": "claude",
-            "command": f"/subagent {name} {task_text}",
+            "tool_call": {
+                "tool": "Task",
+                "subagent_type": name,
+                "description": task_text[:60],
+                "prompt": full_prompt,
+            },
             "agent": agent_info
         }
     elif harness_type == "codex":
@@ -145,7 +158,12 @@ def main():
         if args.harness == "hermes":
             print(json.dumps(payload["delegate_task_call"], indent=2, ensure_ascii=False))
         elif args.harness == "claude":
-            print(payload["command"])
+            # In chỉ dẫn NGƯỜI/AI đọc được mô tả đúng cơ chế thật của Claude Code
+            # (tool Task với subagent_type), thay vì một slash command không tồn tại.
+            tc = payload["tool_call"]
+            print(f"Claude Code — gọi tool {tc['tool']} với subagent_type=\"{tc['subagent_type']}\":")
+            print()
+            print(tc["prompt"])
         else:
             print(payload["prompt"])
 

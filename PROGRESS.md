@@ -6,14 +6,14 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#92 đã merge (Universal Subagent Dispatch Protocol, AI Telemetry Engine, Spec-to-Contract Compiler Engine `scripts/spec-compiler.py`, Architectural Health Radar Engine `scripts/arch-health-radar.py`, self-testing suite, và sửa tương thích CRLF/MSYS Windows).
+- Giai đoạn: GĐ 8. PR #69→#93 đã merge (Universal Subagent Dispatch Protocol, AI Telemetry Engine, Spec-to-Contract Compiler Engine `scripts/spec-compiler.py`, Architectural Health Radar Engine `scripts/arch-health-radar.py`, self-testing suite, và sửa tương thích CRLF/MSYS Windows).
 - **Lưu ý khuôn lỗi (PR #82):** auto-merge (squash) có thể merge PR ngay khi CI của commit ĐẦU
   TIÊN xanh — một commit push SAU khi đã bật auto-merge (vd cập nhật PROGRESS.md cùng PR) có thể
   KHÔNG kịp vào trước khi merge xảy ra, dù mới push xong. Xác nhận lại bằng `git log origin/main`/
   `git show <sha> --stat` trước khi tin PROGRESS.md trong PR đã vào `main`; nếu thiếu, mở PR sync
   riêng — không coi im lặng là "đã vào".
-- Default-branch SHA đã đối chiếu: `2d80c7d` (`origin/main`, PR #92)
-- Nhánh đang làm: `claude/sweet-faraday-4wcsgc` (khắc phục hậu kiểm audit 2026-09-13: nối engine vào CI + cổng script↔CODEMAP)
+- Default-branch SHA đã đối chiếu: `155cfac` (`origin/main`, PR #93)
+- Nhánh đang làm: `main`
 - Ngày cập nhật: 2026-09-13
 
 ## Goal đang active
@@ -54,21 +54,26 @@
 
 ## Đang làm / chờ
 
-- **Không có việc dở.** Audit toàn diện 2026-09-12 (12/12 nhóm, G-001..G-004) đã đóng hết qua PR
+- **Không có việc dở.** PR #93 (hậu kiểm audit 2026-09-13) đã merge: nối `test-next-gen-engines.sh`
+  + `test-telemetry-and-dispatch.sh` vào job `framework-lint`, thêm mục 6 cho
+  `check-docs-consistency.sh` (script ↔ `CODEMAP.md`) kèm negative-test hai chiều, tách bảng giá ra
+  `scripts/model-rates.json`, đổi default harness về `claude`/`anthropic`. Xem `TRAPS.md` mục 11–12.
+- Audit toàn diện 2026-09-12 (12/12 nhóm, G-001..G-004) đã đóng hết qua PR
   #71→#75. Nhánh remote đã dọn sạch (2026-09-13). Người dùng đã import `.github/rulesets/main.json`
   trên GitHub — `protection-guard` xanh thật, đã thêm vào `needs:` của `gate` (nhánh hiện tại), xoá
   khỏi `CP4_BOOTSTRAP_EXEMPT`. Vòng "mượn cơ chế branch-protection từ Claude-Agents" đã khép kín.
 
 ## Tiếp theo
 
-- **Ngay lập tức:** không có việc dở — chờ yêu cầu tiếp theo của người dùng.
+- **Ngay lập tức:** không có việc dở. A-01→A-04 đã đóng; độ phủ cổng CI đạt **100%** (18/18
+  script) và điểm radar **100/100** — cả hai đều có đối chứng động chứng minh là phép đo thật,
+  không phải hằng số in ra.
 - Cả 4 phát hiện Trung của audit toàn diện 2026-09-12 đã đóng: G-001 (PR #72), G-002 (dọn trong PR
   #73), G-003 + G-004 (PR #75).
 - Có thể làm khi được yêu cầu: bắt đầu dự án đích mới bằng khung này (`/consult` hoặc `/auto`), tiếp
   tục quét thêm repo dẫn xuất khác (gói D–I của lượt quét 2026-09-12: script `check-*` của `xboss`,
   hook `block-dangerous-git.sh`, gitleaks pre-commit, gate-agent `sc-gate-*`, `eval-record.yml`),
-  hoặc audit định kỳ khác (`/audit-full`). Ngoài ra vẫn còn tồn đọng chờ người dùng ở mục "Rủi ro"
-  bên dưới (import ruleset `.github/rulesets/main.json`).
+  hoặc audit định kỳ khác (`/audit-full`).
 
 ## Quyết định quan trọng
 
@@ -86,6 +91,10 @@
 
 | Mục | Severity | Owner | Trigger/next action | Link |
 | --- | --- | --- | --- | --- |
+| ~~A-01 `spec-compiler.py` sinh assertion RỖNG~~ | — | — | ✅ ĐÃ SỬA — sinh 3 hợp đồng kiểm được thật (C-1 State, C-2 mã yêu cầu, C-3 đường dẫn touchpoints tồn tại), có negative-test hai chiều. Cũ: 82/82 test sinh ra đều là `assertTrue(len([]) >= 0)` — hằng đúng, không thể đỏ; lại nằm trong `.gitignore` và không job CI nào chạy. Tệ hơn không có vì tạo cảm giác an toàn giả. Sửa: parse `**FR-n**`/`AC-n` thành assertion thật + đưa vào CI, HOẶC gỡ hẳn engine | audit 2026-09-13 |
+| ~~A-02 `arch-health-radar.py` không đo kiến trúc~~ | — | — | ✅ ĐÃ SỬA — 5 tín hiệu có trọng số, in công thức, tách `.md` khỏi phép đếm code; điểm 100/100 đạt bằng việc thật. Cũ: Điểm chỉ gồm hai thành phần: trừ 5 cho mỗi file >400 dòng (tối đa 20), trừ 10 nếu tỷ lệ dòng mở đầu bằng dấu thăng < 5%. Không có coupling/complexity/coverage. Còn đếm văn xuôi Markdown là "code" → báo 84% code cho repo 67% là `.md`. Sửa: bỏ `.md` khỏi phép đếm code + đổi tên chỉ số cho đúng cái nó đo | audit 2026-09-13 |
+| ~~A-03 `--harness claude` xuất lệnh không tồn tại~~ | — | — | ✅ ĐÃ SỬA — nêu đúng tool Task + `subagent_type`; test cũ vốn khoá chặt chính lỗi này cũng đã sửa. Cũ: Sinh ra `/subagent <tên> <task>`, nhưng `.claude/commands/` không có `subagent.md` — dán vào Claude Code sẽ không chạy. Docstring còn kê Cursor/Windsurf/Gemini trong khi `choices` chỉ có 4. Sửa hoặc bỏ lựa chọn đó | audit 2026-09-13 |
+| ~~A-04 chưa có hướng dẫn `user.email` cho phiên AI~~ | — | — | ✅ ĐÃ SỬA — mục 4b `new-project-runbook.md` + `TRAPS.md` mục 13. Cũ: `require_extra_approval_for_unattributed_changes` trong ruleset chặn MỌI PR do AI tạo nếu commit không gắn được vào tài khoản GitHub (đã xảy ra ở PR #93). Sửa: ghi cách cấu hình author/committer vào `new-project-runbook.md` + mục `TRAPS.md` | `.github/rulesets/main.json` |
 | F-011 `--theme-transition` dead token | Thấp | AI | **Chấp nhận rủi ro (xác nhận 2026-09-01)** — không sửa | `docs/ops/COMPLETION-PLAN.md` |
 | F-014 usage-guard số thập phân | Thấp | AI | **Chấp nhận rủi ro (xác nhận 2026-09-01)** — không sửa | `docs/ops/COMPLETION-PLAN.md` |
 | F-309 `dev-task.sh` fallback grep | Thấp | AI | **Chấp nhận rủi ro (xác nhận 2026-09-01)** — không sửa | `docs/ops/COMPLETION-PLAN.md` |
