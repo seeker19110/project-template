@@ -6,13 +6,13 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#96 đã merge. Mốc gần nhất: audit 2026-09-13 đóng A-01→A-04 (PR #95) — 4 engine `scripts/{spec-compiler,arch-health-radar,subagent-dispatch,telemetry-log}.py` nay ĐO/KIỂM ĐƯỢC THẬT, độ phủ cổng CI 18/18 script, điểm radar 100/100, mỗi con số có đối chứng động chứng minh là phép đo chứ không phải hằng số.
+- Giai đoạn: GĐ 8. PR #69→#100 đã merge. Mốc gần nhất: 3 việc còn treo đã đóng — PF-3 (`check-progress-freshness.sh`, PR #98), độ phủ DÒNG 71%→97% cho 4 engine Python (`scripts/test-py-coverage.sh`, PR #99), tách 2 tài liệu dài thành hub + phần giữ nguyên tên file gốc (PR #100). Toàn bộ 10 cổng xanh; độ phủ cổng 100%, điểm radar 100/100.
 - **Lưu ý khuôn lỗi (PR #82):** auto-merge (squash) có thể merge PR ngay khi CI của commit ĐẦU
   TIÊN xanh — một commit push SAU khi đã bật auto-merge (vd cập nhật PROGRESS.md cùng PR) có thể
   KHÔNG kịp vào trước khi merge xảy ra, dù mới push xong. Xác nhận lại bằng `git log origin/main`/
   `git show <sha> --stat` trước khi tin PROGRESS.md trong PR đã vào `main`; nếu thiếu, mở PR sync
   riêng — không coi im lặng là "đã vào".
-- Default-branch SHA đã đối chiếu: `5444d50` (`origin/main`, PR #95)
+- Default-branch SHA đã đối chiếu: `1bae0db` (`origin/main`, PR #98)
 - Nhánh đang làm: `main`
 - Ngày cập nhật: 2026-09-13
 
@@ -91,6 +91,9 @@
 
 | Mục | Severity | Owner | Trigger/next action | Link |
 | --- | --- | --- | --- | --- |
+| **B-01 Feature gate né được qua tiêu đề COMMIT** | **Cao** | AI/Người dùng | `pr-policy.yml` kiểm `pr.title`, nhưng squash merge dùng tiêu đề **COMMIT** khi PR chỉ có **một** commit → `main` nhận được commit `feat:` chưa từng qua Feature gate. Xảy ra THẬT ở PR #99 (`76fc65e feat(test): ...` dù tiêu đề PR đã đổi thành `test:`). Sửa: bật "Default to PR title" cho squash trong Settings, HOẶC thêm cổng đối chiếu tiền tố tiêu đề commit ↔ tiêu đề PR | audit 2026-09-13 (lượt 2) |
+| **B-02 `CLAUDE.md` ↔ `AGENTS.md` không có cổng đối chiếu** | Vừa | AI | `CLAUDE.md` §1 khai 4 engine; `AGENTS.md` chỉ kê 2 (`subagent-dispatch`, `telemetry-log`) — thiếu `spec-compiler` và `arch-health-radar`. `CLAUDE.md` §1 bắt "sửa luật ở đây thì soát lại AGENTS.md" nhưng **không cổng máy nào kiểm**, nên lệch âm thầm | audit 2026-09-13 (lượt 2) |
+| **B-03 CI chạy shellcheck mức `error`, luật ghi "0 cảnh báo"** | Thấp | AI | `CLAUDE.md` §5 ghi "Lint 0 cảnh báo" nhưng `ci.yml` dùng `--severity=error`. Mức `warning` hiện có 6 phát hiện (4×SC1090 sourcing động — chấp nhận được; 2×SC2164 `cd` không `|| exit` ở `test-copy-framework.sh:10` và một chỗ nữa). Sửa: nâng CI lên `--severity=warning` + sửa 2 ca SC2164, HOẶC sửa luật §5 cho khớp thực tế | audit 2026-09-13 (lượt 2) |
 | ~~A-01 `spec-compiler.py` sinh assertion RỖNG~~ | — | — | ✅ ĐÃ SỬA — sinh 3 hợp đồng kiểm được thật (C-1 State, C-2 mã yêu cầu, C-3 đường dẫn touchpoints tồn tại), có negative-test hai chiều. Cũ: 82/82 test sinh ra đều là `assertTrue(len([]) >= 0)` — hằng đúng, không thể đỏ; lại nằm trong `.gitignore` và không job CI nào chạy. Tệ hơn không có vì tạo cảm giác an toàn giả. Sửa: parse `**FR-n**`/`AC-n` thành assertion thật + đưa vào CI, HOẶC gỡ hẳn engine | audit 2026-09-13 |
 | ~~A-02 `arch-health-radar.py` không đo kiến trúc~~ | — | — | ✅ ĐÃ SỬA — 5 tín hiệu có trọng số, in công thức, tách `.md` khỏi phép đếm code; điểm 100/100 đạt bằng việc thật. Cũ: Điểm chỉ gồm hai thành phần: trừ 5 cho mỗi file >400 dòng (tối đa 20), trừ 10 nếu tỷ lệ dòng mở đầu bằng dấu thăng < 5%. Không có coupling/complexity/coverage. Còn đếm văn xuôi Markdown là "code" → báo 84% code cho repo 67% là `.md`. Sửa: bỏ `.md` khỏi phép đếm code + đổi tên chỉ số cho đúng cái nó đo | audit 2026-09-13 |
 | ~~A-03 `--harness claude` xuất lệnh không tồn tại~~ | — | — | ✅ ĐÃ SỬA — nêu đúng tool Task + `subagent_type`; test cũ vốn khoá chặt chính lỗi này cũng đã sửa. Cũ: Sinh ra `/subagent <tên> <task>`, nhưng `.claude/commands/` không có `subagent.md` — dán vào Claude Code sẽ không chạy. Docstring còn kê Cursor/Windsurf/Gemini trong khi `choices` chỉ có 4. Sửa hoặc bỏ lựa chọn đó | audit 2026-09-13 |
