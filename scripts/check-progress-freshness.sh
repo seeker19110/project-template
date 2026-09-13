@@ -98,10 +98,12 @@ if [ -z "$stage_line" ] || [ -z "${recorded_sha:-}" ]; then
   echo "OK — thiếu dòng 'Giai đoạn' hoặc SHA đã đối chiếu (không áp dụng)."
 else
   # Số PR LỚN NHẤT nêu trong dòng "Giai đoạn" (dòng hay viết dạng "PR #69→#96").
-  stage_pr="$(printf '%s' "$stage_line" | grep -oE '#[0-9]+' | tr -d '#' | sort -n | tail -1)"
+  # `|| true`: grep không khớp trả 1, mà `set -euo pipefail` sẽ giết script ngay ở đây
+  # (đã mắc thật — PF-3 im lặng chết giữa chừng, baseline đỏ mà không nói lý do).
+  stage_pr="$(printf '%s' "$stage_line" | grep -oE '#[0-9]+' | tr -d '#' | sort -n | tail -1 || true)"
   # Số PR của commit mà SHA trỏ tới — squash merge để lại "(#NN)" ở cuối tiêu đề.
   sha_subject="$(git log -1 --format=%s "$recorded_sha" 2>/dev/null || true)"
-  sha_pr="$(printf '%s' "$sha_subject" | grep -oE '\(#[0-9]+\)' | tr -d '(#)' | sort -n | tail -1)"
+  sha_pr="$(printf '%s' "$sha_subject" | grep -oE '\(#[0-9]+\)' | tr -d '(#)' | sort -n | tail -1 || true)"
   if [ -z "$stage_pr" ] || [ -z "$sha_pr" ]; then
     echo "OK — không đọc được số PR ở một trong hai dòng (không áp dụng)."
   elif [ "$stage_pr" -ge "$sha_pr" ]; then
