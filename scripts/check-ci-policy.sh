@@ -149,10 +149,9 @@ fi
 # cần ruleset đã import trên GitHub) — đưa thẳng vào needs: của gate sẽ tạo deadlock: PR thêm job đó
 # không bao giờ merge được vì chính job đó luôn đỏ ở PR mở ra nó. Khai ở đây, xoá khỏi danh sách này
 # TRONG CÙNG LẦN thêm job đó vào needs: của gate (một PR riêng, sau khi bước cấu hình tay đã xong và
-# job đã xanh thật).
-CP4_BOOTSTRAP_EXEMPT=(
-  "ci.yml:protection-guard"  # chờ import .github/rulesets/main.json — xem docs/ops/repository-settings.md
-)
+# job đã xanh thật). Rỗng hiện tại — `protection-guard` đã được thêm vào needs: của gate sau khi
+# người dùng import ruleset (2026-09-13); giữ lại cơ chế này cho job bootstrap tương lai.
+CP4_BOOTSTRAP_EXEMPT=()
 is_in() { local needle="$1"; shift; for x in "$@"; do [ "$x" = "$needle" ] && return 0; done; return 1; }
 echo "== Job của ci.yml có trong needs: của gate =="
 if grep -q "^  gate:" .github/workflows/ci.yml; then

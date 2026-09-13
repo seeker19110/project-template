@@ -95,11 +95,6 @@ jobs:
   # .github/rulesets/main.json (đối chiếu hai chiều) — cơ chế mượn từ seeker19110/Claude-Agents
   # (docs/QUY-TRINH-GIT.md §8): trước đây "đã bật" chỉ là lời hứa trong repository-settings.md,
   # không gì kiểm chứng; sửa ruleset qua UI có thể làm RƠI một rule mà không báo gì.
-  #
-  # CỐ Ý CHƯA có trong needs: của `gate` (xem CP4_BOOTSTRAP_EXEMPT ở check-ci-policy.sh) — job này
-  # LUÔN đỏ cho tới khi ruleset được import trên GitHub, nên đưa thẳng vào needs: sẽ khoá merge
-  # ngay chính PR giới thiệu nó. Sau khi import ruleset xong và job này xanh thật, thêm vào needs:
-  # của gate trong một PR riêng, đồng thời xoá "ci.yml:protection-guard" khỏi CP4_BOOTSTRAP_EXEMPT.
   protection-guard:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -159,7 +154,7 @@ jobs:
   # một job cha đỏ, và GitHub coi required check "skipped" là ĐẠT (hỏng im lặng).
   gate:
     if: always()
-    needs: [framework-lint, docs-consistency, copy-framework-smoke, progress-freshness]
+    needs: [framework-lint, docs-consistency, copy-framework-smoke, progress-freshness, protection-guard]
     runs-on: ubuntu-latest
     steps:
       - name: Kết luận từ mọi job cổng
