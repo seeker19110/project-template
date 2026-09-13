@@ -152,7 +152,12 @@ copy_if_absent "scripts/subagent-dispatch.py"
 copy_if_absent "scripts/subagent-dispatch.sh"
 copy_if_absent "scripts/telemetry-log.py"
 copy_if_absent "scripts/telemetry-log.sh"
+copy_if_absent "scripts/spec-compiler.py"
+copy_if_absent "scripts/spec-compiler.sh"
+copy_if_absent "scripts/arch-health-radar.py"
+copy_if_absent "scripts/arch-health-radar.sh"
 copy_if_absent "scripts/test-telemetry-and-dispatch.sh"
+copy_if_absent "scripts/test-next-gen-engines.sh"
 # Test chứng minh hook cổng CHẶN thật (audit 2026-09-12, F-002) — đi cùng .claude/hooks ở trên.
 copy_if_absent "scripts/test-hooks-gate.sh"
 # 2 file mẫu để dự án tự điền (bản điền thật .claude/*.sh đã nằm trong .gitignore của khung):

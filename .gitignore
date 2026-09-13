@@ -20,3 +20,6 @@
 
 # Dữ liệu nhật ký telemetry động cục bộ
 .hermes/
+
+# Contract tests tự động sinh bởi spec-compiler.py
+tests/contracts/
