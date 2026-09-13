@@ -6,14 +6,15 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69/#70 (hàng rào `progress-freshness` + quy trình chia PR/effort/auto-merge),
-  #71 (audit reset: 0 Cao, 4 Trung G-001..G-004), #72 (G-001 — negative-test cho 3 gate chính), #73
-  (mượn cơ chế branch-protection/auto-merge từ `seeker19110/Claude-Agents`: ruleset import được
-  `.github/rulesets/main.json` + job CI `protection-guard` đối chiếu hai chiều; `protection-guard`
-  CỐ Ý chưa vào `needs:` của `gate` — chờ ruleset import — xem `CP4_BOOTSTRAP_EXEMPT` ở
-  `check-ci-policy.sh`) đều đã merge. Đã quay về `main`, không còn việc dở.
-- Default-branch SHA đã đối chiếu: `f79a21a` (`origin/main`, PR #73)
-- Nhánh đang làm: `main`
+- Giai đoạn: GĐ 8. PR #69→#74 đã merge (freshness gate, audit reset, G-001, cơ chế branch-
+  protection/auto-merge mượn từ `Claude-Agents`, dọn PROGRESS.md). Đang trên nhánh
+  `fix/g003-g004-stale-effort-label` (chưa mở PR): xử lý 2 phát hiện Trung còn lại từ audit —
+  G-003 (dòng sơ đồ ASCII `orchestration-3-tier.md` còn "Opus · high", sửa thành "Opus · medium")
+  + G-004 (thêm mục 5 vào `check-docs-consistency.sh`: cấm chuỗi "Opus · high" đã rút lại sống lại
+  ở bất kỳ *.md/*.sh/*.ps1 nào ngoài nhật ký lịch sử — cố ý không xây trình phân tích ngữ nghĩa
+  tổng quát). Cả 4 phát hiện Trung của audit 2026-09-12 giờ đã đóng.
+- Default-branch SHA đã đối chiếu: `8d00a44` (`origin/main`, PR #74)
+- Nhánh đang làm: `fix/g003-g004-stale-effort-label`
 - Ngày cập nhật: 2026-09-12
 
 ## Goal đang active
@@ -68,12 +69,12 @@
 
 ## Tiếp theo
 
-- **Ngay lập tức:** mở PR cho nhánh `feat/branch-protection-ruleset-guard`, đăng ký theo dõi, merge
-  khi CI xanh — sau đó **import `.github/rulesets/main.json` trên GitHub Settings → Rules →
-  Rulesets** (chỉ chủ repo làm được) để `protection-guard` thật sự có gì để đối chiếu.
-- Còn 3 phát hiện Trung từ audit toàn diện chưa xử lý: G-002 (PROGRESS.md risk table dependabot lỗi
-  thời — đã dọn trong đợt sửa này), G-003 (dòng sơ đồ ASCII `orchestration-3-tier.md` còn "Opus·high"),
-  G-004 (effort/model lặp 6 nơi không cổng đối chiếu).
+- **Ngay lập tức:** mở PR cho nhánh `fix/g003-g004-stale-effort-label`, đăng ký theo dõi, merge khi
+  CI xanh.
+- **Chờ bạn:** import `.github/rulesets/main.json` trên GitHub Settings → Rules → Rulesets (chỉ chủ
+  repo làm được) để `protection-guard` thật sự có gì để đối chiếu.
+- Cả 4 phát hiện Trung của audit toàn diện 2026-09-12 đã đóng: G-001 (PR #72), G-002 (dọn trong PR
+  #73), G-003 + G-004 (nhánh hiện tại).
 - Có thể làm khi được yêu cầu: bắt đầu dự án đích mới bằng khung này (`/consult` hoặc `/auto`), tiếp
   tục quét thêm repo dẫn xuất khác (gói D–I của lượt quét 2026-09-12: script `check-*` của `xboss`,
   hook `block-dangerous-git.sh`, gitleaks pre-commit, gate-agent `sc-gate-*`, `eval-record.yml`),
@@ -103,8 +104,8 @@
 | Case-study Bước 6–8 (branch protection/Supabase/Vercel) chưa kiểm chứng | Thấp | Người dùng | Kiểm khi áp khung vào dự án thật có tài khoản | `docs/framework/case-study-greenfield-dry-run.md` |
 | 31 nhánh đã merge còn tồn trên remote (F-014) | Thấp | Người dùng | Xoá qua GitHub UI hoặc cấp quyền Bash cho `git push --delete` — danh sách đủ ở `docs/ops/repository-settings.md` | `docs/ops/COMPLETION-PLAN.md` W-308 |
 | Ruleset `.github/rulesets/main.json` chưa import trên GitHub | Vừa | Người dùng | Import: Settings → Rules → Rulesets → New ruleset → Import a ruleset — job CI `protection-guard` đỏ tới khi làm (CỐ Ý chưa nằm trong `needs:` của `gate` để tránh deadlock — xem `CP4_BOOTSTRAP_EXEMPT` ở `check-ci-policy.sh`). Sau khi import + job xanh: mở PR thêm `protection-guard` vào `needs:` của `gate` + xoá khỏi allowlist đó | `docs/ops/repository-settings.md` |
-| G-003 (`orchestration-3-tier.md` dòng sơ đồ ASCII còn "Opus·high") | Vừa | AI | Chưa sửa — 1 dòng, cùng gốc với G-004 | `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md` |
-| G-004 (effort/model lặp 6 file, không cổng đối chiếu) | Vừa | AI | Chưa sửa — cần thêm 1 kiểm vào `check-docs-consistency.sh` hoặc gộp về 1 nguồn | `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md` |
+| ~~G-003 (`orchestration-3-tier.md` dòng sơ đồ ASCII còn "Opus·high")~~ | — | — | ✅ Đã sửa — nhánh `fix/g003-g004-stale-effort-label` | `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md` |
+| ~~G-004 (effort/model lặp 6 file, không cổng đối chiếu)~~ | — | — | ✅ Đã sửa — mục 5 mới trong `check-docs-consistency.sh` (cấm "Opus · high" sống lại) + negative-test trong `test-check-scripts.sh` | `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md` |
 | ~~W-303 test RLS~~ | — | — | ➖ Hết hiệu lực (ADR-0004) — dropins Supabase đã gỡ, không còn gì để test | `docs/ops/COMPLETION-PLAN.md` W-303 |
 | ~~PROGRESS.md lỗi thời (nhánh đã merge #67 nhưng vẫn ghi "chưa mở PR")~~ | Vừa | AI | ✅ Đã sửa 2026-09-12 — thêm `scripts/check-progress-freshness.sh` + job CI `progress-freshness` chặn merge nếu tái phạm; xem `TRAPS.md` | `CLAUDE.md` §8, `CODEMAP.md` |
 

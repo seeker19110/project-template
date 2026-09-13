@@ -28,7 +28,7 @@ TẦNG 2 — NGƯỜI ĐIỀU PHỐI  (coordinator · Opus · low) — phần "C
                                   │  dispatch theo nhãn, 1 PR/đơn vị
                                   ▼
 TẦNG 3 — WORKERS  (định tuyến 2 trục: độ phức tạp × độ kín đặc tả)
-   route:complex     → complex-implementer  (Opus · high)
+   route:complex     → complex-implementer  (Opus · medium)
    route:spec        → spec-executor        (Opus · low)
    route:standard    → standard-worker      (Sonnet · medium)  [kế thừa coder cũ]
    route:mechanical  → mechanical-worker    (Haiku)            [kế thừa mechanical cũ]
