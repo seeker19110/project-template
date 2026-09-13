@@ -184,6 +184,30 @@ rc="$(run_check "$d" check-progress-freshness.sh)"
 
 ## ============================================================
 echo ""
+
+d="$(setup_repo)"
+# PF-3 (audit 2026-09-13): dòng "Giai đoạn" nêu số PR NHỎ HƠN PR của SHA đã đối chiếu -> ĐỎ.
+# Đây đúng khuôn lỗi PR #96 (sửa SHA nhưng quên dòng "Giai đoạn"), mà PF-1/PF-2 đều xanh.
+# setup_repo đặt SHA = commit của chính sandbox (không có "(#NN)") nên phải dựng mốc giả lập:
+# tạo một commit có tiêu đề dạng squash-merge rồi trỏ SHA đã đối chiếu vào đó.
+git -C "$d" -c user.email=t@t.local -c user.name=test commit -q --allow-empty -m "feat: mốc giả lập (#500)"
+fake_sha="$(git -C "$d" rev-parse --short HEAD)"
+sed -i "s/^- Default-branch SHA đã đối chiếu:.*/- Default-branch SHA đã đối chiếu: \`$fake_sha\` (mốc giả lập, PR #500)/" "$d/PROGRESS.md"
+sed -i "s/^- Giai đoạn:.*/- Giai đoạn: GĐ 8. PR #69→#499 đã merge./" "$d/PROGRESS.md"
+git -C "$d" -c user.email=t@t.local -c user.name=test commit -q -am "chuẩn bị ca PF-3"
+rc="$(run_check "$d" check-progress-freshness.sh)"
+[ "$rc" = "1" ] && ok "bắt được dòng 'Giai đoạn' lệch sau SHA đã đối chiếu (PF-3)" || bad "KHÔNG bắt được 'Giai đoạn' lỗi thời (rc=$rc)"
+
+d="$(setup_repo)"
+# Đối chứng: "Giai đoạn" KHỚP (>=) thì PF-3 phải XANH — chứng minh không đỏ oan.
+git -C "$d" -c user.email=t@t.local -c user.name=test commit -q --allow-empty -m "feat: mốc giả lập (#500)"
+fake_sha="$(git -C "$d" rev-parse --short HEAD)"
+sed -i "s/^- Default-branch SHA đã đối chiếu:.*/- Default-branch SHA đã đối chiếu: \`$fake_sha\` (mốc giả lập, PR #500)/" "$d/PROGRESS.md"
+sed -i "s/^- Giai đoạn:.*/- Giai đoạn: GĐ 8. PR #69→#501 đã merge./" "$d/PROGRESS.md"
+git -C "$d" -c user.email=t@t.local -c user.name=test commit -q -am "chuẩn bị ca đối chứng PF-3"
+rc="$(run_check "$d" check-progress-freshness.sh)"
+[ "$rc" = "0" ] && ok "PF-3 XANH khi 'Giai đoạn' >= PR của SHA (không đỏ oan)" || bad "PF-3 đỏ oan dù 'Giai đoạn' đã khớp (rc=$rc)"
+
 if [ "$fails" -eq 0 ]; then
   echo "OK — cả 3 gate (docs-consistency, ci-policy, progress-freshness) đều bắt đúng lỗi + không chặn oan."
 else
