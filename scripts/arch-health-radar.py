@@ -12,7 +12,7 @@ import re
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-EXCLUDE_DIRS = {".git", "node_modules", "venv", ".venv", "__pycache__", ".hermes", "dist", "build", "coverage"}
+EXCLUDE_DIRS = {".git", "node_modules", "venv", ".venv", "__pycache__", ".ai-telemetry", ".hermes", "dist", "build", "coverage"}
 
 def scan_codebase_health():
     total_files = 0

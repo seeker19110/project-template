@@ -25,5 +25,13 @@
 | Đổi bản đồ tính năng / quy ước của chính khung | `docs/FEATURE-MAP.md`, `docs/CONVENTIONS.md` | `scripts/check-docs-consistency.sh`; đối chiếu khi audit Nhóm 12 (`/completion` Pha 1) |
 | Ghi bẫy vừa mắc / tra bẫy cũ trước khi chẩn đoán | `TRAPS.md` (gốc repo khung; mẫu rỗng `docs/framework/templates/TRAPS.template.md`) | không có cổng máy — review bằng mắt khi duyệt PR |
 | Đổi luật cốt lõi (giai đoạn, cổng, feature gate…) | `CLAUDE.md` **trước**, rồi soát lại `AGENTS.md` cho khớp (CLAUDE.md là nguồn sự thật) | `scripts/check-docs-consistency.sh` |
+| Sửa **engine biên dịch spec** (spec → contract test) | `scripts/spec-compiler.py` (wrapper mỏng: `spec-compiler.sh`) — đọc `docs/specs/*.md`, sinh `tests/contracts/` (đã gitignore) | `scripts/test-next-gen-engines.sh` (job CI `framework-lint`) |
+| Sửa **radar sức khỏe kiến trúc / nợ kỹ thuật** | `scripts/arch-health-radar.py` (wrapper: `arch-health-radar.sh`) | `scripts/test-next-gen-engines.sh` (job CI `framework-lint`) |
+| Sửa **bộ điều phối subagent đa-harness** | `scripts/subagent-dispatch.py` (wrapper: `subagent-dispatch.sh`) — nạp vai từ `.claude/agents/*.md` theo nhãn `route:` | `scripts/test-telemetry-and-dispatch.sh` (job CI `framework-lint`) |
+| Sửa **telemetry AI** (thời gian/LOC/chi phí) | `scripts/telemetry-log.py` (wrapper: `telemetry-log.sh`) — log vào `.ai-telemetry/` (đã gitignore) | `scripts/test-telemetry-and-dispatch.sh` (job CI `framework-lint`) |
+| Cập nhật **giá API để ước tính chi phí** | `scripts/model-rates.json` — sửa số **và** `_verified_on` + `_source`; KHÔNG hard-code giá vào `.py` (sai giá không làm đỏ CI nên sẽ âm thầm sai mãi) | `jq empty` trong job `framework-lint`; model không khớp bảng → cảnh báo stderr lúc chạy |
+| Thêm **script mới bất kỳ** vào `scripts/` | Chính script đó **+** một dòng trong bảng này (đây là chỗ duy nhất một phiên AI mới biết script tồn tại) | `scripts/check-docs-consistency.sh` mục 6 (script ↔ CODEMAP); miễn trừ phải khai lý do ở `CODEMAP_EXEMPT` |
+| Đổi **bản vitest chính sách CI phát cho dự án đích** | `scripts/ci-workflow-policy.test.ts` (vào dropins qua `copy-framework.sh`; repo khung KHÔNG chạy được vì không có `package.json`) — thêm/bỏ một `CP-*` phải khai ở **cả** bản shell | `scripts/check-ci-policy.sh` mục 7 (đối chiếu bảng kiểm `CP-*` hai chiều shell ↔ vitest) |
+| Đổi **ước tính hạn mức dùng model** | `scripts/usage-estimate.sh` | không có cổng máy — review bằng mắt khi duyệt PR |
 | Ghi nhận thay đổi đáng kể | `CHANGELOG.md` mục `## [Unreleased]` | — |
 | Cập nhật trạng thái dự án sau mỗi mốc | `PROGRESS.md` | — |

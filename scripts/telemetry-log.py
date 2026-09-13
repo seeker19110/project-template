@@ -9,20 +9,51 @@ import os
 import argparse
 import json
 import time
+import html
 from datetime import datetime, timezone
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOG_DIR = os.path.join(ROOT_DIR, ".hermes")
+# Thư mục log TRUNG LẬP harness: khung này là khung cho Claude Code, không gắn với một
+# runner cụ thể. (Trước đây là ".hermes" — tên một harness khác lọt vào mặc định.)
+LOG_DIR = os.path.join(ROOT_DIR, ".ai-telemetry")
 LOG_FILE = os.path.join(LOG_DIR, "telemetry.json")
 
-MODEL_RATES = {
-    "opus": {"input": 15.0, "output": 75.0},
-    "sonnet": {"input": 3.0, "output": 15.0},
-    "haiku": {"input": 0.25, "output": 1.25},
-    "gpt-4o": {"input": 2.50, "output": 10.0},
-    "gemini-flash": {"input": 0.075, "output": 0.30},
-    "default": {"input": 1.0, "output": 3.0}
-}
+# Giá model KHÔNG hard-code ở đây: xem scripts/model-rates.json (có _verified_on + _source).
+RATES_FILE = os.path.join(ROOT_DIR, "scripts", "model-rates.json")
+
+
+def load_rates():
+    """Đọc bảng giá từ scripts/model-rates.json. Thiếu file/hỏng JSON -> dừng hẳn thay vì
+    âm thầm ước tính bằng số bịa: báo cáo chi phí sai còn tệ hơn không có báo cáo."""
+    try:
+        with open(RATES_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"LỖI: không đọc được bảng giá {RATES_FILE}: {exc}", file=sys.stderr)
+        sys.exit(1)
+    rates = data.get("rates")
+    if not isinstance(rates, dict) or "default" not in rates:
+        print(f"LỖI: {RATES_FILE} thiếu khoá 'rates' hoặc 'rates.default'.", file=sys.stderr)
+        sys.exit(1)
+    return rates, data.get("_verified_on", "?")
+
+
+def resolve_rate(model, rates):
+    """Khớp theo chuỗi con, ưu tiên khoá DÀI NHẤT (claude-haiku-4-5 -> 'haiku-4-5', không phải
+    'haiku'). Không khớp -> 'default' kèm cảnh báo ra stderr, để con số lạ không đi qua im lặng."""
+    key = (model or "").lower()
+    best = None
+    for name in rates:
+        if name == "default":
+            continue
+        if name in key and (best is None or len(name) > len(best)):
+            best = name
+    if best is None:
+        print(f"CẢNH BÁO: model '{model}' không có trong bảng giá — dùng 'default', "
+              f"con số chi phí chỉ là ước lượng thô.", file=sys.stderr)
+        return rates["default"]
+    return rates[best]
+
 
 def load_logs():
     if not os.path.exists(LOG_FILE):
@@ -41,7 +72,8 @@ def save_logs(logs):
 def record_entry(harness, provider, model, agent, task, duration_sec, diff_loc, test_status, input_tokens=0, output_tokens=0):
     logs = load_logs()
     
-    rate = MODEL_RATES.get(model.lower(), MODEL_RATES["default"])
+    rates, _ = load_rates()
+    rate = resolve_rate(model, rates)
     est_cost = ((input_tokens / 1_000_000) * rate["input"]) + ((output_tokens / 1_000_000) * rate["output"])
     
     entry = {
@@ -88,7 +120,8 @@ def generate_markdown_summary(logs):
     ]
 
     for l in logs[-10:]:
-        lines.append(f"| `{l['id']}` | `{l['harness']}` | `{l['agent']}` | {l['task'][:30]} | {l['duration_sec']}s | `{l['test_status']}` | {l['diff_loc']} | ${l['est_cost_usd']:.4f} |")
+        task_cell = str(l['task'])[:30].replace("|", "\\|")
+        lines.append(f"| `{l['id']}` | `{l['harness']}` | `{l['agent']}` | {task_cell} | {l['duration_sec']}s | `{l['test_status']}` | {l['diff_loc']} | ${l['est_cost_usd']:.4f} |")
 
     return "\n".join(lines)
 
@@ -165,7 +198,8 @@ def generate_html_widget(logs):
 """
     for l in logs[-8:]:
         badge_cls = "badge-passed" if l['test_status'].upper() == "PASSED" else "badge-failed"
-        widget_html += f"      <tr><td>{l['harness']}</td><td>{l['agent']}</td><td>{l['task'][:35]}</td><td>{l['duration_sec']}s</td><td class=\"{badge_cls}\">{l['test_status']}</td><td>${l['est_cost_usd']:.4f}</td></tr>\n"
+        e = lambda v: html.escape(str(v), quote=True)
+        widget_html += f"      <tr><td>{e(l['harness'])}</td><td>{e(l['agent'])}</td><td>{e(l['task'][:35])}</td><td>{e(l['duration_sec'])}s</td><td class=\"{badge_cls}\">{e(l['test_status'])}</td><td>${l['est_cost_usd']:.4f}</td></tr>\n"
 
     widget_html += """    </tbody>
   </table>
@@ -183,8 +217,8 @@ def main():
     parser.add_argument("--record", action="store_true", help="Record a new telemetry entry")
     parser.add_argument("--summary", action="store_true", help="Generate Markdown summary")
     parser.add_argument("--widget", action="store_true", help="Generate Hermes HTML Widget")
-    parser.add_argument("--harness", type=str, default="hermes")
-    parser.add_argument("--provider", type=str, default="antigravity")
+    parser.add_argument("--harness", type=str, default="claude")
+    parser.add_argument("--provider", type=str, default="anthropic")
     parser.add_argument("--model", type=str, default="sonnet")
     parser.add_argument("--agent", type=str, default="main")
     parser.add_argument("--task", type=str, default="Standard Task Execution")
