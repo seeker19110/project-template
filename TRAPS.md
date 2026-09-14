@@ -260,6 +260,26 @@ commit; đừng tin lệnh checkout đã thành công chỉ vì các lệnh sau 
 `git switch -c <nhánh> || git switch <nhánh>` để ý định "tạo hoặc chuyển sang" là tường minh.
 Trước khi push, đối chiếu `git log --oneline -1 <nhánh>` với commit vừa tạo.
 
+**TÁI PHÁT 2026-09-14 (PR #111), qua một đường khác và tệ hơn:** lần này `git checkout -B <nhánh>`
+không *thất bại* — nó **không hề chạy**. Lệnh đó nằm chung một dòng `&&` với một heredoc `python3`,
+và cả dòng bị chính `block-dangerous-git.sh` chặn ở `PreToolUse` (bug chặn oan ở mục 18). Lệnh bị
+chặn trước khi thực thi ⇒ không có output lỗi nào của git để mà đọc — dấu hiệu sớm ở mục này
+("đừng tin checkout đã thành công chỉ vì lệnh sau không lỗi") **không áp dụng được**, vì không có
+lệnh sau nào chạy cả. Ba commit sửa hook rơi vào `main` cục bộ; `git push -q -u origin <nhánh>` đẩy
+**nhánh cũ** (đã merge) lên, tạo PR #111 sai nội dung.
+
+Hai thứ làm nó sống lâu thêm:
+- `git push -q` nuốt output, và tôi **không đối chiếu remote sau khi push** — tin vào dòng "Create a
+  pull request for ..." mà dòng đó xuất hiện cả khi ref được tạo từ một nhánh khác.
+- Hàng rào này chính là thứ đang được sửa trong PR đó: một hook chặn oan không chỉ phiền, nó **làm
+  hỏng lệnh ghép theo cách không để lại dấu vết**.
+
+**Cách rà (bổ sung, đây là phần đắt nhất):** sau **mỗi** `git push`, đối chiếu hai SHA trước khi nói
+bất kỳ câu nào về kết quả — `git fetch origin && git rev-parse HEAD` so với
+`git rev-parse origin/<nhánh>`. Bằng nhau mới là đã vào. Đây đúng `CLAUDE.md` §4 bước 1–3 (xác định
+lệnh CHỨNG MINH được câu mình định nói, chạy đủ, đọc hết output) áp cho thao tác git. Và: **không
+ghép `git checkout` vào cùng một dòng với lệnh khác** — chạy riêng, đọc `git branch --show-current`.
+
 **Cổng chốt chặn:** không có cổng máy (thuộc thao tác, không phải nội dung repo) — chốt bằng mục
 này. Dấu hiệu sớm: hook `stop-hook-git-check` báo "unpushed commit(s) on branch 'main'".
 
@@ -335,3 +355,54 @@ BODYFILE [DATA]`), caller tự `mktemp` trước khi gọi — không còn kênh
 
 **Cổng chốt chặn:** `scripts/test-maintain-cron.sh` mục 7 — chạy thật hàm `open_pr()` qua `curl`
 giả (không mock ở mức hàm bash, chạy nguyên vẹn dưới `set -u`) mới bắt được; test tĩnh không đủ.
+
+## 18. Hook an toàn quét CẢ chuỗi lệnh → chặn oan vì DỮ LIỆU trong lệnh (heredoc/nháy)
+
+**Ngày/PR:** 2026-09-14, khi đồng bộ `PROGRESS.md` sau PR #109. Mắc **hai lần trong cùng một lượt**.
+
+`.claude/hooks/block-dangerous-git.sh` nhận nguyên văn chuỗi lệnh rồi `grep` bốn khuôn nguy hiểm
+trên **toàn bộ chuỗi đó**. Nhưng một lệnh shell chứa cả *lệnh* lẫn *dữ liệu*, và dữ liệu nhiều từ
+thường nằm trong thân heredoc:
+
+1. `git commit -F - <<EOF … EOF && git push -u origin claude/<nhánh> --force-with-lease` bị quy tắc
+   1 ("force-push vào nhánh chính") chặn, vì **commit message** có chữ `main` đứng riêng ("quay về
+   main"). Nhánh đích là nhánh riêng.
+2. Ngay sau đó, một lệnh `python3 - <<PY … PY` bị quy tắc 2 chặn, vì thân script có chuỗi
+   `git reset --hard` làm **dữ liệu fixture** cho test.
+
+Phần trong dấu nháy đã được bỏ từ audit 2026-09-12 — nhưng heredoc thì chưa, và heredoc mới là chỗ
+văn bản dài sống.
+
+**Vì sao nghiêm trọng hơn là "phiền":** hàng rào báo oan dạy người ta gõ `ALLOW_DANGEROUS_GIT=1`
+thành phản xạ, và lúc đó nó không còn chặn được ca thật. Một cổng bị vô hiệu hoá vì mất lòng tin
+nguy hiểm hơn một cổng không tồn tại, vì tài liệu vẫn khai là có.
+
+**Khuôn tổng quát:** *bộ dò tự khớp văn bản của chính thứ nó đang soi*. Cùng họ với bẫy bộ đếm miễn
+trừ tự đếm chính mình (`docs/framework/quality-supplements-group2.md` §"Sổ trần cho LỐI THOÁT khỏi
+cổng coverage"). Trước khi viết bất kỳ bộ dò dạng grep-trên-văn-bản nào, hỏi: *văn bản mình đang
+soi có thể chứa chính mẫu mình đang tìm, dưới dạng dữ liệu, không?*
+
+**Cách rà:** cho bộ dò chạy trên một đầu vào **chứa mẫu dưới dạng dữ liệu** (chuỗi, comment, thân
+heredoc, fixture test) và xác nhận nó KHÔNG báo động — đồng thời giữ ca chiều ngược (mẫu thật vẫn
+bị bắt). Thiếu một trong hai chiều thì test vô nghĩa.
+
+**Sửa:** bỏ thân heredoc khỏi chuỗi trước khi so khớp (`strip_heredoc_bodies`), cùng lý do đã bỏ
+phần trong dấu nháy. Giới hạn còn lại được ghi thẳng trong comment của hook: dữ liệu không nháy,
+không heredoc (`… && echo main`) vẫn bị quét — sửa hẳn cần tách lệnh theo `&&`/`;`/`|` rồi chỉ soi
+segment bắt đầu bằng `git`, chưa làm vì chưa có sự cố thật.
+
+**Bẫy TRONG chính bản sửa — bản vá đầu tiên NỚI LỎNG hàng rào:** bản đầu nhận heredoc bằng
+`<<-?[[:space:]]*DELIM`, nên `echo "a << b"` khớp thành heredoc với delimiter `b`, và **mọi dòng sau
+đó bị nuốt** — `git reset --hard` ở dòng kế KHÔNG còn bị chặn. Đo được bằng một lần chạy hook thật,
+không phải suy đoán; phát hiện vì tự kiểm lại một ca xấu đã nêu ra miệng mà chưa test (`CLAUDE.md`
+§4 bước 1: xác định lệnh nào CHỨNG MINH được câu mình định nói). Sửa: cấm khoảng trắng giữa `<<` và
+delimiter.
+
+**Bài học riêng của ca này:** khi bản vá là "bỏ bớt đầu vào khỏi phép quét", hai chiều hỏng KHÔNG
+đối xứng — bỏ thiếu thì chặn oan (thấy ngay, có người kêu), bỏ thừa thì **để lọt** (không ai biết).
+Mọi bản vá dạng này phải có ít nhất một ca chặn-bắt-buộc đi kèm, không chỉ ca không-chặn-oan.
+
+**Cổng chốt chặn:** `scripts/test-hooks-gate.sh` — mục 8 hai ca không-chặn-oan (`force-push nhánh
+RIÊNG, chữ 'main' chỉ nằm trong thân heredoc`; `nhánh riêng có chuỗi 'main' trong TÊN nhánh`) và
+mục 7 một ca chặn-bắt-buộc mới (`lệnh nguy hiểm SAU một chuỗi chứa '<<' không phải heredoc`), cùng
+5 ca chặn thật có sẵn làm chiều ngược. 15/15.
