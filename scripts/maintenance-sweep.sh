@@ -191,6 +191,21 @@ sweep_docs() {
     n="$(tracked | grep -zvE '\.(md|json|lock|svg|png|jpg)$|^(CHANGELOG|TRAPS)' | xargs -0 grep -nE '\b(TODO|FIXME|HACK|XXX)\b' 2>/dev/null | grep -vc "maintenance-sweep.sh" || true)"
     line "- TODO/FIXME/HACK trong mã: $n"
     if [ "$n" -gt "$TODO_WARN" ]; then yel "Nợ kỹ thuật" "$n TODO/FIXME/HACK (ngưỡng $TODO_WARN)" "gom thành issue hoặc xử lý theo lô"; else info "Nợ kỹ thuật" "$n TODO/FIXME/HACK" "—"; fi
+    # Dấu nợ CÓ CẤU TRÚC (CLAUDE.md §3 A7): "DEBT: <gì> | trần: <giới hạn> | xem lại khi: <điều kiện>".
+    # Thiếu "xem lại khi:" = khoản nợ không có đường quay lại → mục âm thầm (TRAPS.md mục 14 đã tái phát vì vậy).
+    # TU_NO (TRAPS.md mục 18): loại chính file đếm + file test của nó, kẻo bộ đếm tự khớp văn bản của mình.
+    local debt_all debt_notrigger
+    debt_all="$(tracked | grep -zvE '\.(md|json|lock|svg|png|jpg)$|^(CHANGELOG|TRAPS)' \
+      | xargs -0 grep -nE '\bDEBT:' 2>/dev/null | grep -vE 'maintenance-sweep\.sh|test-maintenance-sweep\.sh' || true)"
+    n="$(printf '%s' "$debt_all" | grep -c . || true)"
+    debt_notrigger="$(printf '%s' "$debt_all" | grep -vc 'xem lại khi:' || true)"
+    [ "$n" -eq 0 ] && debt_notrigger=0
+    line "- Dấu nợ \`DEBT:\` trong mã: $n (thiếu điều kiện xem lại: $debt_notrigger)"
+    if [ "$debt_notrigger" -gt 0 ]; then
+      yel "Nợ kỹ thuật" "$debt_notrigger dấu DEBT: không có 'xem lại khi:'" "bổ sung điều kiện quay lại (CLAUDE.md §3 A7) — nợ không có đường quay lại sẽ mục âm thầm"
+    else
+      if [ "$n" -eq 0 ]; then info "Nợ kỹ thuật" "không có dấu DEBT:" "—"; else info "Nợ kỹ thuật" "$n dấu DEBT:, đều có điều kiện xem lại" "—"; fi
+    fi
   fi
 }
 

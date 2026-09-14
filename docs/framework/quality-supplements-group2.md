@@ -372,6 +372,37 @@ gỡ rác, giảm trùng lặp & độ phức tạp, tỉa phụ thuộc, thu nh
 > **Phân biệt:** mục 2 = "trang chạy nhanh cho *người dùng*"; mục 9 = "mã dễ đọc, dễ sửa, ít rác cho *lập trình viên*".
 > Hai việc khác nhau, đôi khi đánh đổi nhau (tách hàm cho gọn nhưng thêm một lớp gián tiếp) — cân nhắc theo bối cảnh, đừng tối ưu mù.
 
+### Dấu nợ `DEBT:` — chỗ CỐ Ý dừng ở một trần đã biết
+
+Không phải chỗ rườm rà nào cũng nên sửa ngay: đôi khi bản đơn giản là **lựa chọn đúng** và điều cần
+là ghi lại *đã chấp nhận trần nào* và *bao giờ quay lại*. Một `TODO` trơ trọi không làm được việc đó —
+nó không nói trần, không nói điều kiện, nên không ai biết lúc nào nó thành nợ xấu.
+
+Khuôn, đặt ngay tại dòng code làm tắt (mọi kiểu comment, `//` hay `#` đều được):
+
+```
+# DEBT: khoá toàn cục cho cả tiến trình | trần: ~50 req/s | xem lại khi: p95 latency > 300ms
+// DEBT: quét O(n²) danh sách thành viên | trần: n < 500 | xem lại khi: một tổ chức vượt 500 thành viên
+```
+
+Ba phần, thiếu phần nào mất tác dụng phần đó:
+
+1. **đã giản lược gì** — người sau đọc được ngay mà không phải suy ra từ code.
+2. **trần** — giới hạn *đã biết* của bản này. Đây là điểm khác `TODO`: nợ có trần thì đo được.
+3. **xem lại khi** — điều kiện quay lại. **Đây là phần hay bị bỏ và là phần đắt nhất.**
+   `TRAPS.md` mục 14 đã tái phát đúng vì một khoản hoãn ("không có cổng máy, chốt bằng quy ước")
+   có trần nhưng không có điều kiện quay lại, nên không ai quay lại.
+
+**Cổng:** `scripts/maintenance-sweep.sh` (mảng 3) đếm dấu `DEBT:` và cảnh báo 🟡 riêng cho các dấu
+**thiếu `xem lại khi:`** — đúng nhóm sẽ mục âm thầm. Số dấu có đủ ba phần chỉ là ℹ️: nợ được khai báo
+đúng không phải lỗi.
+
+**Phân vai ba loại dấu** (đừng dùng lẫn): `TODO` = việc còn dở, sẽ làm nốt · `DEBT:` = **cố ý** dừng
+ở một trần đã biết, có điều kiện quay lại · **ADR** = quyết định kiến trúc, không phải chỗ làm tắt.
+Cùng họ với **sổ trần cho lối thoát khỏi cổng coverage** ở mục 4 — cùng một ý: mỗi ngoại lệ phải
+đếm được và có đường quay lại; và cùng một bẫy, **bộ đếm tự khớp chính nó** (file chứa phép đếm phải
+được loại khỏi phép đếm, xem `TRAPS.md` mục 18).
+
 ### Nguyên tắc vàng khi refactor
 - **Không đổi hành vi.** Refactor = đổi *cấu trúc*, giữ nguyên *kết quả*. Nếu phải đổi hành vi → đó là feature/fix, tách commit riêng.
 - **Có lưới an toàn trước.** Phải có test phủ vùng sắp sửa *trước khi* động vào. Chưa có test → viết test mô tả hành vi hiện tại (characterization test) trước, rồi mới refactor.
