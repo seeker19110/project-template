@@ -6,8 +6,20 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#117 đã merge (#117 = đồng bộ `PROGRESS.md` sau #115). **Mốc nội dung
-  gần nhất (2026-09-14, PR #115):** đối chiếu nguồn ngoài `ponytail` →
+- Giai đoạn: GĐ 8. PR #69→#118 đã merge. **Mốc nội dung gần nhất (2026-09-14, nhánh
+  `claude/cool-gauss-4dk9ln`): phần CÒN LẠI của lượt `/audit-optimize`** mà PR #118 cố ý hoãn ở mục
+  "Reviewer focus #2". Tách `_scripts_inventory` 15→5 và `subagent-dispatch::main` 12→4; hàm thứ ba
+  `format_markdown_report` (13) **giữ nguyên có lý do đo được** + dấu `DEBT:` có trần và điều kiện
+  xem lại — dấu `DEBT:` THẬT đầu tiên của repo, và cổng đếm ở `maintenance-sweep.sh` mảng 3 (PR #115)
+  đã chứng minh giá trị ngay: nó bắt bản viết 3 dòng vì bộ dò đi theo dòng. Đính chính PR #118: nó ghi
+  "bốn hàm vượt ngưỡng" nhưng đo thật chỉ có ba (`spec-compiler::main` là 11). Và **không có cổng máy
+  nào cưỡng chế CC ≤ 12** trong repo — ngưỡng chỉ nằm trong văn xuôi, nên đây là phán đoán chứ không
+  phải bịt cổng đỏ. `TRAPS.md` mục 20 + 21 (hai khuôn xanh-giả/đo-sai mắc thật trong phiên, mục 20 bắt
+  được TRƯỚC khi commit). 14/14 cổng khung xanh, coverage 96%.
+- **Mốc PR #118 (2026-09-14):** lượt `/audit-optimize` P1–P3 — rút `_python-exec.sh` + `_test-lib.sh`,
+  hạ `scan_codebase_health` và `parse_spec_markdown` từ CC 18 xuống 1/3. Bài học ghi trong PR: với repo
+  đã tối ưu sẵn, **"giảm dòng" là chỉ số SAI** để duyệt kế hoạch tối ưu (ước tính −91, thực tế +366).
+- **Mốc trước (2026-09-14, PR #115):** đối chiếu nguồn ngoài `ponytail` →
   ba luật: thang kiểm trước khi viết code `CLAUDE.md` §3 A4 · dấu nợ `DEBT:` có điều kiện xem lại
   §3 A7 **kèm cổng thật** ở `maintenance-sweep.sh` mảng 3 + negative/positive test · nhóm 5 "tự viết
   lại thứ đã có" cho `/audit-optimize`. Bản đối chiếu ba cột:
@@ -73,8 +85,8 @@
   báo oan) nên nó KHÔNG chặn được PR quên bước 0, chỉ cảnh báo sau khi đã merge. Cân nhắc một cổng ở
   `pr-policy.yml` soi diff của PR thay đổi tài liệu khung mà không chạm `PROGRESS.md` — chưa làm, cần bàn
   vì dễ báo oan cho PR nhỏ.
-- Default-branch SHA đã đối chiếu: `15e2ed7` (`origin/main`, PR #117)
-- Nhánh đang làm: `main`
+- Default-branch SHA đã đối chiếu: `e6a276a` (`origin/main`, PR #118)
+- Nhánh đang làm: `claude/cool-gauss-4dk9ln` (phần còn lại của audit tối ưu — chờ merge)
 - Ngày cập nhật: 2026-09-14
 
 ## Goal đang active
