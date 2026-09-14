@@ -199,6 +199,14 @@ def main():
         print("Error: Specify --spec <path> or --compile-all", file=sys.stderr)
         sys.exit(1)
 
+    # DỰ ÁN ĐÍCH mới dựng chưa có docs/specs/ — đó là trạng thái HỢP LỆ, không phải lỗi.
+    # Trước đây rơi vào đây thì script im lặng không in gì, làm self-test đi kèm báo ĐỎ ở mọi
+    # dự án đích (phát hiện 2026-09-14 khi smoke self-test ngay trong dự án đích).
+    if not target_specs:
+        print("Không có spec nào trong docs/specs/ — chưa có gì để biên dịch. "
+              "Viết spec đầu tiên từ docs/framework/templates/FEATURE-SPEC.template.md.")
+        sys.exit(0)
+
     compiled_results = []
     os.makedirs(os.path.join(ROOT_DIR, args.out_dir), exist_ok=True)
 
