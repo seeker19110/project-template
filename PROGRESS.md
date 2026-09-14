@@ -6,7 +6,7 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#113 đã merge; **đang mở PR #114** (đối chiếu nguồn ngoài `ponytail` →
+- Giai đoạn: GĐ 8. PR #69→#113 đã merge; **đang mở PR #115** (đối chiếu nguồn ngoài `ponytail` →
   ba luật: thang kiểm trước khi viết code `CLAUDE.md` §3 A4 · dấu nợ `DEBT:` có điều kiện xem lại
   §3 A7 **kèm cổng thật** ở `maintenance-sweep.sh` mảng 3 + negative/positive test · nhóm 5 "tự viết
   lại thứ đã có" cho `/audit-optimize`. Bản đối chiếu ba cột:
@@ -64,7 +64,7 @@
   `pr-policy.yml` soi diff của PR thay đổi tài liệu khung mà không chạm `PROGRESS.md` — chưa làm, cần bàn
   vì dễ báo oan cho PR nhỏ.
 - Default-branch SHA đã đối chiếu: `b35d13f` (`origin/main`, PR #113)
-- Nhánh đang làm: `claude/youthful-planck-vb0e3t` (PR #114 — đang mở)
+- Nhánh đang làm: `claude/youthful-planck-vb0e3t` (PR #115 — đang mở)
 - Ngày cập nhật: 2026-09-14
 
 ## Goal đang active
