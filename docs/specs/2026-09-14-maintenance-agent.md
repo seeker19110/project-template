@@ -104,6 +104,29 @@ Test: `scripts/test-maintain-cron.sh` — dựng bare-repo remote THẬT (không
 chính trên remote không đổi sau khi chạy, nhánh `maint/auto-*` nhận đúng nội dung, lượt thứ hai
 cùng ngày ghi đè chứ không cộng dồn, `--no-push` không đụng remote, và khoá chặn được lượt chạy chồng.
 
+**Phụ lục 10c — "báo cáo cho chủ dự án bằng cách nào" (cùng ngày, tiếp phụ lục 10b):** người dùng hỏi
+kênh báo cáo. Bổ sung `maintain-cron.sh` **tự mở PR** qua GitHub REST API (curl, không cần `gh` CLI)
+khi có `GITHUB_TOKEN`/`GH_TOKEN` trong môi trường — kênh báo cáo chính đã chọn (Recommended, người
+dùng chọn qua AskUserQuestion). Không có token → chỉ log, không coi là lỗi. `--no-open-pr` tắt hẳn.
+Tránh mở PR trùng bằng cách kiểm tra PR đang mở cho nhánh trước (GET `/pulls?head=...&state=open`).
+
+**Bug thật bắt được khi viết test cho phụ lục này (đáng ghi vào TRAPS.md):**
+1. Push same-day rerun trước đó chỉ "thành công" nhờ TRÙNG GIÂY (hai commit nội dung giống hệt sinh
+   cùng timestamp → cùng SHA → push trông như no-op) — mọi lượt chạy thật cách nhau vài giây sẽ bị
+   remote từ chối `non-fast-forward`, vì local `reset --hard` về base rồi tạo commit MỚI không phải
+   hậu duệ của commit cũ trên remote. Sửa: `git push --force-with-lease=<nhánh>` sau khi
+   `git fetch origin <nhánh>` — CHỈ áp cho `maint/auto-*` (nhánh do chính wrapper sở hữu), không
+   bao giờ cho nhánh chính.
+2. `http_body_file` gán bên trong một hàm được gọi qua `code="$(http_call ...)"` — command
+   substitution chạy hàm trong SUBSHELL, nên biến gán bên trong không bao giờ thấy được ở scope
+   gọi ra, dù đã khai `local` ở hàm cha (`set -u` báo "unbound variable"). Sửa: truyền đường dẫn
+   file tạm làm THAM SỐ tường minh cho hàm, không giao tiếp qua biến chia sẻ ngầm.
+
+Test bổ sung (mục 7 của `test-maintain-cron.sh`): dùng `curl` GIẢ (stub ghi argv/trả JSON cố định,
+không đụng mạng thật) — chứng minh không token/`--no-open-pr` thì không gọi curl; có token thì gọi
+GET trước rồi POST tạo PR đúng; PR đã tồn tại thì không tạo trùng; HTTP lỗi khi tạo thì log rõ và
+không làm hỏng toàn bộ lượt chạy (nhánh đã đẩy thành công vẫn được giữ).
+
 ## 11. Architecture và code touchpoints
 
 - `scripts/maintenance-sweep.sh` — engine (bash, ~280 dòng, shellcheck sạch mức warning)

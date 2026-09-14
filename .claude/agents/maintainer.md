@@ -59,7 +59,8 @@ dùng: Claude Code `claude -p`, Hermes Agent `hermes chat -q` với provider c�
 OpenCode `opencode run`; không CLI nào → in prompt để dán tay). **Không cần và không dùng API key.**
 Chạy không giám sát trên VPS/cron thì đi qua `scripts/maintain-cron.sh` (gọi `maintain-run.sh` rồi
 tự đẩy `docs/ops/MAINTENANCE-*.md` lên nhánh riêng `maint/auto-<ngày>` — không bao giờ đụng nhánh
-chính, không tự merge; người vẫn phải mở PR duyệt).
+chính, không tự merge). Có token GitHub trong môi trường thì nó **tự mở PR** qua REST API làm kênh
+báo cáo chính cho chủ dự án; không có token thì chỉ log, người tự mở PR tay.
 Khi chạy kiểu này: báo cáo quét đã được đính kèm trong prompt — không chạy lại sweep trừ khi cần
 xác minh; các luật "KHÔNG làm" ở trên vẫn nguyên (hook Claude Code không có ở đó → tự tuân thủ
 `AGENTS.md` mục "Hàng rào an toàn thủ công").

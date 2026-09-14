@@ -46,8 +46,10 @@ Ràng buộc bắt buộc (bám `CLAUDE.md` §2 chia nhỏ + §5–§8 cổng/PR
 - **Chạy KHÔNG GIÁM SÁT trên VPS/cron (không ai mở phiên chat):** `scripts/maintain-cron.sh` gói
   PHA 0–2 thành một lệnh an toàn để đặt cron — đồng bộ nhánh chính, chạy `maintain-run.sh`, rồi
   commit + push **CHỈ** `docs/ops/MAINTENANCE-*.md` lên nhánh riêng `maint/auto-<ngày>` (KHÔNG bao
-  giờ đụng nhánh chính, KHÔNG tự merge). Bạn vẫn phải tự mở PR từ nhánh đó và làm PHA 3–4 như bình
-  thường. Có khoá tiến trình + kiểm working tree sạch trước khi chạy — xem `--help` của script.
+  giờ đụng nhánh chính, KHÔNG tự merge). Có `GITHUB_TOKEN`/`GH_TOKEN` trong môi trường → **tự mở
+  PR** qua GitHub REST API (kênh báo cáo chính cho chủ dự án — bạn nhận thông báo PR mới y hệt mọi
+  PR khác); không có token → chỉ log, bạn tự mở PR tay. `--no-open-pr` tắt hẳn bước này dù có
+  token. Có khoá tiến trình + kiểm working tree sạch trước khi chạy — xem `--help` của script.
 
 - **PHA 4 — hội tụ + đóng:** quay về `main`, chạy lại `maintenance-sweep.sh --strict`: còn 🔴 →
   lặp PHA 2–3 cho phần còn lại (cùng một mục thất bại **tối đa 3 lần** rồi checkpoint BLOCKED và hỏi —

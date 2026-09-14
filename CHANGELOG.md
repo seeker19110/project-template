@@ -22,7 +22,12 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
   `scripts/maintain-cron.sh` cho VPS/cron (đồng bộ nhánh chính, chạy agent, đẩy CHỈ
   `docs/ops/MAINTENANCE-*.md` lên nhánh riêng `maint/auto-<ngày>`, không bao giờ đụng nhánh chính,
   có khoá tiến trình chống chạy chồng). Ba self-test có negative-test/bare-repo thật + stub CLI,
-  nối vào `framework-lint` và smoke dự án đích.
+  nối vào `framework-lint` và smoke dự án đích. **Bổ sung cùng ngày:**
+  `maintain-cron.sh` tự mở PR qua GitHub REST API khi có `GITHUB_TOKEN`/`GH_TOKEN` (kênh báo cáo
+  chính cho chủ dự án khi chạy không giám sát), tránh mở PR trùng; sửa hai lỗi thật bắt được khi
+  viết test (push same-day rerun chỉ "thành công" nhờ trùng giây → đổi sang `--force-with-lease`
+  giới hạn đúng một nhánh; biến gán trong hàm gọi qua subshell không thấy được ở ngoài) — xem
+  `TRAPS.md` mục 16–17.
 
 - **Quick Start + adoption preflight** — thêm `docs/framework/quickstart.md` để định hướng nhanh
   Greenfield/Brownfield, dẫn về Standard Delivery Contract và cung cấp checklist xác nhận lệnh/gate

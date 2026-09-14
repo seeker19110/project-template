@@ -38,7 +38,7 @@
 | FT-19 | Tra cứu read-only | `lookup` (Haiku) | codebase | ✅ | ❌ không có |
 | FT-20 | Xác minh phiên bản nguồn sống | `version-check` (Haiku) | registry/web | ✅ | ❌ không có |
 | FT-21 | Bảo trì toàn diện định kỳ (ngoài bảng route) | `maintainer` (Sonnet) qua `/maintain` hoặc `scripts/maintain-run.sh` (CLI subscription cục bộ, mọi nhà cung cấp) | `scripts/maintenance-sweep.sh` → `docs/ops/MAINTENANCE-REPORT.md`, `docs/ops/MAINTENANCE-PLAN.md`, `docs/ops/MAINTENANCE-LOG.md` | ✅ | `test-maintenance-sweep.sh` (negative+positive) + `test-maintain-run.sh` (stub CLI 5 harness) — job `framework-lint` + smoke dự án đích |
-| FT-22b | Bảo trì không giám sát (VPS/cron) — đẩy PR để duyệt, không tự merge | `scripts/maintain-cron.sh` | nhánh `maint/auto-<ngày>`, `docs/ops/MAINTENANCE-*.md` | ✅ | `test-maintain-cron.sh` (bare-repo remote thật) — job `framework-lint` + smoke dự án đích |
+| FT-22b | Bảo trì không giám sát (VPS/cron) — đẩy nhánh + tự mở PR (GitHub REST API) để duyệt, không tự merge | `scripts/maintain-cron.sh` | nhánh `maint/auto-<ngày>`, `docs/ops/MAINTENANCE-*.md`, PR trên GitHub | ✅ | `test-maintain-cron.sh` (bare-repo remote thật + curl giả) — job `framework-lint` + smoke dự án đích |
 
 ## C. Hook tự động (5) — `.claude/hooks/`
 

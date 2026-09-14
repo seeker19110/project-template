@@ -113,6 +113,77 @@ else
   echo "  ⏭️  không có flock trên máy này — bỏ qua kiểm khoá bằng flock (fallback PID vẫn được các kiểm khác phủ gián tiếp)"
 fi
 
+echo "== 7. Tự mở PR (GitHub REST API qua curl GIẢ — không đụng mạng thật) =="
+STUB_LOG="$TMP/curl.log"
+mk_stub_curl() { # $1=STUB_EXISTING(0/1) $2=STUB_CODE_GET(mặc định 200) $3=STUB_CODE_POST(mặc định 201)
+  cat > "$TMP/curl" <<EOF
+#!/usr/bin/env bash
+printf '%s\n' "\$*" >> "$STUB_LOG"
+out_file=""; prev=""; is_post=0
+for a in "\$@"; do
+  [ "\$prev" = "-o" ] && out_file="\$a"
+  [ "\$prev" = "-X" ] && [ "\$a" = "POST" ] && is_post=1
+  prev="\$a"
+done
+url="\${@: -1}"
+if [ "\$is_post" = 1 ]; then
+  printf '{"html_url":"https://github.com/fakeowner/fakerepo/pull/42","number":42}' > "\$out_file"
+  printf '${3:-201}'
+else
+  case "\$url" in
+    *"/pulls?"*)
+      if [ "${1:-0}" = "1" ]; then printf '[{"html_url":"https://github.com/fakeowner/fakerepo/pull/7","number":7}]' > "\$out_file"; else printf '[]' > "\$out_file"; fi
+      printf '${2:-200}'
+      ;;
+    *) printf '{}' > "\$out_file"; printf '500' ;;
+  esac
+fi
+EOF
+  chmod +x "$TMP/curl"
+}
+git -C "$REMOTE" branch -D "maint/auto-$today" >/dev/null 2>&1
+# Xoá remote-tracking ref CỤC BỘ tương ứng — nếu không, --force-with-lease trong maintain-cron.sh
+# (đúng như thiết kế) sẽ từ chối push vì so lease với giá trị CŨ còn sót từ trước khi ta xoá nhánh
+# thẳng tay trên remote giả (một thao tác chỉ test này làm, script thật không bao giờ làm vậy).
+git -C "$WORK" update-ref -d "refs/remotes/origin/maint/auto-$today" 2>/dev/null || true
+REPO_ARGS=(--repo fakeowner/fakerepo)   # --repo bỏ qua việc parse origin (origin trỏ tới bare repo cục bộ, không phải github.com)
+
+echo "-- 7a. Không có token → bỏ qua tự mở PR, không gọi curl --"
+rm -f "$STUB_LOG"; mk_stub_curl 0
+unset GITHUB_TOKEN GH_TOKEN
+out7a="$( ( cd "$WORK" && MAINT_BIN_CURL="$TMP/curl" bash scripts/maintain-cron.sh --harness claude --mode quick "${REPO_ARGS[@]}" ) 2>&1 )"; rc=$?
+[ "$rc" -eq 0 ] && ok "không token: runner vẫn thoát 0" || bad "không token: thoát $rc"
+printf '%s' "$out7a" | grep -q "không có GITHUB_TOKEN" && ok "không token: log rõ lý do bỏ qua" || bad "không token: thiếu log giải thích"
+[ ! -s "$STUB_LOG" ] && ok "không token: KHÔNG gọi curl lần nào" || bad "không token: vẫn gọi curl: $(cat "$STUB_LOG")"
+
+echo "-- 7b. --no-open-pr dù CÓ token → vẫn bỏ qua, không gọi curl --"
+rm -f "$STUB_LOG"; mk_stub_curl 0
+out7b="$( ( cd "$WORK" && GITHUB_TOKEN=fake-tok MAINT_BIN_CURL="$TMP/curl" bash scripts/maintain-cron.sh --harness claude --mode quick --no-open-pr "${REPO_ARGS[@]}" ) 2>&1 )"; rc=$?
+[ "$rc" -eq 0 ] && ok "--no-open-pr: thoát 0" || bad "--no-open-pr: thoát $rc"
+printf '%s' "$out7b" | grep -q -- "--no-open-pr: bỏ qua" && ok "--no-open-pr: log đúng lý do" || bad "--no-open-pr: thiếu log"
+[ ! -s "$STUB_LOG" ] && ok "--no-open-pr: KHÔNG gọi curl" || bad "--no-open-pr: vẫn gọi curl"
+
+echo "-- 7c. Có token, chưa có PR mở → TẠO MỚI qua POST, log đúng URL --"
+rm -f "$STUB_LOG"; mk_stub_curl 0
+out7c="$( ( cd "$WORK" && GITHUB_TOKEN=fake-tok MAINT_BIN_CURL="$TMP/curl" bash scripts/maintain-cron.sh --harness claude --mode quick "${REPO_ARGS[@]}" ) 2>&1 )"; rc=$?
+[ "$rc" -eq 0 ] && ok "7c: thoát 0" || bad "7c: thoát $rc: $out7c"
+[ "$(grep -cv -- '-X POST' "$STUB_LOG" 2>/dev/null || echo 0)" -ge 1 ] && ok "7c: có gọi kiểm tra PR đang mở trước (GET)" || bad "7c: không thấy lượt GET kiểm tra trước"
+grep -q -- "-X POST" "$STUB_LOG" && ok "7c: có gọi POST tạo PR" || bad "7c: không thấy POST: $(cat "$STUB_LOG" 2>/dev/null)"
+printf '%s' "$out7c" | grep -q "Đã mở PR báo cáo cho chủ dự án: https://github.com/fakeowner/fakerepo/pull/42" && ok "7c: log đúng URL PR vừa tạo" || bad "7c: thiếu/sai log URL: $out7c"
+
+echo "-- 7d. Có token, ĐÃ có PR mở cho đúng nhánh → KHÔNG tạo trùng --"
+rm -f "$STUB_LOG"; mk_stub_curl 1
+out7d="$( ( cd "$WORK" && GITHUB_TOKEN=fake-tok MAINT_BIN_CURL="$TMP/curl" bash scripts/maintain-cron.sh --harness claude --mode quick "${REPO_ARGS[@]}" ) 2>&1 )"; rc=$?
+[ "$rc" -eq 0 ] && ok "7d: thoát 0" || bad "7d: thoát $rc"
+grep -q -- "-X POST" "$STUB_LOG" && bad "7d: vẫn gọi POST dù PR đã tồn tại (tạo trùng!)" || ok "7d: KHÔNG gọi POST — tránh PR trùng"
+printf '%s' "$out7d" | grep -q "PR đã mở sẵn cho maint/auto-$today — không tạo trùng: https://github.com/fakeowner/fakerepo/pull/7" && ok "7d: log đúng URL PR đã có" || bad "7d: thiếu/sai log: $out7d"
+
+echo "-- 7e. HTTP lỗi khi tạo (500) → log rõ, KHÔNG coi là lỗi chặn toàn bộ script --"
+rm -f "$STUB_LOG"; mk_stub_curl 0 200 500
+out7e="$( ( cd "$WORK" && GITHUB_TOKEN=fake-tok MAINT_BIN_CURL="$TMP/curl" bash scripts/maintain-cron.sh --harness claude --mode quick "${REPO_ARGS[@]}" ) 2>&1 )"; rc=$?
+[ "$rc" -eq 0 ] && ok "7e: HTTP 500 khi tạo PR vẫn không làm script thoát khác 0" || bad "7e: thoát $rc"
+printf '%s' "$out7e" | grep -q "mở PR thất bại (HTTP 500)" && ok "7e: log rõ HTTP 500" || bad "7e: thiếu log lỗi HTTP"
+
 echo
-if [ "$fails" -eq 0 ]; then echo "OK — maintain-cron.sh chỉ đẩy nhánh maint/auto-*, không đụng main, chặn đúng working tree bẩn + chạy chồng."; else echo "FAIL — $fails kiểm hỏng."; fi
+if [ "$fails" -eq 0 ]; then echo "OK — maintain-cron.sh chỉ đẩy nhánh maint/auto-*, không đụng main, chặn đúng working tree bẩn + chạy chồng, tự mở/tránh trùng PR đúng qua GitHub REST API."; else echo "FAIL — $fails kiểm hỏng."; fi
 exit "$fails"
