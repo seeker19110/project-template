@@ -5,6 +5,10 @@
 # Linh tinh
 .DS_Store
 
+# Bytecode cache Python (scripts/*.py sinh ra khi chạy/test các engine)
+__pycache__/
+*.pyc
+
 # Khai bao lenh dev dac thu du an (copy tu .claude/project-commands.example.sh)
 .claude/project-commands.sh
 
