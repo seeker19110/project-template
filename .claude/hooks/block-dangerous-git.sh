@@ -29,9 +29,41 @@ else
 fi
 [ -n "$cmd" ] || exit 0
 
-# Bỏ phần TRONG DẤU NHÁY trước khi so khớp (audit 2026-09-12): nếu không, một chuỗi mô tả như
-# `echo 'git reset --hard ...'` sẽ bị coi là lệnh git thật và chặn oan.
-cmd_scan="$(printf '%s' "$cmd" | sed "s/'[^']*'//g; s/\"[^\"]*\"//g")"
+# Bỏ DỮ LIỆU trước khi so khớp, chỉ giữ phần thực sự là lệnh. Hai dạng nhúng dữ liệu nhiều từ vào
+# một lệnh shell, và cả hai đều đã gây chặn oan thật:
+#
+#   1. Trong dấu nháy (audit 2026-09-12): `echo 'git reset --hard ...'` bị coi là lệnh git thật.
+#   2. Trong thân heredoc (2026-09-14): `git commit -F - <<EOF ... EOF && git push -u origin
+#      claude/<nhánh> --force-with-lease` bị quy tắc 1 chặn vì COMMIT MESSAGE có chữ "main" đứng
+#      riêng ("quay về main"), dù nhánh đích là nhánh riêng. Cùng lượt đó quy tắc 2 cũng chặn oan
+#      một lệnh `python3 - <<PY` mà thân script có chuỗi `git reset --hard` làm dữ liệu test.
+#
+# Đây là khuôn "bộ đếm/bộ dò tự khớp văn bản của chính thứ nó đang soi"
+# (`docs/framework/quality-supplements-group2.md` §"Sổ trần cho LỐI THOÁT khỏi cổng coverage").
+# Nguy hiểm của chặn oan không phải là phiền: nó dạy người ta gõ ALLOW_DANGEROUS_GIT=1 thành phản
+# xạ, và lúc đó hàng rào không còn chặn được ca thật.
+#
+# GIỚI HẠN CÒN LẠI (nói ra, không giấu): dữ liệu KHÔNG nháy và KHÔNG heredoc vẫn bị quét —
+# `git push -f origin claude/x && echo main` vẫn chặn oan. Sửa hẳn cần tách lệnh theo `&&`/`;`/`|`
+# rồi chỉ soi segment bắt đầu bằng `git`; chưa làm vì phạm vi rộng hơn hẳn và chưa có sự cố thật.
+# \047 = nháy đơn, \042 = nháy kép (escape bát phân của awk). Dùng chúng thay vì viết nháy thật để
+# CẢ chương trình awk nằm gọn trong một cặp nháy đơn của shell — không có chỗ nào phải thoát nháy
+# lồng nhau, thứ vừa khó đọc vừa dễ hỏng lặng lẽ khi ai đó sửa.
+strip_heredoc_bodies() {
+  awk '
+    BEGIN { delim = "" }
+    {
+      if (delim != "") { if ($0 == delim) { delim = "" } ; next }
+      if (match($0, /<<-?[[:space:]]*[\047\042]?[A-Za-z_][A-Za-z0-9_]*[\047\042]?/)) {
+        d = substr($0, RSTART, RLENGTH)
+        sub(/^<<-?[[:space:]]*/, "", d)
+        gsub(/[\047\042]/, "", d)
+        delim = d
+      }
+      print
+    }'
+}
+cmd_scan="$(printf '%s' "$cmd" | strip_heredoc_bodies | sed "s/'[^']*'//g; s/\"[^\"]*\"//g")"
 
 block() {
   echo "🚫 Lệnh bị chặn bởi block-dangerous-git.sh: $1" >&2
