@@ -6,7 +6,7 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc đang làm (2026-09-14, nhánh `claude/inspiring-ptolemy-nvhdmd`): CỔNG MÁY
+- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-14, PR #123 đã merge): CỔNG MÁY
   cho ngưỡng CC 12** — trả lời trực tiếp phát hiện của mốc trước ("không có cổng máy nào cưỡng chế
   CC ≤ 12, ngưỡng chỉ nằm trong văn xuôi"). Thêm `scripts/check-python-complexity.sh` (radon, trần 12
   qua `PY_CC_MAX`, **không có miễn trừ theo hàm**) + `scripts/test-check-python-complexity.sh`
@@ -107,7 +107,7 @@
   báo oan) nên nó KHÔNG chặn được PR quên bước 0, chỉ cảnh báo sau khi đã merge. Cân nhắc một cổng ở
   `pr-policy.yml` soi diff của PR thay đổi tài liệu khung mà không chạm `PROGRESS.md` — chưa làm, cần bàn
   vì dễ báo oan cho PR nhỏ.
-- Default-branch SHA đã đối chiếu: `5fbe7d7` (`origin/main`, PR #121)
+- Default-branch SHA đã đối chiếu: `fb9c461` (`origin/main`, PR #123)
 - Nhánh đang làm: `main` (không có việc dở)
 - Ngày cập nhật: 2026-09-14
 
