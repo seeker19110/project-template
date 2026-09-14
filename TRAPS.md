@@ -480,3 +480,47 @@ trả về. Luôn in kèm một con số nhận dạng của cây đó (số fil
 **Cổng chốt chặn:** không có cổng máy — đây là kỷ luật của người chứng minh, thuộc `CLAUDE.md` §4
 bước (4) "output có khớp đúng câu định nói không". Ghi lại ở đây vì khuôn này sẽ quay lại ở mọi lần
 refactor engine sau.
+
+## 22. Commit merge đặt tiêu đề `merge:` → đỏ cổng Conventional Commits
+
+**Ngày/PR:** 2026-09-14, PR #120 (đỏ ở job `metadata`, sửa bằng `--amend` ngay trên nhánh của mình).
+
+**Khuôn lỗi:** giải xong xung đột, commit merge với tiêu đề mô tả đúng việc đang làm — `merge: đưa
+main vào nhánh, giải xung đột X`. `merge` **không** nằm trong danh sách type hợp lệ của
+`.github/workflows/pr-policy.yml` (`feat|fix|refactor|docs|test|chore|style|perf|build|ci|revert`),
+nên cổng `metadata` đỏ. Dùng `chore:` — nội dung mô tả giữ nguyên, chỉ đổi type.
+
+**Vì sao lọt:** commit merge *cảm giác* như một thao tác git chứ không phải một commit "nội dung", nên
+quy ước tiêu đề không được nghĩ tới. Nhưng cổng soi **mọi** tiêu đề commit chứ không chỉ tiêu đề PR —
+đúng như comment trong `pr-policy.yml` giải thích: squash lấy tiêu đề COMMIT khi PR chỉ có một commit
+(sự cố thật ở PR #99). Mọi chuỗi CÓ THỂ thành tiêu đề trên `main` đều bị soi, commit merge không ngoại lệ.
+
+**Cách rà:** trước khi push một nhánh có commit merge, chạy đúng regex của cổng lên toàn bộ tiêu đề:
+`git log --format=%s origin/main..HEAD` rồi đối chiếu với regex ở `pr-policy.yml:21`. Sửa bằng
+`git commit --amend` trên chính commit merge — `--amend` GIỮ NGUYÊN cả hai cha (kiểm: `git log -1
+--format=%p` phải in hai SHA), nên không phải viết lại lịch sử; chỉ hợp lệ trên nhánh do mình tạo.
+
+**Cổng chốt chặn:** job `metadata` (`.github/workflows/pr-policy.yml`) — đã đỏ thật ở PR #120 commit
+`eb2ea98` với thông điệp nêu đích danh tiêu đề vi phạm, xanh lại sau khi đổi `merge:` → `chore:`.
+
+**Bẫy kèm theo — sửa tiêu đề trên PowerShell làm HỎNG tiếng Việt trong thân commit.** Bản sửa ở PR
+#120 được thực hiện trên Windows bằng
+`$msg = (git log -1 --format=%B | Out-String) -replace '^merge:', 'chore:'`. Lệnh chạy, cổng xanh,
+nhưng tiêu đề trên remote thành `chore: ─æ╞░a main …`: `git log` xuất UTF-8, PowerShell giải mã theo
+**code page của console** (CP437/850) rồi mã hoá lại thành UTF-8 — hỏng kép. Nhìn bằng mắt trên
+terminal Windows rất khó thấy vì console cũng hiển thị sai theo chiều ngược lại.
+
+*Cách rà:* so **byte**, đừng so hình. `git log -1 --format=%s <sha> | od -c` — chữ `đ` đúng là
+`304 221` (U+0111); thấy `342 224 200` (ký tự kẻ khung U+2500) là đã hỏng. Đối chiếu với một commit
+sạch kề bên để có mốc.
+
+*Cách tránh:* đặt `$OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()` TRƯỚC khi
+đọc output của git, hoặc đừng đọc-ghi lại thân commit — gõ thẳng `git commit --amend -m "..."`, hoặc
+sửa trong `git commit --amend` bằng editor. Ghi file thì dùng
+`[System.IO.File]::WriteAllText($p, $msg, (New-Object System.Text.UTF8Encoding($false)))` để không
+chèn BOM — nhưng **ghi đúng không cứu được chuỗi đã đọc sai**: hỏng xảy ra ở bước ĐỌC, không phải ghi.
+
+*Không có cổng máy:* cổng `metadata` chỉ soi tiền tố Conventional Commits nên tiêu đề hỏng vẫn qua.
+Đây là kỷ luật của người sửa. Hệ quả ở PR #120 được CHẤP NHẬN có ý thức thay vì force-push thêm một
+lượt nữa: chi phí sửa (một vòng force-push nữa) lớn hơn thiệt hại (một dòng hỏng trong thân commit
+squash, tiêu đề trên `main` lấy từ tiêu đề PR nên vẫn sạch).
