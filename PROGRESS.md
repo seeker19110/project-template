@@ -6,7 +6,18 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#106 đã merge. Mốc gần nhất (2026-09-14, PR #106): thêm **agent bảo trì
+- Giai đoạn: GĐ 8. PR #69→#109 đã merge. **Mốc gần nhất (2026-09-14, PR #109): ba luật rút từ đợt đối
+  chiếu với `seeker19110/Claude-Agents`** — (1) `CLAUDE.md` §11 + `docs/framework/adopt-from-outside.md`:
+  phương pháp ba cột khi học từ repo/khung/skill NGOÀI (*đã có và sâu hơn* / *đã có nhưng nông hơn* / *chưa
+  có*), cổng "chưa có phải ứng với SỰ CỐ THẬT", và luật cốt lõi **grep CỔNG ĐANG CHẠY đừng đọc văn xuôi**;
+  (2) `CLAUDE.md` §4 "không tin lời khai" — năm bước trước khi nói xong/pass (§7 đã có khuôn báo cáo nhưng
+  chưa có luật sinh ra nó); (3) `quality-supplements-group2.md` — sổ trần cho bốn lối thoát khỏi cổng
+  coverage, so **bằng đúng** (bớt cũng đỏ), kèm bẫy "bộ đếm tự khớp chính nó" + luật đo nhánh chứ không chỉ
+  đo dòng. Nguồn sự cố cho (1) và (2) là chính phiên 2026-09-14: hai lần liên tiếp đề xuất "bổ sung" một
+  thứ mà repo đích ĐÃ CÓ cổng thật đang chạy (Claude-Agents PR #295, #297), và một lần tính phép đo là "đã
+  chứng minh" trong khi lệnh đã chết trước khi chạy tới phần cần đo. 8/8 cổng PR xanh.
+- Trước đó: PR #108 (bỏ qua `__pycache__` trong `.gitignore`), PR #86 (làm rõ nhãn C1 "MẶC ĐỊNH" để
+  không thiên lệch web cho dự án không phải web). Mốc PR #106: thêm **agent bảo trì
   toàn diện** — subagent `maintainer` + lệnh `/maintain` (quét → triage → `docs/ops/MAINTENANCE-PLAN.md`
   dừng chờ duyệt → PR nhỏ qua `/gate` → hội tụ), engine `scripts/maintenance-sweep.sh` (6 mảng mục
   nát theo thời gian: git/dependency/tài liệu/bí mật/CI/cổng khung), `scripts/maintain-run.sh` (chạy
@@ -23,8 +34,13 @@
   `git show <sha> --stat` trước khi tin PROGRESS.md trong PR đã vào `main`; nếu thiếu, mở PR sync
   riêng — không coi im lặng là "đã vào". **Tái diễn ở PR #106:** PR #106 không kèm cập nhật
   `PROGRESS.md` trong cùng PR (bỏ sót bước 0 của CLAUDE.md §8) — sửa bằng PR sync này ngay sau khi
-  merge, đúng theo chính lưu ý này.
-- Default-branch SHA đã đối chiếu: `66765b8` (`origin/main`, PR #106)
+  merge, đúng theo chính lưu ý này. **Tái diễn lần thứ ba ở PR #109** — cùng một bỏ sót (PR không kèm
+  `PROGRESS.md`), dù lưu ý này nằm ngay trong file bị bỏ sót. Ba lần liên tiếp nghĩa là nhắc bằng văn xuôi
+  không đủ: job `progress-freshness` chỉ chạy trên push vào `main` (đúng thiết kế — kiểm lúc PR còn mở sẽ
+  báo oan) nên nó KHÔNG chặn được PR quên bước 0, chỉ cảnh báo sau khi đã merge. Cân nhắc một cổng ở
+  `pr-policy.yml` soi diff của PR thay đổi tài liệu khung mà không chạm `PROGRESS.md` — chưa làm, cần bàn
+  vì dễ báo oan cho PR nhỏ.
+- Default-branch SHA đã đối chiếu: `57c5d92` (`origin/main`, PR #109)
 - Nhánh đang làm: `main`
 - Ngày cập nhật: 2026-09-14
 
@@ -56,7 +72,7 @@
 - **(2026-09-12) PR #69 — cổng chống PROGRESS.md lỗi thời + chia đơn vị PR/trần effort medium/
   auto-merge**: `scripts/check-progress-freshness.sh` + job CI `progress-freshness`; quy trình mới
   sau bước duyệt kế hoạch cho việc đủ lớn cần điều phối 3 tầng — xem `TRAPS.md` mục 8.
-- PR đã merge gần nhất: **#106** (agent bảo trì toàn diện — `maintainer`/`/maintain`/`maintenance-sweep`/`maintain-run`/`maintain-cron`), **#105→#104** (PROGRESS sync + fix telemetry/smoke, xem mục "Giai đoạn hiện tại" ở trên), **#69** (freshness gate + PR-splitting/effort/auto-merge), **#68** (tổng quát hoá harness), **#67** (ADR-0004 gỡ scaffold Web), **#66**
+- PR đã merge gần nhất: **#109** (ba luật từ đợt đối chiếu Claude-Agents), **#86** (nhãn C1), **#108** (`.gitignore` `__pycache__`), **#106** (agent bảo trì toàn diện — `maintainer`/`/maintain`/`maintenance-sweep`/`maintain-run`/`maintain-cron`), **#105→#104** (PROGRESS sync + fix telemetry/smoke, xem mục "Giai đoạn hiện tại" ở trên), **#69** (freshness gate + PR-splitting/effort/auto-merge), **#68** (tổng quát hoá harness), **#67** (ADR-0004 gỡ scaffold Web), **#66**
   (đóng Nhóm 11 audit), **#62** (TRAPS.md + CODEMAP.md + `check-ci-policy.sh` + golden test/TDD —
   2 spec `docs/specs/2026-09-12-*.md`, 7 PR gộp thành 1, rút từ lượt quét 15 repo dẫn xuất/lân cận),
   **#61** (verify-dropins ERESOLVE), **#52** (hoàn thiện khung theo COMPLETION-PLAN, 4 đợt/22 việc
