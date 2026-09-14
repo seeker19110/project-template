@@ -261,13 +261,31 @@ test **vô dụng dù vẫn xanh** — rà cả khi viết mới lẫn khi revie
 test đó pass (không đoán trước tính năng chưa cần) → refactor an toàn (có lưới test) → lặp lại
 cho hành vi tiếp theo. Chỉ **1 seam, 1 test, 1 lần sửa tối thiểu** mỗi vòng.
 
-> **Bắt buộc vs khuyến nghị — đừng lẫn hai thứ khác nhau.** Vòng đỏ-xanh ở trên là kỹ thuật để viết
-> code **MỚI** (chưa có bug) — dùng khi có chủ đích, **khuyến nghị**, không bắt buộc cho mọi thay
-> đổi (ép test-trước lên scaffolding/rename/docs là nghi thức rỗng, xem "horizontal slicing" trên).
-> Khác hẳn luật **BẮT BUỘC** ở `CLAUDE.md` §3.6: **sửa bug (`fix:`) phải có test tái hiện chạy đỏ
-> trước khi sửa** — đây không phải TDD "có chủ đích" mà là điều kiện để coi một bug là đã sửa đúng
-> (không có nó, không biết sửa có trúng nguyên nhân hay chỉ trùng hợp hết triệu chứng). `/gate`,
-> `/debug`, `/completion` đều áp dụng luật bắt buộc này.
+> **Hai luật bắt buộc, một danh sách ngoại lệ — đừng lẫn.** *(Cập nhật 2026-09-14, ADR-0005: vòng
+> đỏ-xanh cho code mới đã lên **mặc định bắt buộc**; trước đó là khuyến nghị.)*
+>
+> 1. **Sửa bug (`fix:`) phải có test tái hiện chạy đỏ TRƯỚC khi sửa** (`CLAUDE.md` §3.6). Đây không
+>    phải TDD "có chủ đích" mà là điều kiện để coi một bug là đã sửa đúng — không có nó, không biết
+>    sửa có trúng nguyên nhân hay chỉ trùng hợp hết triệu chứng. `/gate`, `/debug`, `/completion`
+>    đều áp luật này.
+> 2. **Code MỚI có nhánh điều kiện, tính toán, hoặc xử lý lỗi/quyền cũng phải đỏ trước** (ADR-0005).
+>
+> **Ngoại lệ ĐÓNG cho luật 2** — không cần test-trước, nhưng PR ghi **một dòng** nói rơi vào mục nào:
+> (1) scaffolding/boilerplate sinh từ template hoặc generator; (2) đổi tên, di chuyển, thay đổi cơ
+> học không đổi hành vi; (3) chỉ chạm tài liệu, comment, hoặc config thuần (không có nhánh logic);
+> (4) code sinh tự động — sửa nguồn rồi sinh lại, không sửa tay bản dẫn xuất; (5) prototype vứt đi
+> có timebox, khai rõ sẽ xoá.
+>
+> Ngoại lệ **đóng** là điểm mấu chốt. Phản đối cũ ("ép test-trước lên scaffolding/rename/docs là
+> nghi thức rỗng") vẫn **đúng** và được giữ nguyên bằng đúng năm mục trên — nhưng nó chỉ đúng cho
+> năm mục đó. Ngoài chúng ra, ba câu sau **không** phải ngoại lệ, chúng là biện hộ:
+> *"quá đơn giản nên khỏi test"* · *"test sau cũng như nhau"* · *"đã tự tay thử rồi"*.
+> Test viết sau khi code đã chạy chỉ chứng minh nó xanh ngay từ lần đầu, **không** chứng minh nó
+> từng bắt được lỗi.
+>
+> **Không có cổng máy cho luật 2** (ADR-0005 §Hệ quả) — "test này từng đỏ" không đọc được từ trạng
+> thái cuối của repo. Nó được cưỡng chế bằng review, cùng hạng với `CLAUDE.md` §9. Nói thẳng ra đây
+> để không ai tưởng có cổng canh.
 
 ### Golden test — khi nào dùng, lưu ở đâu, cập nhật thế nào
 
