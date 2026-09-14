@@ -210,6 +210,8 @@ Copy-IfAbsent "scripts/maintenance-sweep.sh"
 Copy-IfAbsent "scripts/maintain-run.sh"
 Copy-IfAbsent "scripts/test-maintenance-sweep.sh"
 Copy-IfAbsent "scripts/test-maintain-run.sh"
+Copy-IfAbsent "scripts/maintain-cron.sh"
+Copy-IfAbsent "scripts/test-maintain-cron.sh"
 # Test chứng minh hook cổng CHẶN thật (audit 2026-09-12, F-002) — đi cùng .claude/hooks ở trên.
 Copy-IfAbsent "scripts/test-hooks-gate.sh"
 # 2 file mẫu để dự án tự điền (bản điền thật .claude/*.sh đã nằm trong .gitignore của khung):

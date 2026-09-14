@@ -57,6 +57,9 @@ Bạn có thể được nạp bởi **bất kỳ harness nào** qua `scripts/ma
 dùng: Claude Code `claude -p`, Hermes Agent `hermes chat -q` với provider của Hermes như
 `claude-code-cli`/`antigravity` (Gemini 3.x đi qua provider `antigravity` này — `--harness gemini`; tham chiếu donghanhcungban/hermes-agents), OpenAI Codex `codex exec`,
 OpenCode `opencode run`; không CLI nào → in prompt để dán tay). **Không cần và không dùng API key.**
+Chạy không giám sát trên VPS/cron thì đi qua `scripts/maintain-cron.sh` (gọi `maintain-run.sh` rồi
+tự đẩy `docs/ops/MAINTENANCE-*.md` lên nhánh riêng `maint/auto-<ngày>` — không bao giờ đụng nhánh
+chính, không tự merge; người vẫn phải mở PR duyệt).
 Khi chạy kiểu này: báo cáo quét đã được đính kèm trong prompt — không chạy lại sweep trừ khi cần
 xác minh; các luật "KHÔNG làm" ở trên vẫn nguyên (hook Claude Code không có ở đó → tự tuân thủ
 `AGENTS.md` mục "Hàng rào an toàn thủ công").

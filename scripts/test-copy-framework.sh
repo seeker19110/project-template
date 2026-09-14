@@ -167,7 +167,7 @@ if ! bash "$REPO_ROOT/copy-framework.sh" "$smoke_target" >/tmp/copy-framework-sm
   echo "  FAIL: copy-framework.sh lỗi khi dựng dự án đích cho smoke"
   fail=1
 else
-  for t in test-telemetry-and-dispatch.sh test-next-gen-engines.sh test-maintenance-sweep.sh test-maintain-run.sh; do
+  for t in test-telemetry-and-dispatch.sh test-next-gen-engines.sh test-maintenance-sweep.sh test-maintain-run.sh test-maintain-cron.sh; do
     if [ ! -f "$smoke_target/scripts/$t" ]; then
       echo "  FAIL: thiếu $t ở dự án đích — không smoke được"
       fail=1

@@ -88,6 +88,22 @@ không đo); thay `/audit-full`/`/completion`.
 | **AC-5** | Given thêm agent/lệnh/script mới · Then `check-docs-consistency.sh` mục 3/4/6/7 xanh (đã khai CLAUDE.md, orchestration, CODEMAP, AGENTS) | `bash scripts/check-docs-consistency.sh` |
 | **AC-6** | Given `maintenance.yml` · Then mọi `uses:` ghim SHA 40 ký tự | `scripts/check-ci-policy.sh` CP-2 |
 
+## 10b. Phụ lục (2026-09-14, cùng ngày, trong phạm vi Approved) — chạy không giám sát trên VPS/cron
+
+Người dùng hỏi thêm: engine chạy trên Git (GitHub Actions) hay có thể chạy trên VPS riêng? Trả lời:
+cả hai — bổ sung `scripts/maintain-cron.sh`, một wrapper cho VPS/cron gọi `maintain-run.sh` rồi tự
+đẩy CHỈ `docs/ops/MAINTENANCE-*.md` lên nhánh riêng `maint/auto-<ngày>` để người duyệt qua PR như
+bình thường. Nằm trong phạm vi FR-5 (`/maintain`)/Outcome đã Approved (§2): vẫn là "đo → triage →
+kế hoạch chờ duyệt", chỉ thêm nơi chạy. Hàng rào cứng bổ sung (không phải tùy chọn):
+- Không bao giờ commit/push vào nhánh chính — luôn qua `maint/auto-<ngày>`.
+- Không `--force`, không `reset --hard`/`clean -f*` khi working tree đang có việc dở (dừng, không tự dọn).
+- `git add` đích danh 3 file `MAINTENANCE-*.md`, không `add -A`.
+- Khoá tiến trình (flock, đặt NGOÀI working tree) chống hai lượt cron chồng nhau.
+
+Test: `scripts/test-maintain-cron.sh` — dựng bare-repo remote THẬT (không mock), chứng minh nhánh
+chính trên remote không đổi sau khi chạy, nhánh `maint/auto-*` nhận đúng nội dung, lượt thứ hai
+cùng ngày ghi đè chứ không cộng dồn, `--no-push` không đụng remote, và khoá chặn được lượt chạy chồng.
+
 ## 11. Architecture và code touchpoints
 
 - `scripts/maintenance-sweep.sh` — engine (bash, ~280 dòng, shellcheck sạch mức warning)
@@ -96,6 +112,7 @@ không đo); thay `/audit-full`/`/completion`.
 - `.claude/commands/maintain.md` — lệnh `/maintain`
 - `.github/workflows/maintenance.yml` — lịch tuần, Lớp 2 dropin
 - `.claude/project-commands.example.sh` — thêm `deps_outdated` / `deps_audit`
+- `scripts/maintain-cron.sh` + `scripts/test-maintain-cron.sh` (phụ lục 10b)
 - `copy-framework.sh` / `copy-framework.ps1` — phát 2 script + workflow dropin
 - `CLAUDE.md`, `AGENTS.md`, `CODEMAP.md`, `docs/FEATURE-MAP.md`, `docs/framework/orchestration-3-tier.md`, `docs/framework/models-and-automation.md`, `docs/ops/repository-settings.md`
 

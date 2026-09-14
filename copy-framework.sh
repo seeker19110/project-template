@@ -165,12 +165,14 @@ copy_if_absent "scripts/maintenance-sweep.sh"
 copy_if_absent "scripts/maintain-run.sh"
 copy_if_absent "scripts/test-maintenance-sweep.sh"
 copy_if_absent "scripts/test-maintain-run.sh"
+copy_if_absent "scripts/maintain-cron.sh"
+copy_if_absent "scripts/test-maintain-cron.sh"
 # Test chứng minh hook cổng CHẶN thật (audit 2026-09-12, F-002) — đi cùng .claude/hooks ở trên.
 copy_if_absent "scripts/test-hooks-gate.sh"
 # 2 file mẫu để dự án tự điền (bản điền thật .claude/*.sh đã nằm trong .gitignore của khung):
 copy_if_absent ".claude/project-commands.example.sh"
 copy_if_absent ".claude/usage-budget.example.sh"
-chmod +x "$TARGET/scripts/dev-task.sh" "$TARGET/scripts/usage-estimate.sh" "$TARGET/scripts/test-hooks-gate.sh" "$TARGET/scripts/maintenance-sweep.sh" "$TARGET/scripts/maintain-run.sh" 2>/dev/null || true
+chmod +x "$TARGET/scripts/dev-task.sh" "$TARGET/scripts/usage-estimate.sh" "$TARGET/scripts/test-hooks-gate.sh" "$TARGET/scripts/maintenance-sweep.sh" "$TARGET/scripts/maintain-run.sh" "$TARGET/scripts/maintain-cron.sh" 2>/dev/null || true
 chmod +x "$TARGET/.claude/hooks/"*.sh 2>/dev/null || true
 
 echo ""

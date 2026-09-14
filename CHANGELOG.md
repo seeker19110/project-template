@@ -18,7 +18,10 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
   + engine `scripts/maintenance-sweep.sh` (6 mảng mục nát theo thời gian, mức 🔴/🟡, `--strict`,
   tự dò stack) + runner `scripts/maintain-run.sh` chạy agent bằng **CLI subscription cục bộ của mọi
   nhà cung cấp AI** (Claude Code/Hermes/Codex/OpenCode, không API key) + workflow tuần
-  `.github/workflows/maintenance.yml` (một issue tổng hợp). Hai self-test có negative-test + stub CLI,
+  `.github/workflows/maintenance.yml` (một issue tổng hợp) + wrapper không giám sát
+  `scripts/maintain-cron.sh` cho VPS/cron (đồng bộ nhánh chính, chạy agent, đẩy CHỈ
+  `docs/ops/MAINTENANCE-*.md` lên nhánh riêng `maint/auto-<ngày>`, không bao giờ đụng nhánh chính,
+  có khoá tiến trình chống chạy chồng). Ba self-test có negative-test/bare-repo thật + stub CLI,
   nối vào `framework-lint` và smoke dự án đích.
 
 - **Quick Start + adoption preflight** — thêm `docs/framework/quickstart.md` để định hướng nhanh
