@@ -6,7 +6,18 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#118 đã merge. **Mốc nội dung gần nhất (2026-09-14, PR #118):**
+- Giai đoạn: GĐ 8. PR #69→#119 đã merge (#119 = đồng bộ `PROGRESS.md` sau #118).
+  **Mốc nội dung gần nhất (2026-09-14, nhánh
+  `claude/cool-gauss-4dk9ln`): phần CÒN LẠI của lượt `/audit-optimize`** mà PR #118 cố ý hoãn ở mục
+  "Reviewer focus #2". Tách `_scripts_inventory` 15→5 và `subagent-dispatch::main` 12→4; hàm thứ ba
+  `format_markdown_report` (13) **giữ nguyên có lý do đo được** + dấu `DEBT:` có trần và điều kiện
+  xem lại — dấu `DEBT:` THẬT đầu tiên của repo, và cổng đếm ở `maintenance-sweep.sh` mảng 3 (PR #115)
+  đã chứng minh giá trị ngay: nó bắt bản viết 3 dòng vì bộ dò đi theo dòng. Đính chính PR #118: nó ghi
+  "bốn hàm vượt ngưỡng" nhưng đo thật chỉ có ba (`spec-compiler::main` là 11). Và **không có cổng máy
+  nào cưỡng chế CC ≤ 12** trong repo — ngưỡng chỉ nằm trong văn xuôi, nên đây là phán đoán chứ không
+  phải bịt cổng đỏ. `TRAPS.md` mục 20 + 21 (hai khuôn xanh-giả/đo-sai mắc thật trong phiên, mục 20 bắt
+  được TRƯỚC khi commit). 14/14 cổng khung xanh, coverage 96%.
+- **Mốc PR #118 (2026-09-14):**
   chạy `/audit-optimize` lên CHÍNH repo khung. GĐ 1 đo baseline: 0 dead code, 0 dependency thừa
   (4 engine Python chỉ stdlib), 15/15 GitHub Actions ghim SHA, jscpd 0,52% trùng lặp — repo đã
   tối ưu sẵn. GĐ 2 làm 3 việc: `scripts/_python-exec.sh` gộp boilerplate 4 wrapper (77→44 dòng) ·
@@ -21,7 +32,6 @@
   (c) Nghiệm thu bằng "cổng LIÊN QUAN xanh" thay vì TOÀN BỘ test (`CLAUDE.md` §6) đã để lọt một
   hồi quy lên `origin` — xanh giả nguy hiểm hơn đỏ.
 - **Mốc trước (2026-09-14, PR #115):** đối chiếu nguồn ngoài `ponytail` →
-  gần nhất (2026-09-14, PR #115):** đối chiếu nguồn ngoài `ponytail` →
   ba luật: thang kiểm trước khi viết code `CLAUDE.md` §3 A4 · dấu nợ `DEBT:` có điều kiện xem lại
   §3 A7 **kèm cổng thật** ở `maintenance-sweep.sh` mảng 3 + negative/positive test · nhóm 5 "tự viết
   lại thứ đã có" cho `/audit-optimize`. Bản đối chiếu ba cột:
@@ -87,8 +97,8 @@
   báo oan) nên nó KHÔNG chặn được PR quên bước 0, chỉ cảnh báo sau khi đã merge. Cân nhắc một cổng ở
   `pr-policy.yml` soi diff của PR thay đổi tài liệu khung mà không chạm `PROGRESS.md` — chưa làm, cần bàn
   vì dễ báo oan cho PR nhỏ.
-- Default-branch SHA đã đối chiếu: `e6a276a` (`origin/main`, PR #118)
-- Nhánh đang làm: `main`
+- Default-branch SHA đã đối chiếu: `1958f0e` (`origin/main`, PR #119)
+- Nhánh đang làm: `claude/cool-gauss-4dk9ln` (PR #120 — phần còn lại của audit tối ưu)
 - Ngày cập nhật: 2026-09-14
 
 ## Goal đang active

@@ -114,7 +114,7 @@ def build_dispatch_payload(agent_info, task_text, harness_type):
             "agent": agent_info
         }
 
-def main():
+def _build_parser():
     parser = argparse.ArgumentParser(description="Universal Subagent Dispatcher Engine")
     parser.add_argument("--list", action="store_true", help="List all available subagents")
     parser.add_argument("--agent", type=str, help="Target agent name (e.g. security-reviewer, complex-implementer)")
@@ -122,17 +122,47 @@ def main():
     parser.add_argument("--context-file", type=str, help="File path containing context/diff/spec")
     parser.add_argument("--harness", type=str, choices=["hermes", "claude", "codex", "generic"], default="generic", help="Target AI Harness")
     parser.add_argument("--json", action="store_true", help="Output result as JSON")
+    return parser
 
-    args = parser.parse_args()
+
+def _print_agent_list(as_json):
+    agents = list_agents()
+    if as_json:
+        print(json.dumps([{"name": a["name"], "description": a["description"], "model": a["model"]} for a in agents], indent=2, ensure_ascii=False))
+        return
+    print(f"Available Subagents ({len(agents)}):")
+    for a in agents:
+        print(f"  - {a['name']:<20} [{a['model']:<8}] : {a['description'][:80]}...")
+
+
+def _load_task_text(task, context_file):
+    if context_file and os.path.exists(context_file):
+        with open(context_file, "r", encoding="utf-8", errors="ignore") as f:
+            return task + "\n\n" + f.read()
+    return task
+
+
+def _print_payload(payload, harness, as_json):
+    if as_json:
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+    elif harness == "hermes":
+        print(json.dumps(payload["delegate_task_call"], indent=2, ensure_ascii=False))
+    elif harness == "claude":
+        # In chỉ dẫn NGƯỜI/AI đọc được mô tả đúng cơ chế thật của Claude Code
+        # (tool Task với subagent_type), thay vì một slash command không tồn tại.
+        tc = payload["tool_call"]
+        print(f"Claude Code — gọi tool {tc['tool']} với subagent_type=\"{tc['subagent_type']}\":")
+        print()
+        print(tc["prompt"])
+    else:
+        print(payload["prompt"])
+
+
+def main():
+    args = _build_parser().parse_args()
 
     if args.list:
-        agents = list_agents()
-        if args.json:
-            print(json.dumps([{"name": a["name"], "description": a["description"], "model": a["model"]} for a in agents], indent=2, ensure_ascii=False))
-        else:
-            print(f"Available Subagents ({len(agents)}):")
-            for a in agents:
-                print(f"  - {a['name']:<20} [{a['model']:<8}] : {a['description'][:80]}...")
+        _print_agent_list(args.json)
         sys.exit(0)
 
     if not args.agent:
@@ -145,27 +175,8 @@ def main():
         print(f"Error: Agent '{args.agent}' not found at {agent_file}", file=sys.stderr)
         sys.exit(1)
 
-    task_content = args.task
-    if args.context_file and os.path.exists(args.context_file):
-        with open(args.context_file, "r", encoding="utf-8", errors="ignore") as f:
-            task_content += "\n\n" + f.read()
-
-    payload = build_dispatch_payload(agent_info, task_content, args.harness)
-
-    if args.json:
-        print(json.dumps(payload, indent=2, ensure_ascii=False))
-    else:
-        if args.harness == "hermes":
-            print(json.dumps(payload["delegate_task_call"], indent=2, ensure_ascii=False))
-        elif args.harness == "claude":
-            # In chỉ dẫn NGƯỜI/AI đọc được mô tả đúng cơ chế thật của Claude Code
-            # (tool Task với subagent_type), thay vì một slash command không tồn tại.
-            tc = payload["tool_call"]
-            print(f"Claude Code — gọi tool {tc['tool']} với subagent_type=\"{tc['subagent_type']}\":")
-            print()
-            print(tc["prompt"])
-        else:
-            print(payload["prompt"])
+    payload = build_dispatch_payload(agent_info, _load_task_text(args.task, args.context_file), args.harness)
+    _print_payload(payload, args.harness, args.json)
 
 if __name__ == "__main__":
     main()
