@@ -150,6 +150,20 @@ sed -i.bak '/^ci\.yml: framework-lint$/d' "$d/docs/ops/repository-settings.md" &
 rc="$(run_check "$d" check-ci-policy.sh)"
 [ "$rc" = "1" ] && ok "bắt được job thật thiếu trong bản kê repository-settings.md (CP-1)" || bad "KHÔNG bắt được job thiếu trong bản kê (rc=$rc)"
 
+# CP-5 — sổ job ĐƯỢC PHÉP skip. `gate` tính `skipped` là đạt, nên một job bị `if:` hỏng loại ra
+# sẽ im lặng qua cổng. Hai chiều, vì sổ chỉ có giá trị khi khớp CHÍNH XÁC cả hai phía.
+d="$(setup_repo)"
+# (a) thêm `if:` cho một job KHÔNG có trong sổ → job đó giờ skip được mà sổ không biết
+perl -0pi -e 's/^(  framework-lint:\n)/$1    if: github.event_name == '"'"'push'"'"'\n/m' "$d/.github/workflows/ci.yml"
+rc="$(run_check "$d" check-ci-policy.sh)"
+[ "$rc" = "1" ] && ok "bắt được job skip-được nhưng thiếu trong sổ SKIP_ALLOWED (CP-5)" || bad "KHÔNG bắt được job skip-được ngoài sổ (rc=$rc)"
+
+d="$(setup_repo)"
+# (b) chiều ngược: bỏ `if:` của progress-freshness → nó không skip được nữa mà sổ vẫn kê tên
+perl -0pi -e "s/^    if: github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'\n//m" "$d/.github/workflows/ci.yml"
+rc="$(run_check "$d" check-ci-policy.sh)"
+[ "$rc" = "1" ] && ok "bắt được sổ SKIP_ALLOWED kê thừa một job không còn skip được (CP-5)" || bad "KHÔNG bắt được sổ kê thừa (rc=$rc)"
+
 ## ============================================================
 ## 3. check-progress-freshness.sh
 ## ============================================================

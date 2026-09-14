@@ -22,6 +22,7 @@
 #   CP-2  mọi `uses:` ghim full commit SHA
 #   CP-3  `node-version:` khớp .nvmrc
 #   CP-4  mọi job ci.yml có trong `needs:` của job tổng hợp `gate`
+#   CP-5  sổ SKIP_ALLOWED của `gate` khớp BẰNG ĐÚNG tập job có `if:` (job nào skip được phải có lý do)
 # Thêm một kiểm mới ở đây → PHẢI khai ID đó trong scripts/ci-workflow-policy.test.ts (bản dropins),
 # dù chỉ để ghi "không áp dụng cho dự án đích: <lý do>". Mục 7 dưới đây cưỡng chế điều đó.
 #
@@ -173,6 +174,45 @@ if grep -q "^  gate:" .github/workflows/ci.yml; then
 else
   echo "::error file=.github/workflows/ci.yml::Thiếu job tổng hợp 'gate' — ADR-0003 yêu cầu có (required check duy nhất)."
   fail=1
+fi
+
+
+# --- 6b. CP-5: sổ job ĐƯỢC PHÉP skip phải khớp bằng đúng tập job có `if:`. ---
+# VÌ SAO: `gate` tính `skipped` là đạt (cần thế, vì `progress-freshness` cố ý chỉ chạy trên push vào
+# nhánh chính). Hệ quả không ai canh: một job bị `if:` viết hỏng loại ra sẽ KHÔNG chạy và vẫn qua
+# cổng — cổng xanh giả, cùng họ với CP-4 nhưng vào bằng cửa khác. Sổ `SKIP_ALLOWED` trong bước
+# "Kết luận từ mọi job cổng" là danh sách tường minh; kiểm này giữ nó khớp CHÍNH XÁC hai chiều:
+# thêm `if:` cho một job mà quên kê ⇒ đỏ (job mới skip được mà không ai biết); kê thừa một job không
+# còn `if:` ⇒ cũng đỏ (sổ nói dối, và sẽ che đúng job đó nếu sau này nó skip vì lý do khác).
+# Chỉ soi ci.yml: `gate` chỉ hội tụ job của ci.yml.
+echo "== CP-5: sổ SKIP_ALLOWED khớp tập job có 'if:' =="
+skippable=""
+cur_job=""
+in_jobs=0
+while IFS= read -r line; do
+  if [[ "$line" == "jobs:" ]]; then in_jobs=1; continue; fi
+  [ "$in_jobs" -eq 1 ] || continue
+  if [[ "$line" =~ ^\ \ ([A-Za-z0-9_-]+): ]]; then
+    cur_job="${BASH_REMATCH[1]}"
+  elif [[ "$line" =~ ^[A-Za-z] ]]; then
+    in_jobs=0
+  elif [[ "$line" =~ ^\ \ \ \ if: ]] && [ -n "$cur_job" ] && [ "$cur_job" != "gate" ]; then
+    # `gate` tự nó có `if: always()` — đó là thứ khiến nó CHẠY dù job con đỏ, không phải thứ khiến
+    # nó bị bỏ qua. Loại ra, nếu không sổ sẽ phải kê chính người đang cầm sổ.
+    skippable+="$cur_job "
+  fi
+done < <(tr -d '\r' < .github/workflows/ci.yml)
+
+declared="$(grep -m1 'SKIP_ALLOWED:' .github/workflows/ci.yml | sed -E 's/.*SKIP_ALLOWED:[[:space:]]*"?([^"]*)"?.*/\1/')"
+norm() { printf '%s\n' $1 | LC_ALL=C sort | tr '\n' ' '; }
+if ! grep -q 'SKIP_ALLOWED:' .github/workflows/ci.yml; then
+  echo "::error file=.github/workflows/ci.yml::Thiếu sổ SKIP_ALLOWED trong job 'gate' — không có sổ thì mọi 'skipped' lại được tính là đạt (CP-5)."
+  fail=1
+elif [ "$(norm "$skippable")" != "$(norm "$declared")" ]; then
+  echo "::error file=.github/workflows/ci.yml::SKIP_ALLOWED lệch tập job có 'if:'. Job có 'if:': [$(norm "$skippable")] — sổ ghi: [$(norm "$declared")]. Thêm 'if:' cho một job thì kê tên + LÝ DO vào sổ; bỏ 'if:' thì xoá khỏi sổ. Sổ chỉ có giá trị khi khớp đúng hai chiều (CP-5)."
+  fail=1
+else
+  echo "OK: sổ SKIP_ALLOWED khớp tập job có 'if:' ($(norm "$declared"))"
 fi
 
 

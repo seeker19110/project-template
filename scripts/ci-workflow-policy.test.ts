@@ -17,11 +17,23 @@
 //   CP-4  mọi job ci.yml có trong `needs:` của job tổng hợp `gate`     → KHÔNG ÁP DỤNG cho dự án
 //         đích: job `gate` là quy ước của RIÊNG repo khung (ADR-0003), khung không áp đặt cấu trúc
 //         job lên dự án đích (xem LƯU Ý ngay dưới). Dự án đích tự thêm nếu muốn.
+//   CP-5  sổ SKIP_ALLOWED khớp bằng đúng tập job có `if:`              → KHÔNG ÁP DỤNG cho dự án
+//         đích, CÙNG LÝ DO với CP-4: nó kiểm nội dung bước "Kết luận từ mọi job cổng" của job
+//         `gate`, mà `gate` là quy ước riêng của repo khung. NHƯNG bài học thì áp cho mọi dự án có
+//         job tổng hợp — xem LƯU Ý ngay dưới, mục (c).
 // Thêm/bỏ một CP-* ở bản shell mà quên khai ở đây → `check-ci-policy.sh` mục 7 làm CI đỏ.
 //
 // LƯU Ý cho dự án đích đã tự thêm job tổng hợp (`quality`/`e2e` có `needs:`, chia mảnh E2E…):
 // đó là quy ước RIÊNG của dự án, không phải bất biến của khung — thêm test riêng cho quy ước đó,
-// đừng sửa file này để giả định một cấu trúc mà khung không áp đặt.
+// đừng sửa file này để giả định một cấu trúc mà khung không áp đặt. Ba cái bẫy đáng chép sang test
+// riêng đó, cả ba đều là cổng-xanh-giả (job chạy/không chạy mà đỏ vẫn không chặn merge được):
+//   (a) job cổng KHÔNG nằm trong `needs:` của job tổng hợp → đỏ của nó không chặn gì (khuôn CP-4);
+//   (b) job tổng hợp thiếu `if: always()` → job con đỏ làm nó bị BỎ QUA, mà "bỏ qua" ở nhiều cấu
+//       hình branch-protection lại không tính là trượt;
+//   (c) job tổng hợp tính mọi `skipped` là đạt → một job bị `if:` viết hỏng loại ra sẽ im lặng qua
+//       cổng (khuôn CP-5). Cách chặn: giữ một SỔ TƯỜNG MINH các job được phép skip, so BẰNG ĐÚNG
+//       với tập job thật sự có `if:` — lệch chiều nào cũng đỏ. `join(needs.*.result)` không đủ để
+//       làm việc này vì nó mất TÊN job; dùng `toJSON(needs)`.
 
 import { describe, it, expect } from 'vitest'
 import { readFileSync, existsSync, readdirSync } from 'node:fs'

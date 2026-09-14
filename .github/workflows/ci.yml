@@ -196,16 +196,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Kết luận từ mọi job cổng
+        env:
+          # Sổ job ĐƯỢC PHÉP `skipped`, cách nhau bằng khoảng trắng. Chỉ job có `if:` mới skip được,
+          # và mỗi cái phải có LÝ DO ở đây. `progress-freshness` có `if: push && ref == main` vì lúc
+          # PR còn mở, nhánh của nó vẫn tồn tại là bình thường — kiểm khi ấy sẽ báo oan (xem comment
+          # ở chính job đó). Sổ này được `scripts/check-ci-policy.sh` (CP-5) so BẰNG ĐÚNG với tập
+          # job thật sự có `if:`, hai chiều: thêm `if:` cho một job mà quên kê ⇒ đỏ; kê thừa một job
+          # không còn `if:` ⇒ cũng đỏ.
+          SKIP_ALLOWED: "progress-freshness"
+          # toJSON(needs) giữ TÊN job, khác `join(needs.*.result)` chỉ cho mảng kết quả trần — không
+          # có tên thì không thể phân biệt "skip hợp lệ" với "skip vì `if:` viết hỏng".
+          NEEDS_JSON: ${{ toJSON(needs) }}
         run: |
-          results="${{ join(needs.*.result, ' ') }}"
-          echo "Kết quả các job: $results"
+          echo "$NEEDS_JSON"
           bad=0
-          for r in $results; do
-            case "$r" in
-              success|skipped) ;;
-              *) bad=1 ;;
+          while IFS=$'\t' read -r jid result; do
+            case "$result" in
+              success) ;;
+              skipped)
+                # `skipped` CHỈ đạt khi job có tên trong sổ. Trước PR này mọi `skipped` đều được
+                # tính là đạt, nên một job bị `if:` hỏng loại ra sẽ im lặng qua cổng — cổng xanh giả
+                # đúng khuôn mà chính CP-4 sinh ra để chặn, chỉ khác đường vào.
+                case " $SKIP_ALLOWED " in
+                  *" $jid "*) echo "bỏ qua hợp lệ: $jid (có trong SKIP_ALLOWED)" ;;
+                  *) echo "::error::Job '$jid' bị BỎ QUA nhưng không có trong SKIP_ALLOWED — nếu đó là chủ ý thì thêm tên + lý do vào sổ ở ci.yml, còn không thì `if:` của nó đang loại nhầm."; bad=1 ;;
+                esac
+                ;;
+              *) echo "::error::Job '$jid' kết thúc '$result'."; bad=1 ;;
             esac
-          done
+          done < <(printf '%s' "$NEEDS_JSON" | jq -r 'to_entries[] | [.key, .value.result] | @tsv')
           if [ "$bad" -eq 1 ]; then
             echo "::error::Có job cổng KHÔNG thành công — xem danh sách trên. Không được merge."
             exit 1
