@@ -34,7 +34,7 @@ Khối dưới đây là **bản kê toàn bộ job** của hai workflow đó (k
 (job `docs-consistency`), đồng thời kiểm mọi job của `ci.yml` đều có mặt trong `needs:` của `gate`.
 Đổi tên/xoá/thêm job thì sửa bản kê này **trong cùng PR**.
 
-Không liệt kê job của `secret-scan.yml`, `dependency-review.yml`, `release.yml` ở đây — các workflow
+Không liệt kê job của `secret-scan.yml`, `dependency-review.yml`, `release.yml`, `stale-pr-alert.yml`, `maintenance.yml` ở đây — các workflow
 đó không thuộc cổng merge bắt buộc cho mọi PR (scheduled/optional/advisory theo cấu hình từng dự án
 đích); bật required check cho chúng là lựa chọn riêng của mỗi dự án, không phải bất biến của khung.
 

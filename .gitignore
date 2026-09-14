@@ -25,3 +25,6 @@
 
 # Contract tests tự động sinh bởi spec-compiler.py
 tests/contracts/
+
+# Báo cáo quét bảo trì sinh lại mỗi lượt (maintenance-sweep.sh); KẾ HOẠCH + LOG thì commit
+docs/ops/MAINTENANCE-REPORT.md

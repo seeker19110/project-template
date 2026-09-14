@@ -8,7 +8,7 @@
 > đó. "Dữ liệu đụng tới" = file/thư mục nó đọc-ghi. Lập từ việc đọc file thật (`ls`, `copy-framework.sh`,
 > `scripts/*.sh`, `.github/workflows/*`) — không đoán. Ngày lập: 2026-09-12.
 
-## A. Slash command (12) — `.claude/commands/`
+## A. Slash command (13) — `.claude/commands/`
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
@@ -25,7 +25,7 @@
 | FT-11 | Phỏng vấn dồn dập làm rõ yêu cầu | `/grill` | `CONTEXT.md` (dự án đích) | ✅ | như trên |
 | FT-12 | Chẩn đoán bug khó | `/debug` | `TRAPS.md` | ✅ | như trên |
 
-## B. Subagent 3 tầng (8) — `.claude/agents/`
+## B. Subagent 3 tầng (9) — `.claude/agents/`
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
@@ -37,6 +37,7 @@
 | FT-18 | Hậu kiểm diff | `reviewer` (skill `code-review`) | diff | ✅ | ❌ không có |
 | FT-19 | Tra cứu read-only | `lookup` (Haiku) | codebase | ✅ | ❌ không có |
 | FT-20 | Xác minh phiên bản nguồn sống | `version-check` (Haiku) | registry/web | ✅ | ❌ không có |
+| FT-21 | Bảo trì toàn diện định kỳ (ngoài bảng route) | `maintainer` (Sonnet) qua `/maintain` hoặc `scripts/maintain-run.sh` (CLI subscription cục bộ, mọi nhà cung cấp) | `scripts/maintenance-sweep.sh` → `docs/ops/MAINTENANCE-REPORT.md`, `docs/ops/MAINTENANCE-PLAN.md`, `docs/ops/MAINTENANCE-LOG.md` | ✅ | `test-maintenance-sweep.sh` (negative+positive) + `test-maintain-run.sh` (stub CLI 4 harness) — job `framework-lint` + smoke dự án đích |
 
 ## C. Hook tự động (5) — `.claude/hooks/`
 
@@ -94,7 +95,7 @@
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
-| FT-44 | Cổng CI dự án đích (6 workflow tổng quát) | `.github/workflows/*` | ci (3 job tự kiểm khung), secret-scan, dependency-review, pr-policy, release, stale-pr-alert | ✅ | `check-ci-policy.sh` + `ci-workflow-policy.test.ts` (dropins — cần Node ở dự án đích để chạy) |
+| FT-44 | Cổng CI dự án đích (7 workflow tổng quát) | `.github/workflows/*` | ci (3 job tự kiểm khung), secret-scan, dependency-review, pr-policy, release, stale-pr-alert, maintenance (quét bảo trì tuần → 1 issue) | ✅ | `check-ci-policy.sh` + `ci-workflow-policy.test.ts` (dropins — cần Node ở dự án đích để chạy) |
 | FT-50 | Script tiện ích dự án đích | `scripts/dev-task.sh`, `scripts/usage-estimate.sh` | tự dò `package.json`/công cụ theo stack | ⚠️ (F-309 fallback grep, chấp nhận rủi ro) | `test-copy-framework.sh` (kiểm copy) |
 
 ## Luồng chính (bắt buộc có test đi qua — đối chiếu Definition of Complete)

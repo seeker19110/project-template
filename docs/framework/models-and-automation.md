@@ -236,6 +236,7 @@ Model (§2) là cần thứ nhất, effort (§4) là cần thứ hai; **cách v�
 | `standard-worker.md` | Sonnet | **Tầng 3** `route:standard` (kế thừa `executor`) — việc vừa, đặc tả cụ thể (test theo spec, boilerplate, cập nhật docs, sửa cơ học). Cô lập ngữ cảnh + song song, không phải "model rẻ hơn". |
 | `mechanical-worker.md` | Haiku | **Tầng 3** `route:mechanical` — việc cơ học theo mẫu/thông báo, khép kín. |
 | `reviewer.md` | Sonnet | Hậu kiểm bằng skill `code-review` sau khi worker xong, trước khi Tầng 1 duyệt. Ngoài bảng route. |
+| `maintainer.md` | Sonnet | **Bảo trì toàn diện** theo chu kỳ (`/maintain`): chạy `scripts/maintenance-sweep.sh`, triage 🔴/🟡, viết `docs/ops/MAINTENANCE-PLAN.md` rồi dừng chờ duyệt. Ngoài bảng route. Ngoài Claude Code: `scripts/maintain-run.sh` (CLI subscription cục bộ — Claude Code/Hermes/Gemini qua Antigravity/Codex/OpenCode, không API key). |
 
 > Chi tiết vận hành 3 tầng (luật cứng từng tầng + định dạng PLAN.md): `orchestration-3-tier.md`.
 

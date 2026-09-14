@@ -205,6 +205,11 @@ Copy-IfAbsent "scripts/arch-health-radar.py"
 Copy-IfAbsent "scripts/arch-health-radar.sh"
 Copy-IfAbsent "scripts/test-telemetry-and-dispatch.sh"
 Copy-IfAbsent "scripts/test-next-gen-engines.sh"
+# Agent bảo trì toàn diện (spec 2026-09-14): engine quét + runner đa-provider + 2 self-test
+Copy-IfAbsent "scripts/maintenance-sweep.sh"
+Copy-IfAbsent "scripts/maintain-run.sh"
+Copy-IfAbsent "scripts/test-maintenance-sweep.sh"
+Copy-IfAbsent "scripts/test-maintain-run.sh"
 # Test chứng minh hook cổng CHẶN thật (audit 2026-09-12, F-002) — đi cùng .claude/hooks ở trên.
 Copy-IfAbsent "scripts/test-hooks-gate.sh"
 # 2 file mẫu để dự án tự điền (bản điền thật .claude/*.sh đã nằm trong .gitignore của khung):
@@ -214,7 +219,7 @@ Copy-IfAbsent ".claude/usage-budget.example.sh"
 Write-Host ""
 Write-Host "[3/4] File CI/quy ước GitHub (Lớp 2 — KHÔNG đè; để bạn tự so/merge với CI đã có):"
 $dropins = @(
-  '.github/workflows/ci.yml', '.github/workflows/stale-pr-alert.yml',
+  '.github/workflows/ci.yml', '.github/workflows/stale-pr-alert.yml', '.github/workflows/maintenance.yml',
   '.github/workflows/secret-scan.yml', '.github/workflows/dependency-review.yml',
   '.github/workflows/pr-policy.yml', '.github/workflows/release.yml',
   '.github/pull_request_template.md', '.github/dependabot.yml', '.github/ISSUE_TEMPLATE', '.github/CODEOWNERS',

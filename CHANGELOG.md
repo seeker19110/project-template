@@ -13,6 +13,14 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **Agent bảo trì toàn diện** (spec `docs/specs/2026-09-14-maintenance-agent.md`) — subagent
+  `maintainer` + lệnh `/maintain` (quét → triage → kế hoạch chờ duyệt → PR nhỏ qua `/gate` → hội tụ)
+  + engine `scripts/maintenance-sweep.sh` (6 mảng mục nát theo thời gian, mức 🔴/🟡, `--strict`,
+  tự dò stack) + runner `scripts/maintain-run.sh` chạy agent bằng **CLI subscription cục bộ của mọi
+  nhà cung cấp AI** (Claude Code/Hermes/Codex/OpenCode, không API key) + workflow tuần
+  `.github/workflows/maintenance.yml` (một issue tổng hợp). Hai self-test có negative-test + stub CLI,
+  nối vào `framework-lint` và smoke dự án đích.
+
 - **Quick Start + adoption preflight** — thêm `docs/framework/quickstart.md` để định hướng nhanh
   Greenfield/Brownfield, dẫn về Standard Delivery Contract và cung cấp checklist xác nhận lệnh/gate
   thật của ứng dụng, CI, bảo mật, ruleset và vận hành. README cùng framework index đã liên kết tới
