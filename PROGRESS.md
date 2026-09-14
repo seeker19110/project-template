@@ -6,7 +6,8 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#120 đã merge (#120 = phần còn lại của audit tối ưu).
+- Giai đoạn: GĐ 8. PR #69→#121 đã merge (#120 = phần còn lại của audit tối ưu; #121 = `TRAPS.md`
+  mục 22 + đồng bộ `PROGRESS.md`).
   **Mốc nội dung gần nhất (2026-09-14, nhánh
   `claude/cool-gauss-4dk9ln`): phần CÒN LẠI của lượt `/audit-optimize`** mà PR #118 cố ý hoãn ở mục
   "Reviewer focus #2". Tách `_scripts_inventory` 15→5 và `subagent-dispatch::main` 12→4; hàm thứ ba
@@ -97,8 +98,8 @@
   báo oan) nên nó KHÔNG chặn được PR quên bước 0, chỉ cảnh báo sau khi đã merge. Cân nhắc một cổng ở
   `pr-policy.yml` soi diff của PR thay đổi tài liệu khung mà không chạm `PROGRESS.md` — chưa làm, cần bàn
   vì dễ báo oan cho PR nhỏ.
-- Default-branch SHA đã đối chiếu: `6c78dbc` (`origin/main`, PR #120)
-- Nhánh đang làm: `claude/cool-gauss-4dk9ln` (dựng lại từ `main` sau khi #120 merge — chỉ còn `TRAPS.md` mục 22)
+- Default-branch SHA đã đối chiếu: `5fbe7d7` (`origin/main`, PR #121)
+- Nhánh đang làm: `main` (không có việc dở)
 - Ngày cập nhật: 2026-09-14
 
 ## Goal đang active
