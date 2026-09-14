@@ -31,6 +31,7 @@ Khung này **không giới hạn ở web app**. Nó hỗ trợ mọi loại dự
 - `.claude/commands/gate.md` — **cổng commit/merge + Báo cáo xác thực** (§5–§7). **TRIGGER:** trước khi commit/merge, hoặc khi người dùng yêu cầu "chạy cổng / kiểm tra trước khi commit" (hoặc gõ `/gate`, `/gate merge`) → **tự dò script từ `package.json`**, chạy build/type/lint/format/test, xuất báo cáo §7; **có mục ❌ thì KHÔNG commit/merge**.
 - `docs/framework/new-project-runbook.md` — runbook khởi tạo: trình tự + **cấu hình hàng rào** (Phần D) + **checklist triển khai dự án thật** (Phần E). **TRIGGER:** khi *khởi tạo dự án mới / dựng nền* (hoặc gõ `/bootstrap`) → chạy runbook 0→9 tới cổng "Sẵn sàng phát triển" (nối tiếp `/consult`).
 - `docs/framework/existing-project-adoption.md` — cách áp khung lên **dự án đã có sẵn** (brownfield, tăng dần).
+- `docs/framework/adopt-from-outside.md` — **học từ repo/khung/skill BÊN NGOÀI** (ba cột, cổng "sự cố thật", grep cổng đang chạy). **TRIGGER:** khi người dùng đưa một nguồn ngoài và bảo *"lấy cái hay của nó về"*, hoặc khi bạn tự thấy một thực hành hay muốn mang vào → **đọc file này trước khi chép một dòng nào**; luật rút gọn ở mục 11.
 - `docs/framework/project-completion.md` — **hoàn thiện dự án**: bản đồ tính năng (`docs/FEATURE-MAP.md`) + sổ quy ước (`docs/CONVENTIONS.md`) + bản đồ sửa-ở-đâu (`CODEMAP.md`) + **kế hoạch hoàn thiện chi tiết** (`docs/ops/COMPLETION-PLAN.md`) + **vòng lặp hội tụ** (sửa → quét lại đến khi không còn lỗi đã biết) + **Definition of Complete** cấp dự án. **TRIGGER:** khi người dùng muốn *hoàn thiện dự án / rà hết lỗi logic-cấu trúc-lỗ hổng / bảo đảm thống nhất giữa các tính năng* (hoặc gõ `/completion`) → chạy 5 pha trong file này: dò hiện trạng → audit 12 nhóm → **lập kế hoạch chi tiết, dừng chờ duyệt** → thực thi từng đợt qua `/gate` (bug có test tái hiện trước khi sửa) → re-audit hội tụ + nghiệm thu.
 - `docs/framework/spec-driven-openspec.md` — **(tùy chọn) spec cấp từng thay đổi với OpenSpec**: proposal → spec → design → tasks lưu trong Git cho thay đổi vừa/lớn ở GĐ 4+ (delta spec, archive khi xong); bản đồ khái niệm ↔ khung + ranh giới (KHÔNG thay `PROJECT.md`/cổng/ADR). **TRIGGER:** khi *một thay đổi không gói gọn trong một PR nhỏ hoặc kéo dài nhiều phiên*, dự án *nhiều người/nhiều AI cùng làm*, hoặc người dùng *nhắc OpenSpec / spec-driven* → đọc file này, **đề xuất** dùng (người dùng chốt mới cài); đã bật thì **proposal duyệt xong mới code**, mọi commit vẫn qua `/gate`.
 - `docs/framework/quality-supplements.md` — bổ sung chất lượng & năng lực: Nhóm 1 (env, migration, ADR, DoR, **sổ tay thuật ngữ `CONTEXT.md`** mục 8), Nhóm 2 (mobile, hiệu năng/CWV, E2E+a11y, UI/UX, chống lỗi logic + kỷ luật viết test, tối ưu mã nguồn), theme (Dark blue+Light), nâng cao (i18n/PWA/Sentry/SEO/analytics).
@@ -90,6 +91,14 @@ Sau khi chọn: nêu 1 câu **vì sao** phạm vi đó khớp yêu cầu, rồi 
 - Không bịa hàm/thư viện/API — xác nhận tồn tại (đọc tài liệu/mã nguồn) trước khi dùng.
 - Không giả định cấu trúc dự án — đọc file thật để biết tên, kiểu dữ liệu, cấu trúc hiện có. Với dự án có sẵn, **AI tự xác định stack/phiên bản** bằng cách đọc repo (`package.json`, config, cấu trúc thư mục) — **không hỏi người dùng điều đã có trong code** (xem `existing-project-adoption.md`).
 - Không đoán kết quả lệnh — thực sự chạy và đọc output.
+- **Không tin lời khai — của model, của subagent, của chính mình.** Trước khi nói bất kỳ câu nào kiểu
+  "xong / đã sửa / test pass / đã deploy" — kể cả một câu cảm thán ("ổn rồi!") — đi đủ năm bước: (1) xác định
+  lệnh nào **chứng minh** được câu đó; (2) chạy nó **đầy đủ, trong lượt hiện tại**, không dùng kết quả lượt
+  trước; (3) đọc **toàn bộ** output, không chỉ dòng cuối — đếm số lỗi/fail thật; (4) output có khớp đúng câu
+  định nói không, nếu không thì nói đúng trạng thái thật kèm bằng chứng; (5) chỉ sau bước 4 mới được nói, và
+  nói kèm bằng chứng. Bỏ một bước = nói dối, không phải "gần đúng". Khuôn báo cáo: §7.
+  *(Bẫy hay gặp: lệnh chết TRƯỚC khi chạy tới phần cần đo — cấu hình sai, cài đặt lỗi — và exit code khác 0
+  bị đọc nhầm thành "đã kiểm, kết quả âm tính". Bước 3 tồn tại để bắt đúng ca này.)*
 
 ## 5. Cổng trước khi COMMIT (chạy và đạt hết)
 Build `[ĐIỀN: npm run build]` · Type check `[ĐIỀN: npm run type-check]` · Lint 0 cảnh báo `[ĐIỀN: npm run lint]` · Format `[ĐIỀN: npm run format]` · Test liên quan `[ĐIỀN: npm test]`. Ngoài ra: tự đọc lại diff (đúng mục tiêu, không sửa nhầm); xóa console.log debug/code chết; không bí mật trong code; mọi input đã validate; mọi thao tác có thể lỗi đã xử lý; commit message theo **conventional commits**; commit `fix:` có **test tái hiện đã chạy đỏ trước khi sửa** (§3.6) — không có thì cảnh báo, tự hỏi lại có đúng là `fix:` không; đổi golden test thì diff golden + lý do phải có trong PR, không `-u` phản xạ (xem Nhóm 2 mục 6).
@@ -125,3 +134,17 @@ Yêu cầu mơ hồ / nhiều cách hiểu · thao tác không thể hoàn tác 
 - Thư viện chính & lý do dùng: `[ĐIỀN]`
 - Giai đoạn hiện tại: **nguồn sự thật là `PROGRESS.md`** (đọc mục "Giai đoạn hiện tại" ở đó, đừng chép lại vào đây — hai chỗ sẽ lệch nhau).
 - *(Riêng REPO KHUNG này: các mục `[ĐIỀN]` ở §5 và §10 là placeholder CỐ Ý cho dự án đích — repo khung không có `package.json`. Cổng thật của chính repo khung (job `framework-lint`/`docs-consistency`/`copy-framework-smoke`/`progress-freshness`/`protection-guard` trong `ci.yml`) là `scripts/check-docs-consistency.sh`, `scripts/check-ci-policy.sh`, `scripts/check-progress-freshness.sh`, `scripts/test-copy-framework.sh`, `scripts/test-hooks-gate.sh` và `scripts/test-check-scripts.sh`.)*
+
+## 11. Học từ repo / khung / skill BÊN NGOÀI
+Khi được đưa một nguồn ngoài và bảo "lấy cái hay về" (hoặc tự thấy một thứ hay muốn mang vào): **đọc
+`docs/framework/adopt-from-outside.md` trước khi chép một dòng nào.** Ba luật cốt lõi:
+1. **Ba cột bắt buộc** — *đã có và sâu hơn* / *đã có nhưng nông hơn* (chỉ lấy đúng điểm nông) / *chưa có*.
+   Không có cột "hay quá, lấy luôn".
+2. **"Chưa có" phải ứng với một SỰ CỐ THẬT** (`TRAPS.md`, bug đã ghi, PR phải làm lại, phát hiện audit) — ở
+   repo này hoặc ở dự án đích mà khung phục vụ. Không có → xếp "chưa cần" kèm **điều kiện xem lại**.
+3. **grep CỔNG ĐANG CHẠY, đừng đọc văn xuôi.** Tài liệu mô tả vấn đề thường cũ hơn cổng đã bịt nó; "chưa có"
+   đọc từ văn xuôi mới là giả thuyết, `grep` ra test/script/job CI mới là dữ kiện.
+
+Thêm: hạng mục **mâu thuẫn với luật đang có** thì không lấy dù chưa có — đưa mâu thuẫn cho người dùng quyết,
+đừng tự hoà giải trong im lặng. Đầu ra bắt buộc là một bản đối chiếu lưu lại, giữ nguyên mọi đính chính giữa
+chừng.
