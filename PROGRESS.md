@@ -6,15 +6,27 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#104 đã merge. Mốc gần nhất (2026-09-14): sửa hồi quy `telemetry-log` CHẾT trên mọi dự án đích (phát thiếu `scripts/model-rates.json`) + thêm mục **Smoke** vào `test-copy-framework.sh` — dựng dự án đích thật rồi CHẠY self-test được phát kèm ngay trong đó. Lượt smoke đầu tiên lộ thêm 2 lỗi cùng gốc "xanh ở repo khung, đỏ ở dự án đích". Xem `TRAPS.md` mục 15. 10/10 cổng xanh, radar 100/100.
+- Giai đoạn: GĐ 8. PR #69→#106 đã merge. Mốc gần nhất (2026-09-14, PR #106): thêm **agent bảo trì
+  toàn diện** — subagent `maintainer` + lệnh `/maintain` (quét → triage → `docs/ops/MAINTENANCE-PLAN.md`
+  dừng chờ duyệt → PR nhỏ qua `/gate` → hội tụ), engine `scripts/maintenance-sweep.sh` (6 mảng mục
+  nát theo thời gian: git/dependency/tài liệu/bí mật/CI/cổng khung), `scripts/maintain-run.sh` (chạy
+  agent qua CLI subscription cục bộ mọi nhà cung cấp — Claude Code/Hermes/Gemini qua Antigravity/
+  Codex/OpenCode, không API key), `scripts/maintain-cron.sh` (wrapper không giám sát cho VPS/cron,
+  `--force-with-lease` chỉ cho nhánh riêng `maint/auto-<ngày>`, tự mở PR báo cáo qua GitHub REST API
+  khi có `GITHUB_TOKEN`), workflow tuần `maintenance.yml`. Bốn self-test mới, nối vào `framework-lint`
+  + smoke dự án đích. Xem `TRAPS.md` mục 16–17 (hai lỗi thật bắt được khi viết test cho
+  `maintain-cron.sh`: push same-day rerun chỉ thành công nhờ trùng giây; biến gán trong hàm chạy qua
+  subshell). 9/9 cổng PR xanh, radar 100/100.
 - **Lưu ý khuôn lỗi (PR #82):** auto-merge (squash) có thể merge PR ngay khi CI của commit ĐẦU
   TIÊN xanh — một commit push SAU khi đã bật auto-merge (vd cập nhật PROGRESS.md cùng PR) có thể
   KHÔNG kịp vào trước khi merge xảy ra, dù mới push xong. Xác nhận lại bằng `git log origin/main`/
   `git show <sha> --stat` trước khi tin PROGRESS.md trong PR đã vào `main`; nếu thiếu, mở PR sync
-  riêng — không coi im lặng là "đã vào".
-- Default-branch SHA đã đối chiếu: `7cb6f6f` (`origin/main`, PR #104)
+  riêng — không coi im lặng là "đã vào". **Tái diễn ở PR #106:** PR #106 không kèm cập nhật
+  `PROGRESS.md` trong cùng PR (bỏ sót bước 0 của CLAUDE.md §8) — sửa bằng PR sync này ngay sau khi
+  merge, đúng theo chính lưu ý này.
+- Default-branch SHA đã đối chiếu: `66765b8` (`origin/main`, PR #106)
 - Nhánh đang làm: `main`
-- Ngày cập nhật: 2026-09-13
+- Ngày cập nhật: 2026-09-14
 
 ## Goal đang active
 
@@ -44,7 +56,7 @@
 - **(2026-09-12) PR #69 — cổng chống PROGRESS.md lỗi thời + chia đơn vị PR/trần effort medium/
   auto-merge**: `scripts/check-progress-freshness.sh` + job CI `progress-freshness`; quy trình mới
   sau bước duyệt kế hoạch cho việc đủ lớn cần điều phối 3 tầng — xem `TRAPS.md` mục 8.
-- PR đã merge gần nhất: **#69** (freshness gate + PR-splitting/effort/auto-merge), **#68** (tổng quát hoá harness), **#67** (ADR-0004 gỡ scaffold Web), **#66**
+- PR đã merge gần nhất: **#106** (agent bảo trì toàn diện — `maintainer`/`/maintain`/`maintenance-sweep`/`maintain-run`/`maintain-cron`), **#105→#104** (PROGRESS sync + fix telemetry/smoke, xem mục "Giai đoạn hiện tại" ở trên), **#69** (freshness gate + PR-splitting/effort/auto-merge), **#68** (tổng quát hoá harness), **#67** (ADR-0004 gỡ scaffold Web), **#66**
   (đóng Nhóm 11 audit), **#62** (TRAPS.md + CODEMAP.md + `check-ci-policy.sh` + golden test/TDD —
   2 spec `docs/specs/2026-09-12-*.md`, 7 PR gộp thành 1, rút từ lượt quét 15 repo dẫn xuất/lân cận),
   **#61** (verify-dropins ERESOLVE), **#52** (hoàn thiện khung theo COMPLETION-PLAN, 4 đợt/22 việc
@@ -54,7 +66,10 @@
 
 ## Đang làm / chờ
 
-- **Không có việc dở.** PR #93 (hậu kiểm audit 2026-09-13) đã merge: nối `test-next-gen-engines.sh`
+- **Không có việc dở.** PR #106 (agent bảo trì toàn diện) đã merge — xem mục "Giai đoạn hiện tại"
+  ở trên. Dùng thử: `/maintain` (Claude Code), `scripts/maintain-run.sh` (CLI khác), hoặc chờ
+  workflow tuần `maintenance.yml` mở issue báo cáo.
+- PR #93 (hậu kiểm audit 2026-09-13) đã merge: nối `test-next-gen-engines.sh`
   + `test-telemetry-and-dispatch.sh` vào job `framework-lint`, thêm mục 6 cho
   `check-docs-consistency.sh` (script ↔ `CODEMAP.md`) kèm negative-test hai chiều, tách bảng giá ra
   `scripts/model-rates.json`, đổi default harness về `claude`/`anthropic`. Xem `TRAPS.md` mục 11–12.
