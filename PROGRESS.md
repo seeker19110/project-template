@@ -6,13 +6,13 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#102 đã merge. Mốc gần nhất: audit toàn diện 2026-09-13 (lượt 2) phát hiện B-01→B-03 và đã đóng cả ba bằng CỔNG MÁY (PR #102) — `pr-policy.yml` soi cả tiêu đề PR lẫn tiêu đề từng commit (bịt đường né Feature gate qua squash), `check-docs-consistency.sh` mục 7 đối chiếu danh sách engine `CLAUDE.md` ↔ `AGENTS.md`, CI nâng lên `shellcheck --severity=warning` đúng luật §5. 10/10 cổng xanh, repo sạch ở mức warning, radar 100/100.
+- Giai đoạn: GĐ 8. PR #69→#104 đã merge. Mốc gần nhất (2026-09-14): sửa hồi quy `telemetry-log` CHẾT trên mọi dự án đích (phát thiếu `scripts/model-rates.json`) + thêm mục **Smoke** vào `test-copy-framework.sh` — dựng dự án đích thật rồi CHẠY self-test được phát kèm ngay trong đó. Lượt smoke đầu tiên lộ thêm 2 lỗi cùng gốc "xanh ở repo khung, đỏ ở dự án đích". Xem `TRAPS.md` mục 15. 10/10 cổng xanh, radar 100/100.
 - **Lưu ý khuôn lỗi (PR #82):** auto-merge (squash) có thể merge PR ngay khi CI của commit ĐẦU
   TIÊN xanh — một commit push SAU khi đã bật auto-merge (vd cập nhật PROGRESS.md cùng PR) có thể
   KHÔNG kịp vào trước khi merge xảy ra, dù mới push xong. Xác nhận lại bằng `git log origin/main`/
   `git show <sha> --stat` trước khi tin PROGRESS.md trong PR đã vào `main`; nếu thiếu, mở PR sync
   riêng — không coi im lặng là "đã vào".
-- Default-branch SHA đã đối chiếu: `7ffb645` (`origin/main`, PR #102)
+- Default-branch SHA đã đối chiếu: `7cb6f6f` (`origin/main`, PR #104)
 - Nhánh đang làm: `main`
 - Ngày cập nhật: 2026-09-13
 
@@ -102,6 +102,9 @@
 | F-014 usage-guard số thập phân | Thấp | AI | **Chấp nhận rủi ro (xác nhận 2026-09-01)** — không sửa | `docs/ops/COMPLETION-PLAN.md` |
 | F-309 `dev-task.sh` fallback grep | Thấp | AI | **Chấp nhận rủi ro (xác nhận 2026-09-01)** — không sửa | `docs/ops/COMPLETION-PLAN.md` |
 | ~~5 PR dependabot chưa merge~~ | — | — | ➖ Lỗi thời (G-002, audit 2026-09-12) — #53→#57 đã merge từ trước, `list_pull_requests(state=open)` xác nhận 0 PR đang mở | `docs/ops/COMPLETION-PLAN.md` W-101 |
+| **C-01 Khung chưa từng dùng trọn vẹn cho một dự án thật** | **Cao** | Người dùng | ~100 PR tự hoàn thiện, chưa lần nào đi hết `/consult`→`/bootstrap`→ra sản phẩm. Bug #104 (telemetry chết ở mọi dự án đích, sống qua nhiều PR trong khi CI xanh 100%) tìm ra chỉ bằng cách copy khung vào thư mục trống rồi chạy thử — tỷ lệ phát hiện mà audit nội bộ không đạt được. Đề xuất: làm một dự án nhỏ có thật (CLI, hoặc API 3 endpoint) | đánh giá tổng thể 2026-09-14 |
+| **C-02 Hàng rào lệch về phía repo khung** | Vừa | AI | 6/10 cổng CHỈ phục vụ repo khung; dự án đích chỉ nhận 3 self-test. `dev-task.sh`, `usage-estimate.sh`, `.claude/hooks/` được phát đi nhưng CHƯA từng chạy thật ở dự án đích — cùng loại rủi ro đã gây ra #104, chưa phủ | `TRAPS.md` mục 15 |
+| **C-03 Bề mặt đã tới hạn** | Thấp | Người dùng | 12 lệnh · 10 subagent · 10 cổng · 4 engine · 98 file tài liệu (8.6k dòng) · 13 file `CLAUDE.md` §1 bảo phải đọc. Đề xuất ĐÓNG BĂNG: chỉ thêm khi có nhu cầu gặp thật ở C-01 | đánh giá tổng thể 2026-09-14 |
 | Case-study Bước 6–8 (branch protection/Supabase/Vercel) chưa kiểm chứng | Thấp | Người dùng | Kiểm khi áp khung vào dự án thật có tài khoản | `docs/framework/case-study-greenfield-dry-run.md` |
 | ~~31 nhánh đã merge còn tồn trên remote (F-014)~~ | — | — | ✅ Đã xoá 2026-09-13 (người dùng, qua GitHub UI) — `list_branches` xác nhận chỉ còn `main` | `docs/ops/COMPLETION-PLAN.md` W-308 |
 | Ruleset `.github/rulesets/main.json` chưa import trên GitHub | Vừa | Người dùng | Import: Settings → Rules → Rulesets → New ruleset → Import a ruleset — job CI `protection-guard` đỏ tới khi làm (CỐ Ý chưa nằm trong `needs:` của `gate` để tránh deadlock — xem `CP4_BOOTSTRAP_EXEMPT` ở `check-ci-policy.sh`). Sau khi import + job xanh: mở PR thêm `protection-guard` vào `needs:` của `gate` + xoá khỏi allowlist đó | `docs/ops/repository-settings.md` |
