@@ -41,8 +41,19 @@ GIAI ĐOẠN 1 — ĐO BASELINE (chỉ đọc & đo, KHÔNG sửa gì):
    - Trùng lặp (copy-paste):       npx jscpd .
    - Độ phức tạp:                  npx eslint . --rule '{"complexity":["warn",12]}'
    - Bundle (nếu là web):          @next/bundle-analyzer hoặc npx vite-bundle-visualizer
-3) Tổng hợp BÁO CÁO AUDIT thành bảng theo 4 nhóm
-   (dead code · trùng lặp/độ phức tạp · dependency · bundle). Mỗi mục ghi:
+3) Nhóm 5 KHÔNG công cụ nào đo được, phải tự rà bằng mắt (knip/depcheck chỉ thấy
+   dependency KHÔNG AI IMPORT, không thấy dependency đang làm thứ đã có sẵn):
+   "tự viết lại thứ đã có". Hai nhãn:
+   - stdlib:  hàm/lớp tự viết trùng thứ thư viện chuẩn của ngôn ngữ đã có.
+              Ghi tên hàm chuẩn thay thế.
+   - native:  dependency hoặc code đang làm thứ nền tảng đã làm sẵn
+              (ràng buộc CSDL thay vì kiểm ở app; CSS thay vì JS; input/API sẵn có
+              của trình duyệt-OS-framework thay vì một thư viện). Ghi tên tính năng.
+   Đây là mặt sau của thang ở CLAUDE.md §3 mục A4 (rung 3 và rung 4) — chỗ đã viết
+   rồi mới phát hiện đáng lẽ không cần viết.
+4) Tổng hợp BÁO CÁO AUDIT thành bảng theo 5 nhóm
+   (dead code · trùng lặp/độ phức tạp · dependency · bundle · tự viết lại thứ đã có).
+   Mỗi mục ghi:
    vị trí (file:dòng) · mức độ · đề xuất xử lý · rủi ro · đã có test che chưa.
    Với module/khối nghi ngờ "nông" (interface đơn giản nhưng logic bên trong rối,
    khái niệm rải rác nhiều file) — áp DELETION TEST để quyết có đáng gộp/đào sâu
@@ -53,6 +64,8 @@ GIAI ĐOẠN 1 — ĐO BASELINE (chỉ đọc & đo, KHÔNG sửa gì):
    Xếp theo ưu tiên. Nếu có tạo report trực quan (HTML/hình) để dễ trình bày,
    ghi ra thư mục tạm ngoài repo (không commit) — báo cáo audit chính thức vẫn
    là bảng markdown ở bước này, report trực quan chỉ là phụ trợ khi trình bày.
+   Kết báo cáo bằng MỘT dòng tổng: "net: -<N> dòng, -<M> dependency có thể bỏ"
+   — con số ước lượng từ chính các mục đã liệt kê, không phải con số chung chung.
    RỒI DỪNG LẠI, chờ tôi duyệt — chưa được sửa.
 
 GIAI ĐOẠN 2 — HẠ DẦN (chỉ sau khi tôi duyệt):
