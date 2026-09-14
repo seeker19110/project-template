@@ -1,7 +1,11 @@
 # ADR-0005: TDD là mặc định bắt buộc cho code MỚI có logic, với danh sách ngoại lệ đóng
 
-- **Trạng thái:** Đề xuất
+- **Trạng thái:** Đã chấp nhận
 - **Ngày:** 2026-09-14
+- **Người duyệt:** `seeker19110` (chủ repo), 2026-09-14 — duyệt phương án trong ADR này (bắt buộc
+  **kèm ngoại lệ đóng**), **không** chọn phương án B (bản cứng tuyệt đối) ở mục "Các phương án đã
+  cân nhắc". Ghi ra đây để bản ghi tự đứng được: người đọc sau vài tháng biết B đã được cân nhắc và
+  bỏ, không phải chưa ai nghĩ tới.
 
 ## Bối cảnh
 
