@@ -278,3 +278,50 @@ không được coi là lỗi.
 
 **Cổng chốt chặn:** `scripts/test-copy-framework.sh` mục "Smoke" — dựng dự án đích thật rồi CHẠY
 các self-test được phát kèm ngay trong đó; đỏ là chặn. Chạy trong job CI `copy-framework-smoke`.
+
+## 16. Push lại cùng nhánh cùng ngày chỉ "thành công" nhờ trùng giây — không thật sự an toàn
+
+*Ngày: 2026-09-14 · phát hiện khi viết test cho `scripts/maintain-cron.sh` (agent bảo trì chạy
+không giám sát trên VPS/cron).*
+
+`maintain-cron.sh` thiết kế: nhánh `maint/auto-<ngày>` chạy lại cùng ngày thì `git reset --hard`
+về nhánh nền rồi commit lại từ đầu (không cộng dồn). Bản đầu push bằng `git push -u origin
+<nhánh>` (không force). Test tay chạy hai lượt LIÊN TIẾP RẤT NHANH (cùng giây đồng hồ) thấy xanh —
+kết luận sai là "ổn". Viết thêm ca test 5 lượt (7a→7e, có xử lý tốn vài giây giữa các lượt) mới lộ
+ra: commit thứ hai có nội dung/parent giống hệt commit thứ nhất nhưng **khác giây** → khác SHA →
+không phải hậu duệ của commit cũ trên remote → git từ chối `non-fast-forward`. Lượt test nhanh
+trước đó "xanh" thuần tuý vì hai commit **trùng giây tuyệt đối** nên trùng SHA, push thành no-op.
+
+**Bài học tổng quát:** một test tay chạy đủ NHANH để né race condition không chứng minh gì — thời
+gian trôi qua giữa hai bước là một BIẾN, không phải hằng số; test tự động phải cố tình để đủ thời
+gian trôi qua (nhiều bước xen giữa, hoặc gọi mạng/subprocess thật) chứ không chỉ lặp lại lệnh liền
+kề nhau.
+
+**Sửa:** `git fetch origin <nhánh>` trước, rồi `git push --force-with-lease=<nhánh>` — CHỈ áp cho
+nhánh do chính wrapper sở hữu (`maint/auto-*`), không bao giờ cho nhánh chính; `--force-with-lease`
+(khác `--force` thường) bị remote từ chối nếu ai đó đã đẩy lên đúng nhánh đó sau lượt fetch.
+
+**Cổng chốt chặn:** `scripts/test-maintain-cron.sh` mục 4 — hai lượt chạy cách nhau qua nhiều bước
+xử lý thật (không phải `sleep` giả), xác nhận push thành công và không cộng dồn commit.
+
+## 17. Biến gán trong hàm gọi qua `$(...)` không bao giờ thấy được ở ngoài — kể cả có khai `local`
+
+*Ngày: 2026-09-14 · cùng lượt viết `maintain-cron.sh` (bước tự mở PR qua GitHub REST API).*
+
+Một hàm `http_call()` ghi đường dẫn file tạm vào biến `http_body_file` (khai `local` ở hàm CHA gọi
+nó), rồi hàm cha đọc lại biến đó ngay sau khi gọi. Chạy `bash -n`/shellcheck đều sạch. Lỗi chỉ lộ
+lúc CHẠY THẬT: `set -u` báo `http_body_file: unbound variable`. Nguyên nhân: mọi lệnh gọi hàm đều
+qua `code="$(http_call ...)"` — cú pháp `$(...)` luôn chạy trong **subshell**; một biến được gán
+BÊN TRONG subshell đó biến mất khi subshell kết thúc, bất kể biến được khai `local` ở scope nào.
+
+**Bài học tổng quát:** không bao giờ dùng một biến "kênh phụ" (side-channel) để hàm A truyền dữ
+liệu ra ngoài trong khi lệnh gọi hàm A lại đi qua command substitution để lấy giá trị IN RA
+stdout — hai kênh giao tiếp (biến + stdout) không cùng sống sót qua ranh giới subshell. Dữ liệu
+"ra ngoài" thứ hai phải đi qua tham số truyền vào (caller tạo sẵn, truyền path/tên vào) hoặc gộp
+chung vào output có cấu trúc, không bao giờ qua biến toàn cục/`local` chia sẻ ngầm.
+
+**Sửa:** đổi `http_call()` nhận đường dẫn file tạm làm THAM SỐ tường minh (`http_call METHOD URL
+BODYFILE [DATA]`), caller tự `mktemp` trước khi gọi — không còn kênh phụ nào.
+
+**Cổng chốt chặn:** `scripts/test-maintain-cron.sh` mục 7 — chạy thật hàm `open_pr()` qua `curl`
+giả (không mock ở mức hàm bash, chạy nguyên vẹn dưới `set -u`) mới bắt được; test tĩnh không đủ.

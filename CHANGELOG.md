@@ -13,6 +13,22 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **Agent bảo trì toàn diện** (spec `docs/specs/2026-09-14-maintenance-agent.md`) — subagent
+  `maintainer` + lệnh `/maintain` (quét → triage → kế hoạch chờ duyệt → PR nhỏ qua `/gate` → hội tụ)
+  + engine `scripts/maintenance-sweep.sh` (6 mảng mục nát theo thời gian, mức 🔴/🟡, `--strict`,
+  tự dò stack) + runner `scripts/maintain-run.sh` chạy agent bằng **CLI subscription cục bộ của mọi
+  nhà cung cấp AI** (Claude Code/Hermes/Codex/OpenCode, không API key) + workflow tuần
+  `.github/workflows/maintenance.yml` (một issue tổng hợp) + wrapper không giám sát
+  `scripts/maintain-cron.sh` cho VPS/cron (đồng bộ nhánh chính, chạy agent, đẩy CHỈ
+  `docs/ops/MAINTENANCE-*.md` lên nhánh riêng `maint/auto-<ngày>`, không bao giờ đụng nhánh chính,
+  có khoá tiến trình chống chạy chồng). Ba self-test có negative-test/bare-repo thật + stub CLI,
+  nối vào `framework-lint` và smoke dự án đích. **Bổ sung cùng ngày:**
+  `maintain-cron.sh` tự mở PR qua GitHub REST API khi có `GITHUB_TOKEN`/`GH_TOKEN` (kênh báo cáo
+  chính cho chủ dự án khi chạy không giám sát), tránh mở PR trùng; sửa hai lỗi thật bắt được khi
+  viết test (push same-day rerun chỉ "thành công" nhờ trùng giây → đổi sang `--force-with-lease`
+  giới hạn đúng một nhánh; biến gán trong hàm gọi qua subshell không thấy được ở ngoài) — xem
+  `TRAPS.md` mục 16–17.
+
 - **Quick Start + adoption preflight** — thêm `docs/framework/quickstart.md` để định hướng nhanh
   Greenfield/Brownfield, dẫn về Standard Delivery Contract và cung cấp checklist xác nhận lệnh/gate
   thật của ứng dụng, CI, bảo mật, ruleset và vận hành. README cùng framework index đã liên kết tới

@@ -45,6 +45,8 @@ check_structure() {     # check_structure <mô tả> <target>
   [ -f "$target/CLAUDE.md" ] || { echo "  FAIL [$label]: thiếu CLAUDE.md"; ok=0; }
   [ -f "$target/_framework-dropins/.github/workflows/pr-policy.yml" ] || { echo "  FAIL [$label]: thiếu PR policy drop-in"; ok=0; }
   [ -f "$target/_framework-dropins/.github/workflows/dependency-review.yml" ] || { echo "  FAIL [$label]: thiếu Dependency Review drop-in"; ok=0; }
+  [ -f "$target/_framework-dropins/.github/workflows/maintenance.yml" ] || { echo "  FAIL [$label]: thiếu Maintenance sweep drop-in"; ok=0; }
+  [ -x "$target/scripts/maintenance-sweep.sh" ] && [ -x "$target/scripts/maintain-run.sh" ] || { echo "  FAIL [$label]: thiếu/không chạy được maintenance-sweep.sh hoặc maintain-run.sh"; ok=0; }
   [ -f "$target/docs/ops/repository-settings.md" ] || { echo "  FAIL [$label]: thiếu repository settings baseline"; ok=0; }
   [ -f "$target/docs/ops/supply-chain.md" ] || { echo "  FAIL [$label]: thiếu supply-chain guidance"; ok=0; }
   [ -f "$target/docs/framework/templates/THREAT-MODEL.template.md" ] || { echo "  FAIL [$label]: thiếu threat model template"; ok=0; }
@@ -165,7 +167,7 @@ if ! bash "$REPO_ROOT/copy-framework.sh" "$smoke_target" >/tmp/copy-framework-sm
   echo "  FAIL: copy-framework.sh lỗi khi dựng dự án đích cho smoke"
   fail=1
 else
-  for t in test-telemetry-and-dispatch.sh test-next-gen-engines.sh; do
+  for t in test-telemetry-and-dispatch.sh test-next-gen-engines.sh test-maintenance-sweep.sh test-maintain-run.sh test-maintain-cron.sh; do
     if [ ! -f "$smoke_target/scripts/$t" ]; then
       echo "  FAIL: thiếu $t ở dự án đích — không smoke được"
       fail=1

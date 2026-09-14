@@ -44,6 +44,8 @@ ALLOW_MISSING_PATH=(
   "app/sitemap.ts" "app/sw.ts" "components/theme-toggle.tsx" "e2e/smoke.spec.ts" \
   "i18n/request.ts" "lib/env.ts" "messages/en.json" "messages/vi.json" \
   ".github/workflows/lighthouse-ci.yml" "scripts/verify-dropins.sh"
+  # Sinh tại runtime bởi /maintain (maintenance-sweep.sh + agent maintainer), không đóng gói sẵn.
+  "docs/ops/MAINTENANCE-REPORT.md" "docs/ops/MAINTENANCE-PLAN.md" "docs/ops/MAINTENANCE-LOG.md"
 )
 
 is_in() { local needle="$1"; shift; for x in "$@"; do [ "$x" = "$needle" ] && return 0; done; return 1; }

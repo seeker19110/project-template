@@ -18,6 +18,9 @@
 .claude/usage-budget.sh
 .claude/.winddown-nudged
 
+# Khoá tiến trình của maintain-cron.sh (chạy không giám sát trên VPS/cron) — không commit
+.claude/.maintain-cron.lock
+
 # Dữ liệu nhật ký telemetry động cục bộ (telemetry-log.py)
 .ai-telemetry/
 # tên cũ, giữ lại để repo đã clone trước 2026-09-13 không commit nhầm log cũ
@@ -25,3 +28,6 @@
 
 # Contract tests tự động sinh bởi spec-compiler.py
 tests/contracts/
+
+# Báo cáo quét bảo trì sinh lại mỗi lượt (maintenance-sweep.sh); KẾ HOẠCH + LOG thì commit
+docs/ops/MAINTENANCE-REPORT.md
