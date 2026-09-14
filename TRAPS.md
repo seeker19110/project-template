@@ -406,3 +406,28 @@ Mọi bản vá dạng này phải có ít nhất một ca chặn-bắt-buộc �
 RIÊNG, chữ 'main' chỉ nằm trong thân heredoc`; `nhánh riêng có chuỗi 'main' trong TÊN nhánh`) và
 mục 7 một ca chặn-bắt-buộc mới (`lệnh nguy hiểm SAU một chuỗi chứa '<<' không phải heredoc`), cùng
 5 ca chặn thật có sẵn làm chiều ngược. 15/15.
+
+---
+
+## 19. Rút helper dùng chung làm đỏ test COPY một danh sách file cố định
+
+**Ngày/PR:** 2026-09-14, nhánh `claude/confident-brown-6vb0f7` (commit `4f9e740` gây, vá ở commit kế).
+
+**Khuôn lỗi:** một refactor "gộp boilerplate" tạo file mới (`scripts/_python-exec.sh`) và biến nó
+thành **phụ thuộc lúc chạy** của script cũ (`subagent-dispatch.sh`). Mọi test dựng sandbox bằng cách
+`cp` một **danh sách file viết tay** vào thư mục tạm đều đỏ ngay — vì danh sách đó không biết về file
+mới. Ở đây là `test-maintain-cron.sh:24` và `test-maintain-run.sh:31`.
+
+**Vì sao lọt:** refactor được nghiệm thu bằng đúng hai test *trực tiếp* của bốn wrapper
+(`test-next-gen-engines.sh`, `test-telemetry-and-dispatch.sh`) — cả hai chạy trong cây repo thật nên
+file mới luôn có mặt. Hai test đỏ nằm ở **script khác, tên không liên quan**, không ai nghĩ tới.
+Sai lầm quy trình: "cổng liên quan xanh" bị đọc thành "không đổi hành vi", trong khi `CLAUDE.md` §6
+đòi chạy **TOÀN BỘ** test trước khi merge. Xanh giả kiểu này còn nguy hiểm hơn đỏ.
+
+**Cách rà:** sau khi thêm bất kỳ file nào bị `source`/`exec` bởi script khác, grep danh sách copy:
+`grep -rn 'cp .*scripts/{' scripts/` — mọi danh sách có chứa script tiêu thụ thì phải có thêm file mới.
+Tổng quát hơn: `grep -rn "$(basename FILE_MOI)" scripts/` phải khớp **cả nơi dùng lẫn nơi copy**.
+
+**Cổng chốt chặn:** `scripts/test-maintain-cron.sh` + `scripts/test-maintain-run.sh` (job CI
+`framework-lint`) — đã xanh trở lại sau khi thêm `_python-exec.sh` vào hai danh sách `cp`. Đo thật:
+exit 0/0 ở `HEAD~1`, exit 9/22 sau refactor, exit 0/0 sau bản vá.
