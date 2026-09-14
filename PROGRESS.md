@@ -6,7 +6,14 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#112 đã merge. **Mốc gần nhất (2026-09-14, PR #112): sửa hàng rào
+- Giai đoạn: GĐ 8. PR #69→#113 đã merge. **Mốc gần nhất (2026-09-14, PR #113): CP-5 — sổ job được
+  phép skip.** Job `gate` tính mọi `skipped` là đạt (cần thế, vì `progress-freshness` cố ý chỉ chạy
+  trên push vào nhánh chính), nên một job bị `if:` viết hỏng loại ra sẽ không chạy mà vẫn qua cổng —
+  cổng xanh giả, cùng họ CP-4 nhưng vào cửa khác. Sửa hai lớp: `ci.yml` có sổ `SKIP_ALLOWED` tường
+  minh (dùng `toJSON(needs)` vì `join(needs.*.result)` mất TÊN job), và `check-ci-policy.sh` CP-5 so
+  sổ **bằng đúng** tập job có `if:`, hai chiều. Logic `gate` đã chạy thử ngoài CI trên 4 trạng thái
+  trước khi push, vì chiều "để lọt" thì CI không nói hộ được.
+- Mốc trước (PR #112): sửa hàng rào **Mốc gần nhất (2026-09-14, PR #112): sửa hàng rào
   `block-dangerous-git.sh` chặn oan vì DỮ LIỆU trong lệnh** — hook quét cả chuỗi lệnh nên commit
   message chứa chữ "main" (trong thân heredoc) làm nó tưởng đang force-push nhánh chính; thân
   `python3 - <<PY` chứa `git reset --hard` làm fixture cũng bị chặn. Bản vá đầu TỰ TẠO một lỗ hổng
@@ -49,7 +56,7 @@
   báo oan) nên nó KHÔNG chặn được PR quên bước 0, chỉ cảnh báo sau khi đã merge. Cân nhắc một cổng ở
   `pr-policy.yml` soi diff của PR thay đổi tài liệu khung mà không chạm `PROGRESS.md` — chưa làm, cần bàn
   vì dễ báo oan cho PR nhỏ.
-- Default-branch SHA đã đối chiếu: `7dea84b` (`origin/main`, PR #112)
+- Default-branch SHA đã đối chiếu: `b35d13f` (`origin/main`, PR #113)
 - Nhánh đang làm: `main`
 - Ngày cập nhật: 2026-09-14
 
@@ -81,7 +88,7 @@
 - **(2026-09-12) PR #69 — cổng chống PROGRESS.md lỗi thời + chia đơn vị PR/trần effort medium/
   auto-merge**: `scripts/check-progress-freshness.sh` + job CI `progress-freshness`; quy trình mới
   sau bước duyệt kế hoạch cho việc đủ lớn cần điều phối 3 tầng — xem `TRAPS.md` mục 8.
-- PR đã merge gần nhất: **#112** (sửa hook chặn oan + TRAPS 18/14), **#111** (đóng, thay bằng #112), **#110** (sync PROGRESS), **#109** (ba luật từ đợt đối chiếu Claude-Agents), **#86** (nhãn C1), **#108** (`.gitignore` `__pycache__`), **#106** (agent bảo trì toàn diện — `maintainer`/`/maintain`/`maintenance-sweep`/`maintain-run`/`maintain-cron`), **#105→#104** (PROGRESS sync + fix telemetry/smoke, xem mục "Giai đoạn hiện tại" ở trên), **#69** (freshness gate + PR-splitting/effort/auto-merge), **#68** (tổng quát hoá harness), **#67** (ADR-0004 gỡ scaffold Web), **#66**
+- PR đã merge gần nhất: **#113** (CP-5 sổ job skip), **#112** (sửa hook chặn oan + TRAPS 18/14), **#111** (đóng, thay bằng #112), **#110** (sync PROGRESS), **#109** (ba luật từ đợt đối chiếu Claude-Agents), **#86** (nhãn C1), **#108** (`.gitignore` `__pycache__`), **#106** (agent bảo trì toàn diện — `maintainer`/`/maintain`/`maintenance-sweep`/`maintain-run`/`maintain-cron`), **#105→#104** (PROGRESS sync + fix telemetry/smoke, xem mục "Giai đoạn hiện tại" ở trên), **#69** (freshness gate + PR-splitting/effort/auto-merge), **#68** (tổng quát hoá harness), **#67** (ADR-0004 gỡ scaffold Web), **#66**
   (đóng Nhóm 11 audit), **#62** (TRAPS.md + CODEMAP.md + `check-ci-policy.sh` + golden test/TDD —
   2 spec `docs/specs/2026-09-12-*.md`, 7 PR gộp thành 1, rút từ lượt quét 15 repo dẫn xuất/lân cận),
   **#61** (verify-dropins ERESOLVE), **#52** (hoàn thiện khung theo COMPLETION-PLAN, 4 đợt/22 việc
