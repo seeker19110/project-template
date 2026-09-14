@@ -152,6 +152,35 @@ else
   fi
 fi
 
+# ── SMOKE THẬT: script phát cho dự án đích phải CHẠY ĐƯỢC ở đó ──────────────────────
+# VÌ SAO (2026-09-14): các kiểm ở trên chỉ xác nhận ĐÚNG FILE ĐƯỢC COPY, không xác nhận
+# chúng chạy nổi. Lỗ hổng đó đã làm hỏng thật: PR #93 bắt telemetry-log.py đọc
+# scripts/model-rates.json và exit 1 nếu thiếu, nhưng copy-framework KHÔNG phát file đó —
+# nên `telemetry-log.sh --record` CHẾT trên MỌI dự án đích, suốt nhiều PR mà không cổng
+# nào kêu. Self-test đi kèm bắt được, nhưng chưa ai chạy nó BÊN TRONG dự án đích.
+# Bài học tổng quát: "đã copy đủ file" ≠ "dùng được". Chỉ chạy thật mới chứng minh.
+echo "== Smoke: self-test đi kèm phải XANH ngay trong dự án đích =="
+smoke_target="$(new_target)"
+if ! bash "$REPO_ROOT/copy-framework.sh" "$smoke_target" >/tmp/copy-framework-smoke.log 2>&1; then
+  echo "  FAIL: copy-framework.sh lỗi khi dựng dự án đích cho smoke"
+  fail=1
+else
+  for t in test-telemetry-and-dispatch.sh test-next-gen-engines.sh; do
+    if [ ! -f "$smoke_target/scripts/$t" ]; then
+      echo "  FAIL: thiếu $t ở dự án đích — không smoke được"
+      fail=1
+      continue
+    fi
+    if ( cd "$smoke_target" && bash "scripts/$t" >/tmp/copy-framework-smoke.log 2>&1 ); then
+      echo "  ✅ $t XANH trong dự án đích"
+    else
+      echo "  FAIL: $t ĐỎ trong dự án đích — script được phát nhưng không chạy nổi ở đó:"
+      sed -n '1,12p' /tmp/copy-framework-smoke.log | sed 's/^/      /'
+      fail=1
+    fi
+  done
+fi
+
 echo ""
 if [ "$fail" -eq 0 ]; then
   if command -v pwsh >/dev/null 2>&1; then
