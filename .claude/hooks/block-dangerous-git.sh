@@ -43,9 +43,19 @@ fi
 # Nguy hiểm của chặn oan không phải là phiền: nó dạy người ta gõ ALLOW_DANGEROUS_GIT=1 thành phản
 # xạ, và lúc đó hàng rào không còn chặn được ca thật.
 #
-# GIỚI HẠN CÒN LẠI (nói ra, không giấu): dữ liệu KHÔNG nháy và KHÔNG heredoc vẫn bị quét —
-# `git push -f origin claude/x && echo main` vẫn chặn oan. Sửa hẳn cần tách lệnh theo `&&`/`;`/`|`
-# rồi chỉ soi segment bắt đầu bằng `git`; chưa làm vì phạm vi rộng hơn hẳn và chưa có sự cố thật.
+# CẨN TRỌNG khi sửa hàm dưới: bỏ NHẦM một dòng LÀ LỆNH thì hàng rào để lọt — hỏng theo chiều nguy
+# hiểm, không phải chiều phiền. Bản đầu của chính lần sửa này dùng `<<-?[[:space:]]*DELIM`, và
+# `echo "a << b"` khớp thành heredoc với delimiter `b` → mọi dòng SAU đó bị nuốt, nên
+# `git reset --hard` ở dòng kế KHÔNG bị chặn (đo được, không phải suy đoán). Vì thế: KHÔNG cho phép
+# khoảng trắng giữa `<<` và delimiter. Ca đó nay là một ca chặn bắt buộc ở `test-hooks-gate.sh` mục 7.
+#
+# GIỚI HẠN CÒN LẠI (nói ra, không giấu):
+#   - dữ liệu KHÔNG nháy và KHÔNG heredoc vẫn bị quét — `git push -f origin claude/x && echo main`
+#     vẫn chặn oan. Sửa hẳn cần tách lệnh theo `&&`/`;`/`|` rồi chỉ soi segment bắt đầu bằng `git`;
+#     chưa làm vì phạm vi rộng hơn hẳn và chưa có sự cố thật.
+#   - `cat << EOF` (có khoảng trắng — POSIX cho phép) không được nhận là heredoc nữa, nên thân nó
+#     vẫn bị quét → có thể chặn oan. Đây là đánh đổi CỐ Ý: chặn oan thì người dùng thấy ngay và nói,
+#     còn để lọt thì không ai biết. Chọn chiều an toàn.
 # \047 = nháy đơn, \042 = nháy kép (escape bát phân của awk). Dùng chúng thay vì viết nháy thật để
 # CẢ chương trình awk nằm gọn trong một cặp nháy đơn của shell — không có chỗ nào phải thoát nháy
 # lồng nhau, thứ vừa khó đọc vừa dễ hỏng lặng lẽ khi ai đó sửa.
@@ -54,9 +64,9 @@ strip_heredoc_bodies() {
     BEGIN { delim = "" }
     {
       if (delim != "") { if ($0 == delim) { delim = "" } ; next }
-      if (match($0, /<<-?[[:space:]]*[\047\042]?[A-Za-z_][A-Za-z0-9_]*[\047\042]?/)) {
+      if (match($0, /<<-?[\047\042]?[A-Za-z_][A-Za-z0-9_]*[\047\042]?/)) {
         d = substr($0, RSTART, RLENGTH)
-        sub(/^<<-?[[:space:]]*/, "", d)
+        sub(/^<<-?/, "", d)
         gsub(/[\047\042]/, "", d)
         delim = d
       }
