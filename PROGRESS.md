@@ -6,13 +6,13 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#113 đã merge; **đang mở PR #115** (đối chiếu nguồn ngoài `ponytail` →
+- Giai đoạn: GĐ 8. PR #69→#115 đã merge. **Mốc gần nhất (2026-09-14, PR #115):** đối chiếu nguồn ngoài `ponytail` →
   ba luật: thang kiểm trước khi viết code `CLAUDE.md` §3 A4 · dấu nợ `DEBT:` có điều kiện xem lại
   §3 A7 **kèm cổng thật** ở `maintenance-sweep.sh` mảng 3 + negative/positive test · nhóm 5 "tự viết
   lại thứ đã có" cho `/audit-optimize`. Bản đối chiếu ba cột:
   `docs/reports/2026-09-14-doi-chieu-ponytail.md` — 3/~14 hạng mục được lấy; ba mâu thuẫn luật của
   nguồn được nêu ra và từ chối. Phát hiện tự đính chính giữ nguyên trong báo cáo: đọc README suýt
-  làm lỡ đúng hạng mục có bằng chứng sự cố mạnh nhất).
+  làm lỡ đúng hạng mục có bằng chứng sự cố mạnh nhất.
 - Mốc trước (PR #113): **CP-5 — sổ job được
   phép skip.** Job `gate` tính mọi `skipped` là đạt (cần thế, vì `progress-freshness` cố ý chỉ chạy
   trên push vào nhánh chính), nên một job bị `if:` viết hỏng loại ra sẽ không chạy mà vẫn qua cổng —
@@ -63,8 +63,8 @@
   báo oan) nên nó KHÔNG chặn được PR quên bước 0, chỉ cảnh báo sau khi đã merge. Cân nhắc một cổng ở
   `pr-policy.yml` soi diff của PR thay đổi tài liệu khung mà không chạm `PROGRESS.md` — chưa làm, cần bàn
   vì dễ báo oan cho PR nhỏ.
-- Default-branch SHA đã đối chiếu: `b35d13f` (`origin/main`, PR #113)
-- Nhánh đang làm: `claude/youthful-planck-vb0e3t` (PR #115 — đang mở)
+- Default-branch SHA đã đối chiếu: `8d0c164` (`origin/main`, PR #115)
+- Nhánh đang làm: `main`
 - Ngày cập nhật: 2026-09-14
 
 ## Goal đang active
