@@ -6,13 +6,23 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#115 đã merge. **Mốc gần nhất (2026-09-14, PR #115):** đối chiếu nguồn ngoài `ponytail` →
+- Giai đoạn: GĐ 8. PR #69→#117 đã merge (#117 = đồng bộ `PROGRESS.md` sau #115). **Mốc nội dung
+  gần nhất (2026-09-14, PR #115):** đối chiếu nguồn ngoài `ponytail` →
   ba luật: thang kiểm trước khi viết code `CLAUDE.md` §3 A4 · dấu nợ `DEBT:` có điều kiện xem lại
   §3 A7 **kèm cổng thật** ở `maintenance-sweep.sh` mảng 3 + negative/positive test · nhóm 5 "tự viết
   lại thứ đã có" cho `/audit-optimize`. Bản đối chiếu ba cột:
   `docs/reports/2026-09-14-doi-chieu-ponytail.md` — 3/~14 hạng mục được lấy; ba mâu thuẫn luật của
   nguồn được nêu ra và từ chối. Phát hiện tự đính chính giữ nguyên trong báo cáo: đọc README suýt
   làm lỡ đúng hạng mục có bằng chứng sự cố mạnh nhất.
+- **Mốc PR #114: ADR-0005 — TDD mặc định bắt buộc cho code MỚI có logic** (nhánh điều kiện / tính
+  toán / xử lý lỗi-quyền), kèm **danh sách ngoại lệ ĐÓNG** 5 mục (scaffolding từ template · đổi
+  tên-di chuyển cơ học · chỉ tài liệu-comment-config thuần · code sinh tự động · prototype vứt đi có
+  timebox); mỗi lần dùng ngoại lệ phải ghi một dòng trong PR. **Không** chép bản cứng tuyệt đối của
+  `Claude-Agents` — nó mâu thuẫn với lý luận "nghi thức rỗng" đã có trong khung (lý luận đó đúng),
+  khung phục vụ 10 hồ sơ chứ không phải một repo Python, và bản cứng đó đi kèm `fail_under = 100` mà
+  chép nửa vời thì mất một nửa cơ chế. Điểm chạm quy trình: `CLAUDE.md` §5/§7 + `/gate` Bước 3 có
+  mục `Đỏ-trước cho code mới có logic ✅/❌/ngoại lệ-N`. **Không có cổng máy** — "test này từng đỏ"
+  không đọc được từ trạng thái cuối của repo; cưỡng chế bằng review (ADR §Hệ quả).
 - Mốc trước (PR #113): **CP-5 — sổ job được
   phép skip.** Job `gate` tính mọi `skipped` là đạt (cần thế, vì `progress-freshness` cố ý chỉ chạy
   trên push vào nhánh chính), nên một job bị `if:` viết hỏng loại ra sẽ không chạy mà vẫn qua cổng —
@@ -63,7 +73,7 @@
   báo oan) nên nó KHÔNG chặn được PR quên bước 0, chỉ cảnh báo sau khi đã merge. Cân nhắc một cổng ở
   `pr-policy.yml` soi diff của PR thay đổi tài liệu khung mà không chạm `PROGRESS.md` — chưa làm, cần bàn
   vì dễ báo oan cho PR nhỏ.
-- Default-branch SHA đã đối chiếu: `8d0c164` (`origin/main`, PR #115)
+- Default-branch SHA đã đối chiếu: `15e2ed7` (`origin/main`, PR #117)
 - Nhánh đang làm: `main`
 - Ngày cập nhật: 2026-09-14
 
@@ -95,7 +105,7 @@
 - **(2026-09-12) PR #69 — cổng chống PROGRESS.md lỗi thời + chia đơn vị PR/trần effort medium/
   auto-merge**: `scripts/check-progress-freshness.sh` + job CI `progress-freshness`; quy trình mới
   sau bước duyệt kế hoạch cho việc đủ lớn cần điều phối 3 tầng — xem `TRAPS.md` mục 8.
-- PR đã merge gần nhất: **#113** (CP-5 sổ job skip), **#112** (sửa hook chặn oan + TRAPS 18/14), **#111** (đóng, thay bằng #112), **#110** (sync PROGRESS), **#109** (ba luật từ đợt đối chiếu Claude-Agents), **#86** (nhãn C1), **#108** (`.gitignore` `__pycache__`), **#106** (agent bảo trì toàn diện — `maintainer`/`/maintain`/`maintenance-sweep`/`maintain-run`/`maintain-cron`), **#105→#104** (PROGRESS sync + fix telemetry/smoke, xem mục "Giai đoạn hiện tại" ở trên), **#69** (freshness gate + PR-splitting/effort/auto-merge), **#68** (tổng quát hoá harness), **#67** (ADR-0004 gỡ scaffold Web), **#66**
+- PR đã merge gần nhất: **#114** (ADR-0005 TDD), **#113** (CP-5 sổ job skip), **#112** (sửa hook chặn oan + TRAPS 18/14), **#111** (đóng, thay bằng #112), **#110** (sync PROGRESS), **#109** (ba luật từ đợt đối chiếu Claude-Agents), **#86** (nhãn C1), **#108** (`.gitignore` `__pycache__`), **#106** (agent bảo trì toàn diện — `maintainer`/`/maintain`/`maintenance-sweep`/`maintain-run`/`maintain-cron`), **#105→#104** (PROGRESS sync + fix telemetry/smoke, xem mục "Giai đoạn hiện tại" ở trên), **#69** (freshness gate + PR-splitting/effort/auto-merge), **#68** (tổng quát hoá harness), **#67** (ADR-0004 gỡ scaffold Web), **#66**
   (đóng Nhóm 11 audit), **#62** (TRAPS.md + CODEMAP.md + `check-ci-policy.sh` + golden test/TDD —
   2 spec `docs/specs/2026-09-12-*.md`, 7 PR gộp thành 1, rút từ lượt quét 15 repo dẫn xuất/lân cận),
   **#61** (verify-dropins ERESOLVE), **#52** (hoàn thiện khung theo COMPLETION-PLAN, 4 đợt/22 việc
