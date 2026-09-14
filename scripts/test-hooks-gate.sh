@@ -103,6 +103,8 @@ for pair in \
   "git reset --hard HEAD~1|reset --hard" \
   "git merge --abort|merge --abort" \
   "git rebase --abort|rebase --abort" \
+  "echo \"a << b\"
+git reset --hard HEAD~1|lệnh nguy hiểm SAU một chuỗi chứa '<<' không phải heredoc" \
 ; do
   c="${pair%%|*}"; label="${pair##*|}"
   rc="$(run_hook "$any" "$c" "" "$DG")"
