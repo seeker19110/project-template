@@ -6,7 +6,21 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#117 đã merge (#117 = đồng bộ `PROGRESS.md` sau #115). **Mốc nội dung
+- Giai đoạn: GĐ 8. PR #69→#118 đã merge. **Mốc nội dung gần nhất (2026-09-14, PR #118):**
+  chạy `/audit-optimize` lên CHÍNH repo khung. GĐ 1 đo baseline: 0 dead code, 0 dependency thừa
+  (4 engine Python chỉ stdlib), 15/15 GitHub Actions ghim SHA, jscpd 0,52% trùng lặp — repo đã
+  tối ưu sẵn. GĐ 2 làm 3 việc: `scripts/_python-exec.sh` gộp boilerplate 4 wrapper (77→44 dòng) ·
+  `scripts/_test-lib.sh` gộp `ok`/`bad`/`fails` của 8 script test · hạ complexity
+  `scan_codebase_health` 18→1 và `parse_spec_markdown` 18→3 kèm 23 ca characterization
+  (`scripts/test-engine-characterization.sh`, đã nối vào `ci.yml`).
+- **Bài học PR #118 (quan trọng hơn chính bản refactor):** (a) ước tính "net −91 dòng" của báo cáo
+  audit SAI — thực tế +366 dòng; với repo đã tối ưu sẵn, *giảm dòng là chỉ số sai* để duyệt kế hoạch
+  tối ưu, giá trị thật nằm ở CC và ở test khoá hành vi. (b) Rút helper dùng chung làm đỏ MỌI nơi
+  liệt kê file bằng tay — tái phát HAI lần trong cùng một PR (2 test sandbox, rồi
+  `copy-framework.sh`/`.ps1` khiến dự án đích nhận script gãy); ghi thành `TRAPS.md` mục 19.
+  (c) Nghiệm thu bằng "cổng LIÊN QUAN xanh" thay vì TOÀN BỘ test (`CLAUDE.md` §6) đã để lọt một
+  hồi quy lên `origin` — xanh giả nguy hiểm hơn đỏ.
+- **Mốc trước (2026-09-14, PR #115):** đối chiếu nguồn ngoài `ponytail` →
   gần nhất (2026-09-14, PR #115):** đối chiếu nguồn ngoài `ponytail` →
   ba luật: thang kiểm trước khi viết code `CLAUDE.md` §3 A4 · dấu nợ `DEBT:` có điều kiện xem lại
   §3 A7 **kèm cổng thật** ở `maintenance-sweep.sh` mảng 3 + negative/positive test · nhóm 5 "tự viết
@@ -73,7 +87,7 @@
   báo oan) nên nó KHÔNG chặn được PR quên bước 0, chỉ cảnh báo sau khi đã merge. Cân nhắc một cổng ở
   `pr-policy.yml` soi diff của PR thay đổi tài liệu khung mà không chạm `PROGRESS.md` — chưa làm, cần bàn
   vì dễ báo oan cho PR nhỏ.
-- Default-branch SHA đã đối chiếu: `15e2ed7` (`origin/main`, PR #117)
+- Default-branch SHA đã đối chiếu: `e6a276a` (`origin/main`, PR #118)
 - Nhánh đang làm: `main`
 - Ngày cập nhật: 2026-09-14
 
