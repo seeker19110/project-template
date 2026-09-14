@@ -10,9 +10,7 @@ set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SWEEP="$ROOT/scripts/maintenance-sweep.sh"
-fails=0
-ok()  { echo "  ✅ $1"; }
-bad() { echo "  ❌ $1"; fails=$((fails+1)); }
+source "$ROOT/scripts/_test-lib.sh"
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT

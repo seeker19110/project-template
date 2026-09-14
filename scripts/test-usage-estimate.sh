@@ -14,9 +14,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 if command -v cygpath >/dev/null 2>&1; then ROOT="$(cygpath -m "$ROOT")"; fi
 SCRIPT="$ROOT/scripts/usage-estimate.sh"
 
-fails=0
-ok()  { echo "  ✅ $1"; }
-bad() { echo "  ❌ $1"; fails=$((fails+1)); }
+source "$ROOT/scripts/_test-lib.sh"
 
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT

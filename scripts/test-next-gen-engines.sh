@@ -6,9 +6,7 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 if command -v cygpath >/dev/null 2>&1; then ROOT="$(cygpath -m "$ROOT")"; fi
 
-fails=0
-ok()  { echo "  ✅ $1"; }
-bad() { echo "  ❌ $1"; fails=$((fails+1)); }
+source "$ROOT/scripts/_test-lib.sh"
 
 echo "== 1. Autonomous Spec-to-Contract Compiler Engine =="
 
