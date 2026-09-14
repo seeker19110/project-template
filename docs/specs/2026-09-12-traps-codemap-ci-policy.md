@@ -271,3 +271,6 @@ Không còn blocking decision.
 
 **Conclusion:** **Approved for implementation**
 **Approver/date:** donghanhcungban.org@gmail.com / 2026-09-12
+
+<!-- contract-exempt: scripts/verify-dropins.sh — gỡ khỏi repo khung theo ADR-0004 (bỏ scaffold Web mặc định, commit 98546db); spec này viết TRƯỚC quyết định đó nên giữ nguyên làm hồ sơ lịch sử -->
+<!-- contract-exempt: package.json — file của DỰ ÁN ĐÍCH, repo khung cố ý không có (CLAUDE.md §10) -->

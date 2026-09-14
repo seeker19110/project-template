@@ -171,3 +171,167 @@ ngay sau khi quay về `main`.
 *Cách rà*: trước khi đề xuất stack/cổng, kiểm tra `PROJECT.md` mục 0 (Loại dự án & Hồ sơ) đã được điền chưa. Nếu chưa điền, chạy PHẦN A0 của KHUNG-3 để phân loại — không giả định C1 vì "đây là mặc định". Nhãn "MẶC ĐỊNH" trong C1 chỉ có nghĩa file cấu hình **drop-in** của khung giả định hồ sơ này, không có nghĩa mọi dự án nên dùng C1.
 
 *Cổng chốt chặn*: làm rõ nhãn C1 trong `03-tech-selection-and-proactive-advice.md` và chú thích nguồn gốc trong `PROJECT.md` để agent luôn thấy ngữ cảnh giải thích khi đọc hai chữ "MẶC ĐỊNH". (2026-09-13)
+
+## 11. Thêm code chạy được mà không nối cổng CI → code chết, không ai biết nó tồn tại
+
+*Ngày: 2026-09-13 · PR #89, #91 (mắc) → PR sửa: audit 2026-09-13.*
+
+PR #89 và #91 thêm 4 engine Python (`spec-compiler.py`, `arch-health-radar.py`,
+`subagent-dispatch.py`, `telemetry-log.py`, ~650 dòng) **kèm cả self-test** —
+`test-next-gen-engines.sh` và `test-telemetry-and-dispatch.sh` — nhưng **không nối self-test nào
+vào `ci.yml`**, và không thêm dòng nào vào `CODEMAP.md` hay `CLAUDE.md` §1.
+
+Hai hậu quả, cái thứ hai nặng hơn: (a) code không có cổng bảo vệ, sửa gãy không ai bắt; (b) **code
+chết trên thực tế** — một phiên AI mới chỉ đọc `CLAUDE.md`/`CODEMAP.md` nên không bao giờ biết 4
+engine đó tồn tại, dù chúng chạy hoàn hảo. Viết self-test rồi không cắm vào CI tạo cảm giác an toàn
+giả: `ls scripts/` thấy có test, nhưng không lần chạy nào là bắt buộc.
+
+Lỗ hổng lọt vì cổng cũ chỉ kiểm hai chiều **lệnh ↔ `CLAUDE.md`** (mục 3 của
+`check-docs-consistency.sh`), không kiểm **script ↔ `CODEMAP.md`**. Khi thêm cổng mới, nó bắt luôn
+2 script cũ cũng chưa khai (`usage-estimate.sh`, `ci-workflow-policy.test.ts`) — tức khuôn này đã
+âm thầm lặp lại nhiều lần trước đó.
+
+**Cách rà:** với mọi PR thêm file vào `scripts/`, hỏi đúng 3 câu — (1) có job/step CI nào *bắt buộc*
+chạy nó không? (2) có dòng trong `CODEMAP.md` không? (3) một phiên AI mới, chỉ đọc `CLAUDE.md`, có
+biết nó tồn tại không? Không đủ 3 thì chưa xong, dù test có xanh.
+
+**Cổng chốt chặn:** `scripts/check-docs-consistency.sh` **mục 6** (mọi `scripts/*.{sh,py,json,ts}`
+phải được `CODEMAP.md` khai; miễn trừ phải ghi lý do ở `CODEMAP_EXEMPT`) + 2 step mới trong job CI
+`framework-lint` chạy `test-next-gen-engines.sh` và `test-telemetry-and-dispatch.sh` + negative-test
+của chính mục 6 trong `scripts/test-check-scripts.sh` (cả chiều đỏ lẫn chiều xanh).
+
+## 12. `test-check-scripts.sh` chỉ kiểm được cổng ĐÃ COMMIT — sửa cổng mà chưa commit thì test mới xanh giả
+
+*Ngày: 2026-09-13 · phát hiện khi thêm mục 6 ở trên.*
+
+`setup_repo()` dựng sandbox bằng `git archive HEAD` — **chỉ lấy file đã commit**. Nên khi vừa thêm
+mục kiểm mới vào `check-docs-consistency.sh` (chưa commit) rồi chạy `test-check-scripts.sh` ngay,
+sandbox vẫn chạy **bản cũ** của cổng: ca negative (`rc` phải = 1) đỏ vì cổng cũ không có mục đó, còn
+ca đối chứng (`rc` phải = 0) **xanh giả** — xanh vì cổng không kiểm gì, không phải vì nó kiểm đúng.
+
+Nguy hiểm ở chỗ nếu chỉ viết ca đối chứng (không viết ca negative), bộ test sẽ báo xanh toàn bộ và
+người viết tin rằng cổng mới đã hoạt động. Đây là lý do mỗi mục kiểm **phải có cả ca đỏ lẫn ca xanh**
+(nguyên tắc F-002/G-001 áp cho chính mình).
+
+**Cách rà:** sửa bất kỳ `check-*.sh` nào → **commit trước** rồi mới chạy `test-check-scripts.sh`;
+nếu một ca negative mới báo `rc=0`, nghi ngờ "chưa commit" *trước* khi nghi ngờ logic cổng.
+
+**Cổng chốt chặn:** không có cổng máy (bản chất là thứ tự thao tác) — chốt bằng chính mục này +
+ghi chú trong đầu `scripts/test-check-scripts.sh`.
+
+## 13. Commit của phiên AI không gắn được tài khoản GitHub → auto-merge kẹt, triệu chứng không nói ra nguyên nhân
+
+*Ngày: 2026-09-13 · PR #93.*
+
+Ruleset `.github/rulesets/main.json` bật `require_extra_approval_for_unattributed_changes`.
+Phiên AI commit bằng một email **chưa liên kết** tài khoản GitHub → GitHub coi đó là thay đổi
+"unattributed" và **chặn auto-merge**, dù `required_approving_review_count` = 0 và **toàn bộ
+required check đều xanh**.
+
+Triệu chứng đánh lạc hướng: PR ở trạng thái `blocked` nhưng mọi cổng đều ✅, không thông báo nào
+nói lý do. Rất dễ đi tìm nhầm trong CI. Dấu hiệu nhận ra: gọi API commit thấy **thiếu** trường
+`author.login` (commit đã gắn được sẽ có), và trên giao diện GitHub avatar tác giả không hiện.
+
+Điểm dễ mắc thứ hai: sửa bằng `--reset-author` sẽ đặt **cả** author lẫn committer, làm mất danh
+tính harness (và mất chữ ký Verified). Git tách hai trường này nên **không phải đánh đổi**:
+author quyết định attribution, committer quyết định chữ ký.
+
+**Cách rà:** trước khi mở PR từ phiên AI — `git log -1 --format='%an <%ae> | %cn <%ce>'`; email
+author phải nằm trong `Settings → Emails` của tài khoản GitHub.
+
+**Cổng chốt chặn:** không có cổng máy trong repo (thuộc cấu hình môi trường chạy, không phải nội
+dung repo) — chốt bằng mục **4b** trong `docs/framework/new-project-runbook.md` + mục này.
+
+## 14. `git checkout -b` thất bại vì nhánh đã tồn tại → commit rơi nhầm vào `main`
+
+*Ngày: 2026-09-13 · mắc ngay trong phiên xử lý audit 2026-09-13.*
+
+`git checkout -b <nhánh>` báo `fatal: a branch named '<nhánh>' already exists` và **giữ nguyên
+nhánh đang đứng**. Nếu lệnh đó nằm trong một chuỗi `&&`/nhiều lệnh và output không được đọc kỹ,
+các lệnh sau vẫn chạy — nhưng trên **nhánh cũ**. Hậu quả trong phiên này: commit đồng bộ
+`PROGRESS.md` rơi vào `main` cục bộ, rồi `git push origin <nhánh>` lại đẩy **nhánh cũ** (nội dung
+đã merge từ trước) lên, tạo PR #94 sai nội dung mà vẫn bật auto-merge.
+
+May mắn PR đó squash ra **commit rỗng** nên `main` không thụt lùi — nhưng đó là may, không phải
+do cổng nào chặn.
+
+**Cách rà:** sau mỗi lần chuyển nhánh, xác nhận bằng `git branch --show-current` **trước khi**
+commit; đừng tin lệnh checkout đã thành công chỉ vì các lệnh sau nó không lỗi. Dùng
+`git switch -c <nhánh> || git switch <nhánh>` để ý định "tạo hoặc chuyển sang" là tường minh.
+Trước khi push, đối chiếu `git log --oneline -1 <nhánh>` với commit vừa tạo.
+
+**Cổng chốt chặn:** không có cổng máy (thuộc thao tác, không phải nội dung repo) — chốt bằng mục
+này. Dấu hiệu sớm: hook `stop-hook-git-check` báo "unpushed commit(s) on branch 'main'".
+
+## 15. "Đã copy đủ file" không có nghĩa là "dùng được ở dự án đích"
+
+*Ngày: 2026-09-14 · gây ra ở PR #93, phát hiện khi đánh giá tổng thể.*
+
+PR #93 bắt `telemetry-log.py` đọc `scripts/model-rates.json` và **thoát mã 1** nếu thiếu (cố ý:
+thà không có báo cáo còn hơn báo cáo chi phí bằng số bịa). Nhưng `copy-framework.sh`/`.ps1`
+**không phát** file dữ liệu đó, trong khi vẫn phát `telemetry-log.py`. Hậu quả:
+`telemetry-log.sh --record` **chết trên MỌI dự án đích**, suốt nhiều PR, mà không cổng nào kêu.
+
+Vì sao lọt: `test-copy-framework.sh` kiểm **đúng file có được copy không** — cấu trúc, không phải
+hành vi. Self-test đi kèm (`test-telemetry-and-dispatch.sh`) bắt được ngay, nhưng **chưa ai chạy
+nó BÊN TRONG dự án đích**. Khung tự kiểm chính mình rất kỹ, còn thứ nó **phát đi** thì không.
+
+Cùng lượt smoke đầu tiên còn lộ thêm 2 ca nữa, đều cùng gốc "chạy ở repo khung thì xanh, ở dự án
+đích thì không": `spec-compiler --compile-all` im lặng không in gì khi chưa có `docs/specs/`
+(dự án mới thì đương nhiên chưa có), và ca AHR-3 assert "độ phủ phải TỤT" trong khi dự án đích
+chưa có `ci.yml` nên độ phủ đã là 0 — không có gì để tụt.
+
+**Cách rà:** mỗi khi thêm/sửa thứ được `copy-framework` phát đi, hỏi hai câu — (1) nó có phụ thuộc
+file/thư mục nào mà dự án đích CHƯA có không? (2) đã chạy thật nó trong một dự án đích trống chưa?
+Trạng thái "trống" (chưa có spec, chưa có CI, chưa có budget) là HỢP LỆ, phải xử lý tử tế chứ
+không được coi là lỗi.
+
+**Cổng chốt chặn:** `scripts/test-copy-framework.sh` mục "Smoke" — dựng dự án đích thật rồi CHẠY
+các self-test được phát kèm ngay trong đó; đỏ là chặn. Chạy trong job CI `copy-framework-smoke`.
+
+## 16. Push lại cùng nhánh cùng ngày chỉ "thành công" nhờ trùng giây — không thật sự an toàn
+
+*Ngày: 2026-09-14 · phát hiện khi viết test cho `scripts/maintain-cron.sh` (agent bảo trì chạy
+không giám sát trên VPS/cron).*
+
+`maintain-cron.sh` thiết kế: nhánh `maint/auto-<ngày>` chạy lại cùng ngày thì `git reset --hard`
+về nhánh nền rồi commit lại từ đầu (không cộng dồn). Bản đầu push bằng `git push -u origin
+<nhánh>` (không force). Test tay chạy hai lượt LIÊN TIẾP RẤT NHANH (cùng giây đồng hồ) thấy xanh —
+kết luận sai là "ổn". Viết thêm ca test 5 lượt (7a→7e, có xử lý tốn vài giây giữa các lượt) mới lộ
+ra: commit thứ hai có nội dung/parent giống hệt commit thứ nhất nhưng **khác giây** → khác SHA →
+không phải hậu duệ của commit cũ trên remote → git từ chối `non-fast-forward`. Lượt test nhanh
+trước đó "xanh" thuần tuý vì hai commit **trùng giây tuyệt đối** nên trùng SHA, push thành no-op.
+
+**Bài học tổng quát:** một test tay chạy đủ NHANH để né race condition không chứng minh gì — thời
+gian trôi qua giữa hai bước là một BIẾN, không phải hằng số; test tự động phải cố tình để đủ thời
+gian trôi qua (nhiều bước xen giữa, hoặc gọi mạng/subprocess thật) chứ không chỉ lặp lại lệnh liền
+kề nhau.
+
+**Sửa:** `git fetch origin <nhánh>` trước, rồi `git push --force-with-lease=<nhánh>` — CHỈ áp cho
+nhánh do chính wrapper sở hữu (`maint/auto-*`), không bao giờ cho nhánh chính; `--force-with-lease`
+(khác `--force` thường) bị remote từ chối nếu ai đó đã đẩy lên đúng nhánh đó sau lượt fetch.
+
+**Cổng chốt chặn:** `scripts/test-maintain-cron.sh` mục 4 — hai lượt chạy cách nhau qua nhiều bước
+xử lý thật (không phải `sleep` giả), xác nhận push thành công và không cộng dồn commit.
+
+## 17. Biến gán trong hàm gọi qua `$(...)` không bao giờ thấy được ở ngoài — kể cả có khai `local`
+
+*Ngày: 2026-09-14 · cùng lượt viết `maintain-cron.sh` (bước tự mở PR qua GitHub REST API).*
+
+Một hàm `http_call()` ghi đường dẫn file tạm vào biến `http_body_file` (khai `local` ở hàm CHA gọi
+nó), rồi hàm cha đọc lại biến đó ngay sau khi gọi. Chạy `bash -n`/shellcheck đều sạch. Lỗi chỉ lộ
+lúc CHẠY THẬT: `set -u` báo `http_body_file: unbound variable`. Nguyên nhân: mọi lệnh gọi hàm đều
+qua `code="$(http_call ...)"` — cú pháp `$(...)` luôn chạy trong **subshell**; một biến được gán
+BÊN TRONG subshell đó biến mất khi subshell kết thúc, bất kể biến được khai `local` ở scope nào.
+
+**Bài học tổng quát:** không bao giờ dùng một biến "kênh phụ" (side-channel) để hàm A truyền dữ
+liệu ra ngoài trong khi lệnh gọi hàm A lại đi qua command substitution để lấy giá trị IN RA
+stdout — hai kênh giao tiếp (biến + stdout) không cùng sống sót qua ranh giới subshell. Dữ liệu
+"ra ngoài" thứ hai phải đi qua tham số truyền vào (caller tạo sẵn, truyền path/tên vào) hoặc gộp
+chung vào output có cấu trúc, không bao giờ qua biến toàn cục/`local` chia sẻ ngầm.
+
+**Sửa:** đổi `http_call()` nhận đường dẫn file tạm làm THAM SỐ tường minh (`http_call METHOD URL
+BODYFILE [DATA]`), caller tự `mktemp` trước khi gọi — không còn kênh phụ nào.
+
+**Cổng chốt chặn:** `scripts/test-maintain-cron.sh` mục 7 — chạy thật hàm `open_pr()` qua `curl`
+giả (không mock ở mức hàm bash, chạy nguyên vẹn dưới `set -u`) mới bắt được; test tĩnh không đủ.

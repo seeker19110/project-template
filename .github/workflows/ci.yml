@@ -43,18 +43,56 @@ jobs:
       - name: 3 gate chính của khung thật sự bắt được lỗi (docs-consistency/ci-policy/progress-freshness)
         run: bash scripts/test-check-scripts.sh
 
+      # 4 engine (spec-compiler, arch-health-radar, subagent-dispatch, telemetry-log) được thêm ở
+      # PR #89/#91 KÈM self-test, nhưng self-test không được nối vào CI — nên ~650 dòng Python chạy
+      # được mà không cổng nào bảo vệ (audit 2026-09-13, mục CAO-1; khuôn lỗi ghi ở TRAPS.md).
+      - name: Engine next-gen chạy đúng (spec-compiler + arch-health-radar)
+        run: bash scripts/test-next-gen-engines.sh
+
+      - name: Engine telemetry + subagent-dispatch chạy đúng
+        run: bash scripts/test-telemetry-and-dispatch.sh
+
+      # Agent bảo trì toàn diện (spec 2026-09-14): engine quét phải BẮT ĐƯỢC lỗi cài sẵn (negative-test)
+      # và runner đa-provider phải gọi ĐÚNG cú pháp CLI đã xác minh (stub) — không chỉ chạy không crash.
+      - name: Engine bảo trì (maintenance-sweep + maintain-run) chạy đúng
+        run: |
+          bash scripts/test-maintenance-sweep.sh
+          bash scripts/test-maintain-run.sh
+          bash scripts/test-maintain-cron.sh
+
+      # Radar độ phủ cổng (arch-health-radar) chỉ ra usage-estimate.sh là script DUY NHẤT
+      # không có test — nó quyết định lúc nào phiên AI bị nhắc sắp hết quota (audit 2026-09-13).
+      - name: Ước tính quota chạy đúng (usage-estimate)
+        run: bash scripts/test-usage-estimate.sh
+
+      # Độ phủ DÒNG (khác độ phủ cổng): script có test nhưng test chỉ gọi --help thì độ phủ
+      # cổng 100% mà độ phủ dòng ~ 0. Sàn 95%, nâng khi thêm ca — hạ phải nêu lý do trong PR.
+      - name: Độ phủ dòng của 4 engine Python (coverage.py)
+        run: |
+          python3 -m pip install --quiet "coverage==7.16.0"   # ghim: đứt nguồn cung/đổi hành vi sẽ làm sai số đo
+          bash scripts/test-py-coverage.sh
+
       - name: Cài ShellCheck (không dựa vào gói có sẵn của runner)
         run: sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
 
-      - name: ShellCheck (mức error)
+      # CLAUDE.md §5 ghi "Lint 0 cảnh báo" nhưng cổng này từng chạy --severity=error, tức luật
+      # nói một đằng CI làm một nẻo (audit 2026-09-13, B-03). Nay chạy đúng mức luật quy định.
+      # Cảnh báo hợp lệ phải khai directive KÈM LÝ DO ngay tại chỗ, không tắt mù cả file.
+      - name: ShellCheck (mức warning — đúng luật "0 cảnh báo" của CLAUDE.md §5)
         run: |
           find . -name '*.sh' -not -path './node_modules/*' -print0 \
-            | xargs -0 shellcheck --severity=error
+            | xargs -0 shellcheck --severity=warning
+
+      - name: Cú pháp Python (py_compile — mọi scripts/*.py)
+        run: |
+          set -e
+          find scripts -name '*.py' -print0 | xargs -0 -n1 python3 -m py_compile
+          echo "OK: cú pháp Python sạch"
 
       - name: JSON cấu hình hợp lệ (jq)
         run: |
           set -e
-          for f in .claude/settings.json .claude/settings-shared-opusplan.json .mcp.json; do
+          for f in .claude/settings.json .claude/settings-shared-opusplan.json .mcp.json scripts/model-rates.json; do
             if [ -f "$f" ]; then jq empty "$f" && echo "OK $f"; fi
           done
 

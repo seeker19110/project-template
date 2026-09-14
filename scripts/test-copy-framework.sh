@@ -7,7 +7,7 @@
 # Chạy: bash scripts/test-copy-framework.sh
 set -uo pipefail   # cố ý KHÔNG -e: không được làm chết phiên/lượt chạy (xem docs/CONVENTIONS.md §A)
 
-cd "$(git rev-parse --show-toplevel)"
+cd "$(git rev-parse --show-toplevel)" || exit 1
 REPO_ROOT="$(pwd)"
 fail=0
 tmp_dirs=()
@@ -45,6 +45,8 @@ check_structure() {     # check_structure <mô tả> <target>
   [ -f "$target/CLAUDE.md" ] || { echo "  FAIL [$label]: thiếu CLAUDE.md"; ok=0; }
   [ -f "$target/_framework-dropins/.github/workflows/pr-policy.yml" ] || { echo "  FAIL [$label]: thiếu PR policy drop-in"; ok=0; }
   [ -f "$target/_framework-dropins/.github/workflows/dependency-review.yml" ] || { echo "  FAIL [$label]: thiếu Dependency Review drop-in"; ok=0; }
+  [ -f "$target/_framework-dropins/.github/workflows/maintenance.yml" ] || { echo "  FAIL [$label]: thiếu Maintenance sweep drop-in"; ok=0; }
+  [ -x "$target/scripts/maintenance-sweep.sh" ] && [ -x "$target/scripts/maintain-run.sh" ] || { echo "  FAIL [$label]: thiếu/không chạy được maintenance-sweep.sh hoặc maintain-run.sh"; ok=0; }
   [ -f "$target/docs/ops/repository-settings.md" ] || { echo "  FAIL [$label]: thiếu repository settings baseline"; ok=0; }
   [ -f "$target/docs/ops/supply-chain.md" ] || { echo "  FAIL [$label]: thiếu supply-chain guidance"; ok=0; }
   [ -f "$target/docs/framework/templates/THREAT-MODEL.template.md" ] || { echo "  FAIL [$label]: thiếu threat model template"; ok=0; }
@@ -150,6 +152,35 @@ else
     echo "::error::REQUIRE_PWSH=1 nhưng không tìm thấy pwsh — CI phải kiểm được bản .ps1."
     fail=1
   fi
+fi
+
+# ── SMOKE THẬT: script phát cho dự án đích phải CHẠY ĐƯỢC ở đó ──────────────────────
+# VÌ SAO (2026-09-14): các kiểm ở trên chỉ xác nhận ĐÚNG FILE ĐƯỢC COPY, không xác nhận
+# chúng chạy nổi. Lỗ hổng đó đã làm hỏng thật: PR #93 bắt telemetry-log.py đọc
+# scripts/model-rates.json và exit 1 nếu thiếu, nhưng copy-framework KHÔNG phát file đó —
+# nên `telemetry-log.sh --record` CHẾT trên MỌI dự án đích, suốt nhiều PR mà không cổng
+# nào kêu. Self-test đi kèm bắt được, nhưng chưa ai chạy nó BÊN TRONG dự án đích.
+# Bài học tổng quát: "đã copy đủ file" ≠ "dùng được". Chỉ chạy thật mới chứng minh.
+echo "== Smoke: self-test đi kèm phải XANH ngay trong dự án đích =="
+smoke_target="$(new_target)"
+if ! bash "$REPO_ROOT/copy-framework.sh" "$smoke_target" >/tmp/copy-framework-smoke.log 2>&1; then
+  echo "  FAIL: copy-framework.sh lỗi khi dựng dự án đích cho smoke"
+  fail=1
+else
+  for t in test-telemetry-and-dispatch.sh test-next-gen-engines.sh test-maintenance-sweep.sh test-maintain-run.sh test-maintain-cron.sh; do
+    if [ ! -f "$smoke_target/scripts/$t" ]; then
+      echo "  FAIL: thiếu $t ở dự án đích — không smoke được"
+      fail=1
+      continue
+    fi
+    if ( cd "$smoke_target" && bash "scripts/$t" >/tmp/copy-framework-smoke.log 2>&1 ); then
+      echo "  ✅ $t XANH trong dự án đích"
+    else
+      echo "  FAIL: $t ĐỎ trong dự án đích — script được phát nhưng không chạy nổi ở đó:"
+      sed -n '1,12p' /tmp/copy-framework-smoke.log | sed 's/^/      /'
+      fail=1
+    fi
+  done
 fi
 
 echo ""

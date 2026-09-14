@@ -32,6 +32,7 @@ declared_cmd() {
   # In ra lệnh khai báo cho $1 nếu có, ngược lại rỗng.
   [ -f "$DECL" ] || return 0
   # Nạp trong subshell để không rò biến; lấy giá trị biến trùng tên task.
+  # shellcheck source=/dev/null  # $DECL là file khai báo của DỰ ÁN ĐÍCH, không tồn tại ở repo khung
   ( set +u; . "$DECL" >/dev/null 2>&1; eval "printf '%s' \"\${$1:-}\"" )
 }
 
@@ -109,6 +110,7 @@ run_task() { # $1=task -> chạy; 0 nếu ok hoặc no-op, khác 0 nếu lệnh 
 # --- format-file: format ĐÚNG file vừa sửa (dùng cho auto-format hook) --------
 declared_format_file() {
   [ -f "$DECL" ] || return 0
+  # shellcheck source=/dev/null  # như trên: đường dẫn chỉ có ở dự án đích
   ( set +u; . "$DECL" >/dev/null 2>&1; eval "printf '%s' \"\${format_file:-}\"" )
 }
 resolve_format_file() { # $1=path -> in lệnh format 1 file, rỗng nếu không có per-file formatter

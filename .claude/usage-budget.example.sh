@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2034  # các biến dưới đây CỐ Ý khai để scripts/usage-estimate.sh source vào, không dùng tại chỗ
 # .claude/usage-budget.sh — BUDGET token/5h theo GÓI của bạn (tự hiệu chỉnh)
 #
 # Copy file này thành `.claude/usage-budget.sh` rồi điền số. Có file này thì
