@@ -132,6 +132,48 @@ npm install --save-dev @vitest/coverage-v8
 
 Chạy: `npm run test:coverage`.
 
+### Sổ trần cho LỐI THOÁT khỏi cổng coverage
+
+Ngưỡng coverage có vài **lối thoát hợp lệ**, và đây là chỗ con số đẹp âm thầm rỗng ruột: mỗi lối thoát là một
+dòng ai đó thêm vào với lý do đúng *lúc đó*, không có hạn đáo, không ai đếm lại. Sau vài chục PR, "phủ 85%"
+có thể nghĩa là 85% của phần chưa bị loại trừ.
+
+Bốn lối thoát phổ biến (tên theo hệ sinh thái; JS/TS bên trái, tương đương Python bên phải):
+
+| Lối thoát | JS/TS | Python |
+|---|---|---|
+| Bỏ qua một dòng/nhánh | `/* v8 ignore next */`, `/* c8 ignore */` | `# pragma: no cover` |
+| Loại cả file khỏi phép đo | `coverage.exclude` trong `vitest.config.mts` | `omit` trong `pyproject.toml` |
+| Bỏ qua ca test | `it.skip`, `it.todo`, `describe.skip` | `@pytest.mark.skip`, `skipif`, `xfail` |
+| Miễn trừ của linter/scanner | `eslint-disable`, `// @ts-expect-error` | `# noqa`, `# type: ignore` |
+
+**Cách chặn — một sổ so BẰNG ĐÚNG, không phải "không vượt quá":**
+
+```
+# Ví dụ (điều chỉnh theo ngôn ngữ/test runner của dự án):
+# đếm từng loại, so với số đã ghi; LỆCH THEO CHIỀU NÀO CŨNG ĐỎ.
+TRAN = { "ignore-comment": 6, "exclude-file": 2, "skip-test": 3 }
+```
+
+Ba điểm khiến nó hiệu quả, bỏ một là mất tác dụng:
+
+1. **So bằng đúng, không phải "≤".** Thêm một miễn trừ ⇒ đỏ, phải sửa số ⇒ đi qua review. **Bớt** một cũng đỏ,
+   phải hạ số — nếu không, sổ phình dần thành trần vô nghĩa và không ai biết thực tế đã tốt lên.
+2. **Tách theo package/khu vực**, không gộp một số tổng: một số tổng cho phép đổi chác im lặng giữa các vùng.
+3. **Sổ đặt ngay cạnh phép đếm, kèm ghi chú vì sao từng con số là thế** — người sau đọc sổ, không đọc được
+   đầu người viết. Số không kèm lý do sẽ bị nâng cho qua cổng trong PR đầu tiên thấy phiền.
+
+**Bẫy đã mắc thật:** bộ đếm **tự khớp chính nó** — file chứa phép đếm (và file test của nó) có chứa đúng những
+chuỗi đang bị đếm dưới dạng regex hoặc dữ liệu fixture, nên số đo phình lên vô nghĩa. Hai cách xử, chọn một và
+ghi rõ: loại chính file đó khỏi phép đếm bằng một hằng số tường minh (`_TU_NO = "<tên file>"`), hoặc đếm **cú
+pháp dùng thật** (`# pragma: no cover` phải nằm trong comment; `@pytest.mark.skip` phải ở dạng decorator) thay
+vì đếm mọi chỗ nhắc tới tên. Đừng thêm lớp lọc đoán ý chuỗi — nó hỏng theo cách im lặng.
+
+Đi kèm: **độ sâu của chính phép đo.** `coverage` mặc định nhiều nơi chỉ tính **dòng**; dòng 100% vẫn để lọt
+nhánh chưa đi. Bật đo nhánh (`branch: true` / `--branch`) và ghi rõ trong tài liệu là *100% dòng* hay *100%
+dòng và nhánh* — nói trống là một câu khẳng định không kiểm được. Chưa bật được ở mọi nơi thì ghi **sổ những
+chỗ chưa bật**, cùng luật so-bằng-đúng ở trên.
+
 ### Chiến lược dữ liệu test
 
 - **Unit/integration:** dùng factory/fixture tạo dữ liệu tối thiểu cần cho ca test; không dùng dump production.
