@@ -260,6 +260,26 @@ commit; đừng tin lệnh checkout đã thành công chỉ vì các lệnh sau 
 `git switch -c <nhánh> || git switch <nhánh>` để ý định "tạo hoặc chuyển sang" là tường minh.
 Trước khi push, đối chiếu `git log --oneline -1 <nhánh>` với commit vừa tạo.
 
+**TÁI PHÁT 2026-09-14 (PR #111), qua một đường khác và tệ hơn:** lần này `git checkout -B <nhánh>`
+không *thất bại* — nó **không hề chạy**. Lệnh đó nằm chung một dòng `&&` với một heredoc `python3`,
+và cả dòng bị chính `block-dangerous-git.sh` chặn ở `PreToolUse` (bug chặn oan ở mục 18). Lệnh bị
+chặn trước khi thực thi ⇒ không có output lỗi nào của git để mà đọc — dấu hiệu sớm ở mục này
+("đừng tin checkout đã thành công chỉ vì lệnh sau không lỗi") **không áp dụng được**, vì không có
+lệnh sau nào chạy cả. Ba commit sửa hook rơi vào `main` cục bộ; `git push -q -u origin <nhánh>` đẩy
+**nhánh cũ** (đã merge) lên, tạo PR #111 sai nội dung.
+
+Hai thứ làm nó sống lâu thêm:
+- `git push -q` nuốt output, và tôi **không đối chiếu remote sau khi push** — tin vào dòng "Create a
+  pull request for ..." mà dòng đó xuất hiện cả khi ref được tạo từ một nhánh khác.
+- Hàng rào này chính là thứ đang được sửa trong PR đó: một hook chặn oan không chỉ phiền, nó **làm
+  hỏng lệnh ghép theo cách không để lại dấu vết**.
+
+**Cách rà (bổ sung, đây là phần đắt nhất):** sau **mỗi** `git push`, đối chiếu hai SHA trước khi nói
+bất kỳ câu nào về kết quả — `git fetch origin && git rev-parse HEAD` so với
+`git rev-parse origin/<nhánh>`. Bằng nhau mới là đã vào. Đây đúng `CLAUDE.md` §4 bước 1–3 (xác định
+lệnh CHỨNG MINH được câu mình định nói, chạy đủ, đọc hết output) áp cho thao tác git. Và: **không
+ghép `git checkout` vào cùng một dòng với lệnh khác** — chạy riêng, đọc `git branch --show-current`.
+
 **Cổng chốt chặn:** không có cổng máy (thuộc thao tác, không phải nội dung repo) — chốt bằng mục
 này. Dấu hiệu sớm: hook `stop-hook-git-check` báo "unpushed commit(s) on branch 'main'".
 
