@@ -30,6 +30,50 @@ def _count_code_files(file_type_counts):
     return sum(n for e, n in file_type_counts.items() if e in CODE_EXT)
 
 
+def _list_scripts(scripts_dir):
+    """Mọi script trong scripts/, đã sắp xếp. Thư mục không tồn tại -> danh sách rỗng."""
+    if not os.path.isdir(scripts_dir):
+        return []
+    return sorted(f for f in os.listdir(scripts_dir)
+                  if os.path.splitext(f)[1] in (".sh", ".py"))
+
+
+def _ci_gate_tests(test_scripts):
+    """Lọc ra test THẬT SỰ được ci.yml chạy.
+
+    ci.yml là nguồn DUY NHẤT: một file tên `test-*` không nằm trong ci.yml thì không phải
+    cổng, nên không được tính là bảo vệ ai cả (kể cả chính nó).
+    """
+    ci_path = os.path.join(ROOT_DIR, ".github", "workflows", "ci.yml")
+    if not os.path.exists(ci_path):
+        return []
+    with open(ci_path, encoding="utf-8", errors="ignore") as fp:
+        ci_text = fp.read()
+    return [t for t in test_scripts if t in ci_text]
+
+
+def _scripts_covered_by(test_name, scripts_dir, all_scripts):
+    """Script nào được MỘT test cổng nhắc tới (kể cả chính test đó).
+
+    Luật wrapper: `x.sh` được nhắc thì `x.py` cùng tên cũng coi là được phủ, vì wrapper .sh
+    chỉ là lớp vỏ gọi thẳng .py. Không đọc được thân test -> chỉ tính chính nó, không vỡ.
+    """
+    covered = {test_name}
+    try:
+        with open(os.path.join(scripts_dir, test_name), encoding="utf-8", errors="ignore") as fp:
+            body = fp.read()
+    except OSError:
+        return covered
+    for cand in all_scripts:
+        if cand not in body:
+            continue
+        covered.add(cand)
+        stem, ext = os.path.splitext(cand)
+        if ext == ".sh" and stem + ".py" in all_scripts:
+            covered.add(stem + ".py")
+    return covered
+
+
 def _scripts_inventory():
     """Kiểm kê script + xem cái nào được một test CHẠY TRONG CI gọi tới.
 
@@ -37,35 +81,13 @@ def _scripts_inventory():
     coupling, nhưng "script nào có cổng bảo vệ" thì đo được chính xác và hành động được.
     """
     scripts_dir = os.path.join(ROOT_DIR, "scripts")
-    if not os.path.isdir(scripts_dir):
+    all_scripts = _list_scripts(scripts_dir)
+    if not all_scripts:
         return [], set(), set()
-    all_scripts = sorted(f for f in os.listdir(scripts_dir)
-                         if os.path.splitext(f)[1] in (".sh", ".py"))
-    test_scripts = [f for f in all_scripts if f.startswith("test-")]
-
-    # Test nào thật sự được ci.yml chạy — test không nằm trong CI thì không tính là cổng.
-    ci_path = os.path.join(ROOT_DIR, ".github", "workflows", "ci.yml")
-    ci_text = ""
-    if os.path.exists(ci_path):
-        with open(ci_path, encoding="utf-8", errors="ignore") as fp:
-            ci_text = fp.read()
-    ci_tests = [t for t in test_scripts if t in ci_text]
-
+    ci_tests = _ci_gate_tests([f for f in all_scripts if f.startswith("test-")])
     covered = set()
     for t in ci_tests:
-        covered.add(t)
-        try:
-            with open(os.path.join(scripts_dir, t), encoding="utf-8", errors="ignore") as fp:
-                body = fp.read()
-        except OSError:
-            continue
-        for cand in all_scripts:
-            if cand in body:
-                covered.add(cand)
-                # wrapper .sh gọi .py cùng tên -> .py cũng được phủ
-                stem, ext = os.path.splitext(cand)
-                if ext == ".sh" and stem + ".py" in all_scripts:
-                    covered.add(stem + ".py")
+        covered |= _scripts_covered_by(t, scripts_dir, all_scripts)
     return all_scripts, covered, set(ci_tests)
 
 
@@ -240,6 +262,12 @@ def generate_recommendations(data):
     return recs
 
 
+# DEBT: hàm dựng báo cáo giữ ở CC 13 không tách | trần: radon CC 13, trên ngưỡng khuyến nghị 12 | xem lại khi: có khối mục tuỳ chọn thứ 7 trở lên, HOẶC repo dựng cổng máy cưỡng chế CC <= 12
+#
+# Lý do dừng ở đây (đo, không phải cảm tính): 13 điểm phức tạp KHÔNG đến từ logic phân nhánh mà từ
+# 6 khối `if data[...]` in mục báo cáo tuỳ chọn + 1 ternary chọn biểu tượng. Đây là một template
+# chuỗi phẳng; tách thành 6 helper chỉ dời đúng 6 nhánh đó sang nơi gọi, đổi lấy rủi ro sai thứ tự
+# mục trong báo cáo. Không cổng nào đang đỏ vì con số này (grep: repo không có gate complexity).
 def format_markdown_report(data):
     sig = data["signals"]
     w = data["weights"]

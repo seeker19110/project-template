@@ -431,3 +431,52 @@ Tổng quát hơn: `grep -rn "$(basename FILE_MOI)" scripts/` phải khớp **c�
 **Cổng chốt chặn:** `scripts/test-maintain-cron.sh` + `scripts/test-maintain-run.sh` (job CI
 `framework-lint`) — đã xanh trở lại sau khi thêm `_python-exec.sh` vào hai danh sách `cp`. Đo thật:
 exit 0/0 ở `HEAD~1`, exit 9/22 sau refactor, exit 0/0 sau bản vá.
+
+## 20. Test xanh nhưng nhánh cần đo KHÔNG bị chạm — `chmod 000` vô hiệu dưới uid 0
+
+**Ngày/PR:** 2026-09-14, nhánh `claude/cool-gauss-4dk9ln` (bắt được TRƯỚC khi commit, khi tự kiểm).
+
+**Khuôn lỗi:** viết characterization test cho nhánh `except OSError: continue` của
+`arch-health-radar.py::_scripts_inventory` bằng cách `os.chmod(file, 0o000)` rồi assert kết quả.
+Test **xanh** — nhưng xanh vì đi đường BÌNH THƯỜNG: phiên chạy dưới `uid 0` (container/CI hay gặp),
+và root đọc được cả file `0o000`, nên `open()` không hề ném `OSError`. Nhánh định khoá vẫn trần trụi.
+
+**Vì sao nguy hiểm:** đây là xanh giả *ngược chiều* với mục 19. Mục 19 là "cổng liên quan xanh bị đọc
+thành không đổi hành vi"; mục này là **chính test được viết ra để khoá một nhánh lại không chạm tới
+nhánh đó** — nó sẽ vẫn xanh sau khi ai đó xoá mất `try/except`, đúng thứ nó có mặt để ngăn. Cùng họ
+với mục 18 (bộ dò tự khớp văn bản của chính nó): cái sai nằm ở *tiền đề của phép đo*, không ở kết quả.
+
+**Cách rà:** mọi test dựng điều kiện lỗi bằng **quyền truy cập** (`chmod`, chủ sở hữu file, thư mục
+chỉ-đọc) đều đáng ngờ — `id -u` bằng 0 thì phần lớn vô hiệu. Kiểm tiền đề trước bằng một dòng:
+`python3 -c "open(F).read()"` trên chính file đã `chmod` — đọc được nghĩa là test đang giả.
+Bắt buộc hơn: với MỌI test khoá một nhánh, chạy **negative test** — cố ý phá nhánh đó và xác nhận
+test chuyển đỏ. Test không đỏ khi phá thì không phải test.
+
+**Cổng chốt chặn:** `scripts/test-engine-characterization.sh` — nay kích lỗi bằng **thư mục trùng
+tên** (`IsADirectoryError`, một `OSError`), độc lập hoàn toàn với quyền của người chạy. Đo thật ở
+4 negative test trước khi commit: phá `_ci_gate_tests` → 5 failures · phá luật wrapper `.sh`→`.py`
+→ 4 failures · phá nối `--context-file` → 1 failure · phá nhánh render `hermes` → 1 error ·
+đối chứng khôi phục → OK.
+
+## 21. So bản CŨ với bản MỚI bằng cách chạy file cũ ở thư mục khác → nó quét nhầm cây
+
+**Ngày/PR:** 2026-09-14, nhánh `claude/cool-gauss-4dk9ln` (mắc HAI lần liên tiếp trong cùng một phiên).
+
+**Khuôn lỗi:** để chứng minh refactor không đổi hành vi, chép bản cũ ra thư mục tạm
+(`git show HEAD:scripts/x.py > /tmp/.../x.py`) rồi chạy hai bản và `diff` đầu ra. Cả bốn engine của
+khung đều tính `ROOT_DIR = dirname(dirname(abspath(__file__)))`, nên bản cũ ở thư mục tạm quét
+**thư mục tạm**, không phải repo. Kết quả `diff` khác nhau toé loe và *trông như* refactor đã phá
+hành vi — trong khi thật ra phép đo sai. Lần hai y hệt với `AGENTS_DIR` của `subagent-dispatch.py`.
+
+**Vì sao lọt:** phép so sánh có vẻ hiển nhiên đúng nên không ai kiểm tiền đề của nó. Nguy hiểm cả hai
+chiều: lần này nó báo động giả, nhưng cùng cơ chế đó có thể cho hai bản cùng quét một cây RỖNG rồi
+trả về "IDENTICAL" — một chứng minh vô nghĩa được đọc thành bằng chứng mạnh.
+
+**Cách rà:** đừng so bằng cách chạy file ở vị trí khác. Nạp **cả hai** bản làm module
+(`importlib.util.spec_from_file_location`), **ghi đè `ROOT_DIR`/`AGENTS_DIR` của cả hai vào CÙNG một
+cây cố định** (dựng bằng `git archive HEAD | tar -x -C <thư mục>`), rồi gọi thẳng hàm và so giá trị
+trả về. Luôn in kèm một con số nhận dạng của cây đó (số file, điểm sức khoẻ) để thấy ngay nếu nó rỗng.
+
+**Cổng chốt chặn:** không có cổng máy — đây là kỷ luật của người chứng minh, thuộc `CLAUDE.md` §4
+bước (4) "output có khớp đúng câu định nói không". Ghi lại ở đây vì khuôn này sẽ quay lại ở mọi lần
+refactor engine sau.
