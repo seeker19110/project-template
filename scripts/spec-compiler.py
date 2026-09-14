@@ -12,25 +12,22 @@ import re
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-def parse_spec_markdown(spec_path):
-    if not os.path.exists(spec_path):
-        return None
-
-    with open(spec_path, "r", encoding="utf-8", errors="ignore") as f:
-        content = f.read()
-
-    title_match = re.search(r"^#\s+(.+)$", content, re.MULTILINE)
-    title = title_match.group(1).strip() if title_match else os.path.basename(spec_path)
-
+def _parse_metadata_table(content):
+    """Bảng "| Thuộc tính | Giá trị |" -> dict. Dòng thiếu cột bị BỎ QUA, không đoán."""
     metadata = {}
     meta_table = re.search(r"\|\s*Thuộc tính\s*\|\s*Giá trị\s*\|\s*\n\|[-:| ]+\|\n((?:\|.*\|\n)+)", content)
-    if meta_table:
-        for line in meta_table.group(1).strip().splitlines():
-            cols = [c.strip() for c in line.split("|")[1:-1]]
-            if len(cols) >= 2:
-                metadata[cols[0]] = cols[1]
+    if not meta_table:
+        return metadata
+    for line in meta_table.group(1).strip().splitlines():
+        cols = [c.strip() for c in line.split("|")[1:-1]]
+        if len(cols) >= 2:
+            metadata[cols[0]] = cols[1]
+    return metadata
 
-    # Trích xuất các tiêu chí chấp nhận / requirements
+
+def _parse_sections(content):
+    """Gom gạch đầu dòng theo tiêu đề `## `. Gạch đầu dòng đứng TRƯỚC tiêu đề đầu tiên
+    thuộc về mục ảo "Overview" (không có tiêu đề thì không vứt dữ liệu đi)."""
     sections = {}
     current_sec = "Overview"
     for line in content.splitlines():
@@ -40,16 +37,20 @@ def parse_spec_markdown(spec_path):
             sections[current_sec] = []
         elif line.strip().startswith("- ") or line.strip().startswith("* "):
             sections.setdefault(current_sec, []).append(line.strip()[2:])
+    return sections
 
-    # C-3 CHỈ neo vào mục "Architecture và code touchpoints" (mục 11 của FEATURE-SPEC template):
-    # đó là nơi spec khai SẢN PHẨM BÀN GIAO của chính repo này. CỐ Ý không quét toàn file —
-    # mục "3. Research current state" trích đường dẫn của REPO KHÁC (X-Studio, donghanh...),
-    # quét cả file sẽ cho dương tính giả hàng loạt (đã đo thật khi viết hàm này).
-    touchpoint_body = ""
+
+def _extract_touchpoint_paths(content):
+    """Đường dẫn trong backtick ở mục 11 — và CHỈ mục 11.
+
+    C-3 CHỈ neo vào mục "Architecture và code touchpoints" (mục 11 của FEATURE-SPEC template):
+    đó là nơi spec khai SẢN PHẨM BÀN GIAO của chính repo này. CỐ Ý không quét toàn file —
+    mục "3. Research current state" trích đường dẫn của REPO KHÁC (X-Studio, donghanh...),
+    quét cả file sẽ cho dương tính giả hàng loạt (đã đo thật khi viết hàm này).
+    """
     m = re.search(r"^##\s*\d*\.?\s*Architecture và code touchpoints\s*$(.*?)(?=^##\s|\Z)",
                   content, re.MULTILINE | re.DOTALL)
-    if m:
-        touchpoint_body = m.group(1)
+    touchpoint_body = m.group(1) if m else ""
 
     referenced_paths = set()
     for cand in re.findall(r"`([^`\n]+)`", touchpoint_body):
@@ -62,27 +63,43 @@ def parse_spec_markdown(spec_path):
             r"[A-Za-z0-9_.-]+\.(sh|py|ts|md|json|ya?ml|ps1)", cand)
         if looks_like_path:
             referenced_paths.add(cand.rstrip("/"))
+    return referenced_paths
 
-    # Miễn trừ C-3 phải KHAI LÝ DO ngay trong spec (cùng triết lý CODEMAP_EXEMPT):
-    #   <!-- contract-exempt: scripts/x.sh — gỡ theo ADR-0004 -->
-    # Không có lý do thì không phải miễn trừ, chỉ là giấu lỗi.
-    exempt_paths = {}
-    for m_ex in re.finditer(r"<!--\s*contract-exempt:\s*(\S+?)\s+(?:—|--)\s+(.+?)\s*-->", content):
-        exempt_paths[m_ex.group(1).strip()] = m_ex.group(2).strip()
-    referenced_paths -= set(exempt_paths)
 
-    # Mã định danh yêu cầu / tiêu chí chấp nhận (FR-1, AC-2, W-301...) — dùng để đối chiếu
-    # spec có thật sự khai yêu cầu nào không, thay vì chỉ có tiêu đề rỗng.
-    requirement_ids = sorted(set(re.findall(r"\b((?:FR|AC|NFR|W)-\d+)\b", content)))
+def _parse_exemptions(content):
+    """Miễn trừ C-3 phải KHAI LÝ DO ngay trong spec (cùng triết lý CODEMAP_EXEMPT):
+      <!-- contract-exempt: scripts/x.sh — gỡ theo ADR-0004 -->
+    Không có lý do thì không phải miễn trừ, chỉ là giấu lỗi (nên regex bắt buộc có phần lý do).
+    """
+    return {
+        m_ex.group(1).strip(): m_ex.group(2).strip()
+        for m_ex in re.finditer(r"<!--\s*contract-exempt:\s*(\S+?)\s+(?:—|--)\s+(.+?)\s*-->", content)
+    }
+
+
+def parse_spec_markdown(spec_path):
+    if not os.path.exists(spec_path):
+        return None
+
+    with open(spec_path, "r", encoding="utf-8", errors="ignore") as f:
+        content = f.read()
+
+    title_match = re.search(r"^#\s+(.+)$", content, re.MULTILINE)
+    title = title_match.group(1).strip() if title_match else os.path.basename(spec_path)
+
+    exempt_paths = _parse_exemptions(content)
+    referenced_paths = _extract_touchpoint_paths(content) - set(exempt_paths)
 
     return {
         "spec_file": os.path.relpath(spec_path, ROOT_DIR),
         "title": title,
-        "metadata": metadata,
-        "sections": sections,
+        "metadata": _parse_metadata_table(content),
+        "sections": _parse_sections(content),
         "referenced_paths": sorted(referenced_paths),
         "exempt_paths": exempt_paths,
-        "requirement_ids": requirement_ids,
+        # Mã định danh yêu cầu / tiêu chí chấp nhận (FR-1, AC-2, W-301...) — dùng để đối chiếu
+        # spec có thật sự khai yêu cầu nào không, thay vì chỉ có tiêu đề rỗng.
+        "requirement_ids": sorted(set(re.findall(r"\b((?:FR|AC|NFR|W)-\d+)\b", content))),
         "approved": bool(re.search(r"Approved for implementation", content, re.I)),
     }
 

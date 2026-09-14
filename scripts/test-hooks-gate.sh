@@ -19,9 +19,7 @@ HOOK="$ROOT/.claude/hooks/pre-commit-gate.sh"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
-fails=0
-ok()   { echo "  ✅ $1"; }
-bad()  { echo "  ❌ $1"; fails=$((fails+1)); }
+source "$ROOT/scripts/_test-lib.sh"
 
 # --- Dựng dự án giả: chỉ cần scripts/dev-task.sh mà hook sẽ gọi. ---
 setup_project() {   # $1 = exit code mà `dev-task.sh gate` sẽ trả về

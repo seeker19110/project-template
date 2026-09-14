@@ -96,6 +96,85 @@ def _spec_quality():
     return total, good, weak
 
 
+def _measure_code_file(rel_path, lines, acc):
+    """Đo MỘT file mã: kỷ luật kích thước, dòng mã vs dòng chú thích, dấu nợ TODO/FIXME."""
+    if len(lines) > LARGE_CODE_LINES:
+        acc["large_code_files"].append({"file": rel_path, "lines": len(lines)})
+    for idx, l in enumerate(lines, 1):
+        l_str = l.strip()
+        if not l_str:
+            continue
+        if l_str.startswith("#") or l_str.startswith("//"):
+            acc["code_comment_lines"] += 1
+        else:
+            acc["code_lines"] += 1
+        # Marker phải nằm NGAY SAU dấu chú thích. Khớp trần "\bTODO\b" sẽ bắt nhầm
+        # chính regex này, docstring và dòng in báo cáo của file này (đã đo thật:
+        # 3 dương tính giả, làm điểm tụt 30 mà không có việc gì để sửa).
+        if re.search(r"(?:^|\s)(?:#|//)\s*(?:TODO|FIXME|XXX|HACK)\b", l_str):
+            acc["todo_markers"].append({"file": rel_path, "line": idx})
+
+
+def _read_lines(full_path):
+    """Trả về danh sách dòng, hoặc None nếu không đọc được (file bị xoá giữa chừng, quyền...)."""
+    try:
+        with open(full_path, "r", encoding="utf-8", errors="ignore") as fp:
+            return fp.readlines()
+    except OSError:
+        return None
+
+
+def _walk_repo_files():
+    """Duyệt repo một lượt, gom các con số thô. Tài liệu và file mã đếm TÁCH BẠCH —
+    gộp chúng chính là lỗi của bản cũ (67% .md bị đếm thành 'code')."""
+    acc = {
+        "total_files": 0, "total_lines": 0, "file_type_counts": {},
+        "large_code_files": [], "large_doc_files": [],
+        "code_lines": 0, "code_comment_lines": 0, "doc_lines": 0, "todo_markers": [],
+    }
+    for dirpath, dirnames, filenames in os.walk(ROOT_DIR):
+        dirnames[:] = [d for d in dirnames if d not in EXCLUDE_DIRS]
+        for f in filenames:
+            full_path = os.path.join(dirpath, f)
+            lines = _read_lines(full_path)
+            if lines is None:
+                continue
+
+            ext = os.path.splitext(f)[1].lower() or "(no-ext)"
+            rel_path = os.path.relpath(full_path, ROOT_DIR).replace(os.sep, "/")
+            acc["total_files"] += 1
+            acc["total_lines"] += len(lines)
+            acc["file_type_counts"][ext] = acc["file_type_counts"].get(ext, 0) + 1
+
+            if ext in DOC_EXT:
+                acc["doc_lines"] += len(lines)
+                if len(lines) > LARGE_DOC_LINES:
+                    acc["large_doc_files"].append({"file": rel_path, "lines": len(lines)})
+            elif ext in CODE_EXT:
+                _measure_code_file(rel_path, lines, acc)
+    return acc
+
+
+def _pct(part, whole):
+    return 100.0 if whole == 0 else round(100.0 * part / whole, 1)
+
+
+def _compute_signals(acc, scripts_total, scripts_covered, spec_total, spec_good):
+    """5 tín hiệu, mỗi tín hiệu 0-100. Công thức được IN RA báo cáo nên không ai đọc nhầm."""
+    code_file_total = _count_code_files(acc["file_type_counts"])
+    comment = 100.0 if acc["code_lines"] == 0 else min(
+        100.0, round(100.0 * (acc["code_comment_lines"] / acc["code_lines"]) / 0.15, 1))
+    todo_count = len(acc["todo_markers"])
+    return {
+        "gate_coverage": _pct(scripts_covered, scripts_total),
+        "spec_quality": _pct(spec_good, spec_total),
+        "size_discipline": _pct(max(0, code_file_total - len(acc["large_code_files"])),
+                                code_file_total),
+        "comment_density": comment,
+        "todo_debt": 100.0 if not todo_count else max(0.0, 100.0 - 10.0 * todo_count),
+    }
+
+
 def scan_codebase_health():
     """Đo các tín hiệu CÓ THẬT, mỗi tín hiệu nói rõ nó đo gì.
 
@@ -104,100 +183,41 @@ def scan_codebase_health():
     nó đếm văn xuôi Markdown là "code" nên báo repo 67% là .md thành "84% code".
     Bản này đo thứ hành động được, và IN RA CÔNG THỨC để không ai hiểu nhầm con số.
     """
-    total_files = 0
-    total_lines = 0
-    file_type_counts = {}
-    large_code_files = []
-    large_doc_files = []
-    code_lines = 0
-    code_comment_lines = 0
-    doc_lines = 0
-    todo_markers = []
-
-    for dirpath, dirnames, filenames in os.walk(ROOT_DIR):
-        dirnames[:] = [d for d in dirnames if d not in EXCLUDE_DIRS]
-        for f in filenames:
-            ext = os.path.splitext(f)[1].lower() or "(no-ext)"
-            full_path = os.path.join(dirpath, f)
-            rel_path = os.path.relpath(full_path, ROOT_DIR).replace(os.sep, "/")
-            try:
-                with open(full_path, "r", encoding="utf-8", errors="ignore") as fp:
-                    lines = fp.readlines()
-            except OSError:
-                continue
-
-            total_files += 1
-            total_lines += len(lines)
-            file_type_counts[ext] = file_type_counts.get(ext, 0) + 1
-
-            if ext in DOC_EXT:
-                doc_lines += len(lines)
-                if len(lines) > LARGE_DOC_LINES:
-                    large_doc_files.append({"file": rel_path, "lines": len(lines)})
-                continue
-
-            if ext in CODE_EXT:
-                if len(lines) > LARGE_CODE_LINES:
-                    large_code_files.append({"file": rel_path, "lines": len(lines)})
-                for idx, l in enumerate(lines, 1):
-                    l_str = l.strip()
-                    if not l_str:
-                        continue
-                    if l_str.startswith("#") or l_str.startswith("//"):
-                        code_comment_lines += 1
-                    else:
-                        code_lines += 1
-                    # Marker phải nằm NGAY SAU dấu chú thích. Khớp trần "\bTODO\b" sẽ bắt nhầm
-                    # chính regex này, docstring và dòng in báo cáo của file này (đã đo thật:
-                    # 3 dương tính giả, làm điểm tụt 30 mà không có việc gì để sửa).
-                    if re.search(r"(?:^|\s)(?:#|//)\s*(?:TODO|FIXME|XXX|HACK)\b", l_str):
-                        todo_markers.append({"file": rel_path, "line": idx})
-
+    acc = _walk_repo_files()
     all_scripts, covered, ci_tests = _scripts_inventory()
-    uncovered = sorted(set(all_scripts) - covered)
+    covered_in_repo = covered & set(all_scripts)
     spec_total, spec_good, spec_weak = _spec_quality()
 
-    # --- Điểm: 5 tín hiệu, mỗi tín hiệu 0-100, cộng theo trọng số. Công thức IN RA báo cáo. ---
-    def pct(part, whole):
-        return 100.0 if whole == 0 else round(100.0 * part / whole, 1)
-
-    s_gate = pct(len(covered & set(all_scripts)), len(all_scripts))
-    s_spec = pct(spec_good, spec_total)
-    code_file_total = _count_code_files(file_type_counts)
-    s_size = pct(max(0, code_file_total - len(large_code_files)), code_file_total)
-    s_comment = 100.0 if code_lines == 0 else min(
-        100.0, round(100.0 * (code_comment_lines / code_lines) / 0.15, 1))
-    s_todo = 100.0 if not todo_markers else max(0.0, 100.0 - 10.0 * len(todo_markers))
-
+    signals = _compute_signals(acc, len(all_scripts), len(covered_in_repo),
+                               spec_total, spec_good)
     weights = {"gate": 40, "spec": 20, "size": 15, "comment": 15, "todo": 10}
     health_score = round(
-        (s_gate * weights["gate"] + s_spec * weights["spec"] + s_size * weights["size"]
-         + s_comment * weights["comment"] + s_todo * weights["todo"]) / 100.0)
+        (signals["gate_coverage"] * weights["gate"] + signals["spec_quality"] * weights["spec"]
+         + signals["size_discipline"] * weights["size"]
+         + signals["comment_density"] * weights["comment"]
+         + signals["todo_debt"] * weights["todo"]) / 100.0)
 
     return {
         "health_score": health_score,
         "weights": weights,
-        "signals": {
-            "gate_coverage": s_gate, "spec_quality": s_spec, "size_discipline": s_size,
-            "comment_density": s_comment, "todo_debt": s_todo,
-        },
-        "total_files": total_files,
-        "total_lines": total_lines,
-        "code_lines": code_lines,
-        "code_comment_lines": code_comment_lines,
-        "doc_lines": doc_lines,
-        "doc_ratio_pct": pct(doc_lines, total_lines),
-        "file_type_counts": dict(sorted(file_type_counts.items(), key=lambda kv: -kv[1])),
+        "signals": signals,
+        "total_files": acc["total_files"],
+        "total_lines": acc["total_lines"],
+        "code_lines": acc["code_lines"],
+        "code_comment_lines": acc["code_comment_lines"],
+        "doc_lines": acc["doc_lines"],
+        "doc_ratio_pct": _pct(acc["doc_lines"], acc["total_lines"]),
+        "file_type_counts": dict(sorted(acc["file_type_counts"].items(), key=lambda kv: -kv[1])),
         "scripts_total": len(all_scripts),
-        "scripts_covered": len(covered & set(all_scripts)),
-        "scripts_uncovered": uncovered,
+        "scripts_covered": len(covered_in_repo),
+        "scripts_uncovered": sorted(set(all_scripts) - covered),
         "ci_tests": sorted(ci_tests),
         "spec_total": spec_total,
         "spec_good": spec_good,
         "spec_weak": spec_weak,
-        "large_code_files": large_code_files,
-        "large_doc_files": large_doc_files,
-        "todo_markers": todo_markers,
+        "large_code_files": acc["large_code_files"],
+        "large_doc_files": acc["large_doc_files"],
+        "todo_markers": acc["todo_markers"],
         "recommendations": [],
     }
 

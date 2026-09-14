@@ -10,9 +10,7 @@ set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 RUN="$ROOT/scripts/maintain-run.sh"
-fails=0
-ok()  { echo "  ✅ $1"; }
-bad() { echo "  ❌ $1"; fails=$((fails+1)); }
+source "$ROOT/scripts/_test-lib.sh"
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -30,7 +28,7 @@ for h in claude hermes codex opencode; do mk_stub "$h"; done
 export MAINT_BIN_CLAUDE="$TMP/claude" MAINT_BIN_HERMES="$TMP/hermes" MAINT_BIN_CODEX="$TMP/codex" MAINT_BIN_OPENCODE="$TMP/opencode"
 # Báo cáo/prompt sinh ra khi test không được rơi vào docs/ops của repo → chạy trong bản sao tối thiểu.
 WORK="$TMP/work"; mkdir -p "$WORK/scripts" "$WORK/.claude/agents" "$WORK/docs/ops"
-cp "$ROOT"/scripts/{maintenance-sweep.sh,maintain-run.sh,subagent-dispatch.sh,subagent-dispatch.py} "$WORK/scripts/"
+cp "$ROOT"/scripts/{maintenance-sweep.sh,maintain-run.sh,subagent-dispatch.sh,subagent-dispatch.py,_python-exec.sh} "$WORK/scripts/"
 cp "$ROOT/.claude/agents/maintainer.md" "$WORK/.claude/agents/"
 printf '# PROGRESS\n- Ngày cập nhật: %s\n' "$(date +%Y-%m-%d)" > "$WORK/PROGRESS.md"
 ( cd "$WORK" && git -c user.name=t -c user.email=t@x init -q -b main && git -c user.name=t -c user.email=t@x add -A && git -c user.name=t -c user.email=t@x -c commit.gpgsign=false commit -qm init )
