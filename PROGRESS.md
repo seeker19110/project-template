@@ -6,7 +6,16 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#121 đã merge (#120 = phần còn lại của audit tối ưu; #121 = `TRAPS.md`
+- Giai đoạn: GĐ 8. **Mốc đang làm (2026-09-14, nhánh `claude/inspiring-ptolemy-nvhdmd`): CỔNG MÁY
+  cho ngưỡng CC 12** — trả lời trực tiếp phát hiện của mốc trước ("không có cổng máy nào cưỡng chế
+  CC ≤ 12, ngưỡng chỉ nằm trong văn xuôi"). Thêm `scripts/check-python-complexity.sh` (radon, trần 12
+  qua `PY_CC_MAX`, **không có miễn trừ theo hàm**) + `scripts/test-check-python-complexity.sh`
+  (negative test: hàm CC 13 phải làm cổng ĐỎ · nâng trần trên đúng file đó phải làm nó XANH · thiếu
+  `radon` phải ĐỎ chứ không skip) + bước mới trong job `framework-lint`. Dấu `DEBT:` duy nhất của repo
+  **được trả đúng điều kiện xem lại của chính nó**: `format_markdown_report` 13 → 9 bằng cách tách
+  `_optional_report_blocks` (báo cáo sinh ra không đổi cấu trúc — chỉ khác các con số đếm dòng của
+  chính repo). Spec: `docs/specs/2026-09-14-cong-may-cc-12.md`. Repo còn 0 dấu `DEBT:`.
+- Giai đoạn trước đó: GĐ 8. PR #69→#121 đã merge (#120 = phần còn lại của audit tối ưu; #121 = `TRAPS.md`
   mục 22 + đồng bộ `PROGRESS.md`).
   **Mốc nội dung gần nhất (2026-09-14, nhánh
   `claude/cool-gauss-4dk9ln`): phần CÒN LẠI của lượt `/audit-optimize`** mà PR #118 cố ý hoãn ở mục

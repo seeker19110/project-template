@@ -262,12 +262,32 @@ def generate_recommendations(data):
     return recs
 
 
-# DEBT: hàm dựng báo cáo giữ ở CC 13 không tách | trần: radon CC 13, trên ngưỡng khuyến nghị 12 | xem lại khi: có khối mục tuỳ chọn thứ 7 trở lên, HOẶC repo dựng cổng máy cưỡng chế CC <= 12
-#
-# Lý do dừng ở đây (đo, không phải cảm tính): 13 điểm phức tạp KHÔNG đến từ logic phân nhánh mà từ
-# 6 khối `if data[...]` in mục báo cáo tuỳ chọn + 1 ternary chọn biểu tượng. Đây là một template
-# chuỗi phẳng; tách thành 6 helper chỉ dời đúng 6 nhánh đó sang nơi gọi, đổi lấy rủi ro sai thứ tự
-# mục trong báo cáo. Không cổng nào đang đỏ vì con số này (grep: repo không có gate complexity).
+# Bốn khối mục TUỲ CHỌN của báo cáo tách riêng khỏi `format_markdown_report` để hàm đó nằm
+# dưới trần CC 12 mà `scripts/check-python-complexity.sh` cưỡng chế. Trước đây chỗ này là một dấu nợ
+# kỹ thuật có điều kiện quay lại "HOẶC repo dựng cổng máy cưỡng chế CC <= 12" — cổng đã có, nợ đã trả.
+# Giữ NGUYÊN thứ tự bốn khối: thứ tự mục trong báo cáo là hành vi mà `test-py-coverage.sh` chạm tới.
+def _optional_report_blocks(data):
+    lines = []
+    if data["scripts_uncovered"]:
+        lines += ["", f"### ⚠️ Script KHÔNG có cổng bảo vệ ({len(data['scripts_uncovered'])})", ""]
+        lines += [f"- `scripts/{x}`" for x in data["scripts_uncovered"]]
+
+    if data["spec_weak"]:
+        lines += ["", f"### ⚠️ Spec chưa đạt chuẩn ({len(data['spec_weak'])})", ""]
+        lines += [f"- `{x['file']}` — {x['missing']}" for x in data["spec_weak"]]
+
+    if data["large_code_files"]:
+        lines += ["", f"### File mã dài (> {LARGE_CODE_LINES} dòng)", "", "| File | Dòng |", "| :--- | ---: |"]
+        lines += [f"| `{lf['file']}` | {lf['lines']} |" for lf in data["large_code_files"]]
+
+    if data["large_doc_files"]:
+        lines += ["", f"### File tài liệu dài (> {LARGE_DOC_LINES} dòng — thông tin, KHÔNG trừ điểm)",
+                  "", "| File | Dòng |", "| :--- | ---: |"]
+        lines += [f"| `{lf['file']}` | {lf['lines']} |" for lf in data["large_doc_files"]]
+
+    return lines
+
+
 def format_markdown_report(data):
     sig = data["signals"]
     w = data["weights"]
@@ -307,22 +327,7 @@ def format_markdown_report(data):
     for ext, count in data["file_type_counts"].items():
         lines.append(f"| `{ext}` | {count} |")
 
-    if data["scripts_uncovered"]:
-        lines += ["", f"### ⚠️ Script KHÔNG có cổng bảo vệ ({len(data['scripts_uncovered'])})", ""]
-        lines += [f"- `scripts/{x}`" for x in data["scripts_uncovered"]]
-
-    if data["spec_weak"]:
-        lines += ["", f"### ⚠️ Spec chưa đạt chuẩn ({len(data['spec_weak'])})", ""]
-        lines += [f"- `{x['file']}` — {x['missing']}" for x in data["spec_weak"]]
-
-    if data["large_code_files"]:
-        lines += ["", f"### File mã dài (> {LARGE_CODE_LINES} dòng)", "", "| File | Dòng |", "| :--- | ---: |"]
-        lines += [f"| `{lf['file']}` | {lf['lines']} |" for lf in data["large_code_files"]]
-
-    if data["large_doc_files"]:
-        lines += ["", f"### File tài liệu dài (> {LARGE_DOC_LINES} dòng — thông tin, KHÔNG trừ điểm)",
-                  "", "| File | Dòng |", "| :--- | ---: |"]
-        lines += [f"| `{lf['file']}` | {lf['lines']} |" for lf in data["large_doc_files"]]
+    lines += _optional_report_blocks(data)
 
     lines += ["", "### Việc cần làm", ""]
     lines += [f"- {r}" for r in data["recommendations"]]
