@@ -13,6 +13,15 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **Cổng máy cưỡng chế ngưỡng độ phức tạp vòng CC ≤ 12 cho engine Python**
+  (`scripts/check-python-complexity.sh`, spec: `docs/specs/2026-09-14-cong-may-cc-12.md`) — trước đây
+  ngưỡng này chỉ nằm trong văn xuôi (ADR-0005, chú thích characterization test) nên không cổng nào đỏ
+  vì nó, đúng khuôn `TRAPS.md` mục 14. Trần mặc định 12 (`PY_CC_MAX`), **không có miễn trừ theo hàm**;
+  thiếu `radon` → ĐỎ chứ không skip. Negative test `scripts/test-check-python-complexity.sh` chứng minh
+  cổng bắt đúng vi phạm. Kèm theo: `format_markdown_report` của `arch-health-radar.py` tách
+  `_optional_report_blocks` để xuống dưới trần (đầu ra báo cáo giữ nguyên) — trả dấu `DEBT:` duy nhất
+  của repo đúng điều kiện xem lại đã ghi.
+
 - **Ba luật rút từ đợt đối chiếu với nguồn ngoài `DietrichGebert/ponytail`** (bản đối chiếu ba cột:
   `docs/reports/2026-09-14-doi-chieu-ponytail.md`; spec: `docs/specs/2026-09-14-ladder-va-dau-no-ky-thuat.md`)
   — (1) `CLAUDE.md` §3 mục A4: **thang kiểm trước khi viết code** (có cần tồn tại → repo đã có chưa →

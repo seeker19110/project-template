@@ -78,6 +78,15 @@ jobs:
           python3 -m pip install --quiet "coverage==7.16.0"   # ghim: đứt nguồn cung/đổi hành vi sẽ làm sai số đo
           bash scripts/test-py-coverage.sh
 
+      # Ngưỡng CC 12 đã được nhắc ở ADR-0005 + characterization test nhưng CHƯA có cổng nào
+      # cưỡng chế — nó chỉ nằm trong văn xuôi (đúng khuôn TRAPS.md mục 14). Bước này là cổng đó,
+      # kèm negative test chứng minh nó bắt đúng hàm vượt trần (không chỉ chạy không crash).
+      - name: Độ phức tạp vòng của engine Python ≤ CC 12 (radon)
+        run: |
+          python3 -m pip install --quiet "radon==6.0.1"   # ghim: đổi bản radon là đổi cách tính CC
+          bash scripts/check-python-complexity.sh
+          bash scripts/test-check-python-complexity.sh
+
       - name: Cài ShellCheck (không dựa vào gói có sẵn của runner)
         run: sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
 

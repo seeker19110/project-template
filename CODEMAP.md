@@ -45,5 +45,7 @@
 | Đổi **bản vitest chính sách CI phát cho dự án đích** | `scripts/ci-workflow-policy.test.ts` (vào dropins qua `copy-framework.sh`; repo khung KHÔNG chạy được vì không có `package.json`) — thêm/bỏ một `CP-*` phải khai ở **cả** bản shell | `scripts/check-ci-policy.sh` mục 7 (đối chiếu bảng kiểm `CP-*` hai chiều shell ↔ vitest) |
 | Đổi **ước tính hạn mức dùng model** | `scripts/usage-estimate.sh` | `scripts/test-usage-estimate.sh` (job CI `framework-lint`) — có đối chứng định lượng: đổi budget thì % phải đổi theo |
 | Đổi **ngưỡng/ca đo độ phủ dòng** của 4 engine Python | `scripts/test-py-coverage.sh` — sàn mặc định 95% (`PY_COVERAGE_MIN`); thêm ca test để NÂNG, hạ sàn phải nêu lý do trong PR | chính nó, chạy trong job CI `framework-lint` (cần `coverage.py`) |
+| Đổi **trần độ phức tạp vòng (CC) của engine Python** | `scripts/check-python-complexity.sh` — trần mặc định 12 (`PY_CC_MAX`), KHÔNG có miễn trừ theo hàm (ngoại lệ im lặng = cổng xanh giả); nâng trần phải nêu lý do đo được trong PR | chính nó + `scripts/test-check-python-complexity.sh` (job CI `framework-lint`, cần `radon`) |
+| Sửa **logic cổng CC** (cách gọi radon, cách đọc ngưỡng, thông điệp lỗi) | `scripts/check-python-complexity.sh` | `scripts/test-check-python-complexity.sh` (negative-test: hàm CC 13 phải làm cổng ĐỎ, nâng trần phải làm nó XANH, thiếu `radon` phải ĐỎ chứ không skip) |
 | Ghi nhận thay đổi đáng kể | `CHANGELOG.md` mục `## [Unreleased]` | — |
 | Cập nhật trạng thái dự án sau mỗi mốc | `PROGRESS.md` | — |
