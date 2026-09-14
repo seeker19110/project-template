@@ -13,6 +13,17 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **Ba luật rút từ đợt đối chiếu với nguồn ngoài `DietrichGebert/ponytail`** (bản đối chiếu ba cột:
+  `docs/reports/2026-09-14-doi-chieu-ponytail.md`; spec: `docs/specs/2026-09-14-ladder-va-dau-no-ky-thuat.md`)
+  — (1) `CLAUDE.md` §3 mục A4: **thang kiểm trước khi viết code** (có cần tồn tại → repo đã có chưa →
+  thư viện chuẩn → tính năng nền tảng → dependency đã cài → bản tối thiểu), chạy *sau* khi đã hiểu vấn đề,
+  dừng ở nấc đầu tiên khớp; (2) `CLAUDE.md` §3 mục A7: quy ước dấu nợ
+  `DEBT: <gì> | trần: <giới hạn> | xem lại khi: <điều kiện>` — **có cổng thật**: `maintenance-sweep.sh`
+  mảng 3 đếm dấu và cảnh báo 🟡 riêng cho dấu thiếu điều kiện xem lại (khuôn đã tái phát thật ở
+  `TRAPS.md` mục 14), kèm negative+positive test; (3) `/audit-optimize` thêm **nhóm 5 "tự viết lại thứ
+  đã có"** (nhãn `stdlib:`/`native:` — thứ knip/depcheck không đo được) và dòng tổng
+  `net: -N dòng, -M dependency`. Ba mâu thuẫn luật của nguồn (mức cường độ `ultra`, "không bao giờ dừng
+  hỏi khi có thể mặc định", luật rút gọn văn nói) được **nêu ra và từ chối**, không tự hoà giải.
 - **Agent bảo trì toàn diện** (spec `docs/specs/2026-09-14-maintenance-agent.md`) — subagent
   `maintainer` + lệnh `/maintain` (quét → triage → kế hoạch chờ duyệt → PR nhỏ qua `/gate` → hội tụ)
   + engine `scripts/maintenance-sweep.sh` (6 mảng mục nát theo thời gian, mức 🔴/🟡, `--strict`,

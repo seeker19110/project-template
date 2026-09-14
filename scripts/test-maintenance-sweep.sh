@@ -72,7 +72,29 @@ gout="$(CLAUDE_PROJECT_DIR="$good_repo" bash "$SWEEP" --strict --no-deps 2>&1)";
 printf '%s' "$gout" | grep -q '🔴 0' && ok "báo cáo ghi 🔴 0" || bad "báo cáo không ghi 🔴 0"
 printf '%s' "$gout" | grep -q 'Bí mật | file .env' && bad ".env.example bị báo oan là .env" || ok ".env.example không bị báo oan"
 
-echo "== 5. Tham số lạ → thoát 2 =="
+echo "== 5. NEGATIVE+POSITIVE: dấu nợ DEBT: — thiếu 'xem lại khi:' phải 🟡, đủ thì không =="
+# Chuỗi dấu DỰNG LÚC CHẠY (TRAPS.md mục 18): không viết literal vào file test, kẻo chính bộ đếm
+# của sweep khớp file test này và làm số đo phình lên.
+MARK="DE""BT:"
+debt_repo="$TMP/debt"; mkdir -p "$debt_repo"
+(
+  cd "$debt_repo" && "${GIT[@]}" init -q -b main
+  printf '# PROGRESS\n- Ngày cập nhật: %s\n' "$(date +%Y-%m-%d)" > PROGRESS.md
+  # 1 dấu ĐỦ ba phần + 1 dấu THIẾU điều kiện xem lại
+  printf '# %s khoá toàn cục | trần: 50 req/s | xem lại khi: p95 > 300ms\nok = 1\n' "$MARK" > full.py
+  printf '# %s quét O(n^2) | trần: n < 500\nok = 2\n' "$MARK" > partial.py
+  "${GIT[@]}" add -A && "${GIT[@]}" commit -qm init
+)
+dout="$(CLAUDE_PROJECT_DIR="$debt_repo" bash "$SWEEP" --no-deps 2>&1)"
+printf '%s' "$dout" | grep -q "1 dấu $MARK không có 'xem lại khi:'" \
+  && ok "bắt đúng 1 dấu thiếu điều kiện xem lại" \
+  || bad "không bắt được dấu thiếu điều kiện xem lại. Output: $(printf '%s' "$dout" | grep -i "$MARK")"
+printf '%s' "$dout" | grep -q "🟡 | Nợ kỹ thuật | 1 dấu" && ok "đúng mức 🟡" || bad "không phải mức 🟡"
+printf '%s' "$dout" | grep -qE "Dấu nợ .$MARK. trong mã: 2" && ok "đếm đủ 2 dấu" || bad "đếm sai tổng số dấu"
+# Repo sạch ở mục 4 không có dấu nào → không được báo oan
+printf '%s' "$gout" | grep -q "không có dấu $MARK" && ok "repo không có dấu nào: ℹ️, không 🟡" || bad "repo không có dấu mà vẫn báo gì đó lạ"
+
+echo "== 6. Tham số lạ → thoát 2 =="
 bash "$SWEEP" --bogus >/dev/null 2>&1; [ $? -eq 2 ] && ok "thoát 2" || bad "tham số lạ không thoát 2"
 
 echo
