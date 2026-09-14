@@ -22,6 +22,10 @@ EXCLUDE_SOURCE=(
   "PROGRESS.md" "docs/framework/README.md" "docs/framework/case-study-greenfield-dry-run.md"
   "CHANGELOG.md" "TRAPS.md" "docs/ops/COMPLETION-PLAN.md" "docs/ops/COMPREHENSIVE-AUDIT-STATUS.md"
   "docs/adr/0004-remove-default-web-scaffold.md"
+  # Characterization test dựng repo TỔNG HỢP trong thư mục tạm: mọi đường dẫn trong nó
+  # (scripts/beta.sh, docs/specs/weak.md …) là FIXTURE cố ý không tồn tại, không phải
+  # tham chiếu tài liệu hỏng.
+  "scripts/test-engine-characterization.sh"
 )
 
 # Thư mục nguồn được miễn trừ theo TIỀN TỐ. `docs/specs/` là contract HƯỚNG TỚI TƯƠNG LAI: một

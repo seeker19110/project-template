@@ -52,6 +52,12 @@ jobs:
       - name: Engine telemetry + subagent-dispatch chạy đúng
         run: bash scripts/test-telemetry-and-dispatch.sh
 
+      # Characterization test khoá HÀNH VI TỪNG NHÁNH của scan_codebase_health + parse_spec_markdown
+      # (không chỉ "chạy không crash"): hai hàm này là logic ĐO của khung, refactor sai làm số liệu
+      # sai âm thầm. Viết trước khi hạ complexity hai hàm từ CC=18 xuống <12 (ADR-0005).
+      - name: Characterization 2 engine đo (arch-health-radar + spec-compiler)
+        run: bash scripts/test-engine-characterization.sh
+
       # Agent bảo trì toàn diện (spec 2026-09-14): engine quét phải BẮT ĐƯỢC lỗi cài sẵn (negative-test)
       # và runner đa-provider phải gọi ĐÚNG cú pháp CLI đã xác minh (stub) — không chỉ chạy không crash.
       - name: Engine bảo trì (maintenance-sweep + maintain-run) chạy đúng

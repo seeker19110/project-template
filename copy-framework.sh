@@ -150,6 +150,10 @@ copy_if_absent "scripts/dev-task.sh"
 copy_if_absent "scripts/usage-estimate.sh"
 copy_if_absent "scripts/test-usage-estimate.sh"
 copy_if_absent "scripts/subagent-dispatch.py"
+# Helper dùng chung — PHẢI phát trước các script source/exec chúng, nếu không dự án đích nhận
+# script gãy (khuôn lỗi TRAPS.md mục 19: danh sách file viết tay không biết về file mới).
+copy_if_absent "scripts/_python-exec.sh"
+copy_if_absent "scripts/_test-lib.sh"
 copy_if_absent "scripts/subagent-dispatch.sh"
 copy_if_absent "scripts/model-rates.json"
 copy_if_absent "scripts/telemetry-log.py"
