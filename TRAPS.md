@@ -603,3 +603,24 @@ dòng đầu.
 **Cổng chốt chặn:** mục "Yêu cầu môi trường" trong `README.md` (nêu rõ thiếu `jq` = mất hàng rào) +
 `test-hooks-gate.sh` giờ báo **BỎ QUA kèm cảnh báo** thay vì xanh giả/đỏ sai, và xây PATH không-jq
 theo cách chạy được cả trên Windows (không dựa vào `ln -s`).
+
+## 27. File vendor KHÔNG có đuôi rơi vào `* text=auto` → CRLF trên Windows làm chết cổng CC shell
+
+**Ngày/PR:** 2026-09-15, phát hiện khi chạy lại toàn bộ cổng trên máy Windows sau khi merge `main`.
+
+**Khuôn lỗi:** `.gitattributes` ghim `eol=lf` theo **đuôi file** (`*.sh`, `*.md`, `*.yml`, `*.json`,
+`*.ps1`). `vendor/shellmetrics/shellmetrics` **không có đuôi** nên rơi vào luật chung `* text=auto`
+→ Git đổi sang CRLF khi checkout trên Windows → SHA256 lệch `SHA256SUMS` → `check-shell-complexity.sh`
+từ chối chạy ("không đo bằng một công cụ không rõ nội dung"). Cổng tự bảo vệ đúng như thiết kế,
+nhưng hệ quả là **cổng CC shell chết hoàn toàn trên mọi máy Windows** — và vì CI chạy Linux nên
+không bao giờ lộ. `scripts/test-check-shell-complexity.sh` cũng đỏ theo, 7 ca.
+
+Tổng quát: **luật line-ending viết theo đuôi file luôn bỏ sót file không đuôi** — mà file không đuôi
+gần như luôn là binary/vendor, đúng loại tuyệt đối không được Git đụng vào.
+
+**Cách rà:** `git check-attr -a <file>` thấy `text: auto` trên thứ đáng lẽ bất khả xâm phạm;
+hoặc `file <path>` báo "with CRLF line terminators" trên file vendor.
+
+**Cổng chốt chặn:** `vendor/**  -text` trong `.gitattributes` (kèm `*.py`/`*.ts` `eol=lf` cùng lý do
+với `*.sh`). Ca 4-5 của `scripts/test-check-shell-complexity.sh` (sửa/khôi phục bản vendor) đã sẵn
+bắt được lệch checksum — thiếu mỗi việc file không bị Git làm lệch ngay từ lúc checkout.

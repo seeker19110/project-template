@@ -221,15 +221,18 @@ fi
 # VÌ SAO CẦN: `test-next-gen-engines.sh` và `test-telemetry-and-dispatch.sh` được thêm cùng 2
 # engine mới (PR #89, #91) nhưng KHÔNG job nào gọi — 3 ca đỏ nằm im qua nhiều PR sạch (đã nối tay ở PR trước; đây là cổng chống tái phát).
 # Test không cổng nào chạy thì về thực chất là không tồn tại — cùng khuôn hỏng IM LẶNG với F-002.
-echo "== CP-6: mọi scripts/test-*.sh được ci.yml gọi =="
-CI_FILE=".github/workflows/ci.yml"
-for t in scripts/test-*.sh; do
-  [ -e "$t" ] || continue
-  if ! grep -q "$(basename "$t")" "$CI_FILE"; then
-    echo "::error file=$t::$t không được job nào trong $CI_FILE gọi — test không chạy thì không chứng minh được gì (CP-6)."
+# Tách thành hàm để không đẩy CC của thân script sát trần 45 (đo được: 43 nếu để inline).
+check_cp6_orphan_tests() {
+  local ci_file=".github/workflows/ci.yml" t
+  for t in scripts/test-*.sh; do
+    [ -e "$t" ] || continue
+    grep -q "$(basename "$t")" "$ci_file" && continue
+    echo "::error file=$t::$t không được job nào trong $ci_file gọi — test không chạy thì không chứng minh được gì (CP-6)."
     fail=1
-  fi
-done
+  done
+}
+echo "== CP-6: mọi scripts/test-*.sh được ci.yml gọi =="
+check_cp6_orphan_tests
 
 
 # --- 7. Hai bản kiểm CI song song không được phân kỳ âm thầm (W-302, F-008). ---
