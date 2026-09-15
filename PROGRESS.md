@@ -7,7 +7,7 @@
 ## Giai đoạn hiện tại
 
 - Giai đoạn: GĐ 8. **Audit toàn diện RESET 2026-09-15 (`/audit-full`, 12/12 nhóm) → GIAI ĐOẠN 2
-  đang chạy.** Tổng: **Cao 5 · Trung 14 · Thấp 10**. Batch 1–2 (5 mục) đã xử lý xong.
+  đang chạy.** Tổng: **Cao 5 · Trung 14 · Thấp 10**. Batch 1–2 (5 mục) + batch 3 (4 mục) đã xử lý xong.
   **Bốn trong năm mục Cao cùng một khuôn: cổng tự tắt mà vẫn báo xanh** — không cái nào làm CI đỏ.
   F-301 hàng rào `block-dangerous-git` bị vượt bằng heredoc `<<-` đóng bằng dòng thụt TAB (đo được
   rc=0 thay vì 2) · F-202 `maintenance.yml` đóng nhầm issue khi sweep chết vì `rc` ghi ra rồi không

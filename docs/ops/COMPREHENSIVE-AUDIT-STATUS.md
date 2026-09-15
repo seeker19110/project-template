@@ -240,6 +240,10 @@ vào đó: **mỗi mục một commit nguyên tử**, gom vào một PR.
 | 1–2 | F-305 | ✅ Xong | `83c04e4` | Sandbox (`git archive HEAD` + xoá dòng `needs:` của gate): trước chết im lặng; sau in `::error::Có job 'gate' nhưng không đọc được dòng 'needs:'` **và vẫn chạy tiếp CP-5/6/7**, rc=1. |
 | 1–2 | F-101 | ✅ Xong | `859052e` | 6/6 file JSON bắt buộc tồn tại + `jq empty` xanh. Bổ sung 3 file danh sách cũ bỏ sót. |
 | 1–2 | F-202 | ✅ Xong | `b80a111` | Đọc `rc` và thoát nếu ≠ 0; bỏ `\|\| echo 0`; thiếu dòng tổng ⇒ đỏ. |
+| 3 | F-302 | ✅ Xong | `f5bc846` | Test ĐỎ trước (`❌ --out thiếu giá trị: TREO VÔ HẠN (rc=124)`) → sau khi sửa rc=2 kèm thông điệp. Helper `need_val` áp cho **12 cờ** ở 3 script. |
+| 3 | F-404 | ✅ Xong | `f5bc846` | 10 ca mới phủ cả 3 script, dùng `timeout 8` và coi rc=124 là thất bại. |
+| 3 | F-401 | ✅ Xong | `45b6492` | **22 ca mới** cho 4 hook. Đã CHỨNG MINH test bắt được hỏng: phá `usage-guard` → 3 ca đỏ; phá `session-guide` → ca "hai trạng thái khác nhau" đỏ. |
+| 3 | F-403 | ✅ Xong | `6c49055` | 5 ca mới, mỗi ca một sandbox + đúng một lỗi cài sẵn, đòi rc=1. |
 
 ### Đính chính khuyến nghị của chính audit (F-101 phần c)
 
@@ -254,3 +258,15 @@ thật sự bịt lỗ là bỏ fail-open, đã làm.
 `test-copy-framework.sh` **treo** khi stdin không đóng (stub `hermes` chờ nhập); với `</dev/null`
 thì rc=0. Không liên quan thay đổi nào của batch này. Chưa lập thành phát hiện vì trong CI stdin
 đã đóng sẵn — ghi lại để lượt sau biết.
+
+### Ghi nhận batch 3
+
+**F-302 không nằm trong 4 batch tôi đề xuất ban đầu** — đó là chỗ sót của chính tôi khi xếp nhóm.
+Phải kéo nó vào cùng F-404 vì viết test cho "cờ thiếu giá trị" mà không sửa cái treo thì test đỏ
+mãi. Đúng thứ tự đỏ→xanh, nhưng thứ tự batch tôi trình cho người dùng đã thiếu một mục.
+
+**Một lần tự kiểm chứng thất bại rồi điều tra ra nguyên nhân thật:** khi phá hoại `session-guide.sh`
+lần đầu để xem test có bắt được không, test vẫn xanh. Không kết luận vội "test rỗng" — kiểm lại thì
+regex phá hoại **không khớp** nên file không hề bị đổi. Phá hoại đúng cách thì test đỏ ngay. Ghi
+lại vì đây là bẫy dễ đọc ngược: một phép thử âm tính có thể do **phép thử** hỏng, không phải do thứ
+đang thử.
