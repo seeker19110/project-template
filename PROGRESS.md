@@ -6,7 +6,21 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, PR #136 + #137 đã merge): nới deny force-push
+- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, PR #139 đã merge): cổng
+  `framework-lint-windows`.** Trước đó mọi job cổng chạy `ubuntu-latest`, nên cổng của khung chỉ
+  chứng minh được điều gì đó TRÊN LINUX — trong khi khung nhắm tới người dùng Windows. Job mới chạy
+  4 suite engine Python · `test-hooks-gate` · cổng CC shell + Python · `test-copy-framework`
+  (`REQUIRE_PWSH=1`); cố ý không nhân đôi các kiểm thuần văn bản. Hai điểm dễ bị xoá nhầm về sau:
+  KHÔNG đặt `core.autocrlf` (mặc định của runner chính là điều kiện đã làm hỏng `vendor/shellmetrics`)
+  và bước bắt runner PHẢI có `jq` (thiếu `jq` thì `test-hooks-gate` báo BỎ QUA → cổng xanh giả).
+  Theo ADR-0003 chỉ cần job mới + `needs:` của `gate` + bản kê `repository-settings.md`.
+  **Bắt được 4 lỗi trong 4 lượt chạy đầu:** CP-4 so khớp `needs:` theo ranh giới từ nên `framework-lint`
+  khớp bên trong `framework-lint-windows` (cổng để lọt) · AC-2 xanh oan vì đỏ sai lý do · **lỗi sản
+  phẩm:** `os.path.relpath` ném `ValueError` khi hai đường dẫn khác ổ đĩa, làm `spec-compiler` chết
+  trên runner (repo ở D:, tmp ở C:) · characterization test tự vỡ vì cũng gọi `relpath` để tính kỳ
+  vọng. Chi tiết + cách rà: **TRAPS mục 28**, kèm bài học **một ca test đỏ mà không in được NGUYÊN
+  NHÂN là một ca test chưa xong** (nuốt output bằng `>/dev/null 2>&1` đã làm đoán sai hai lượt liền).
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-15, PR #136 + #137 đã merge): nới deny force-push
   + dọn nốt lỗi cp1252 ở Python nội tuyến.** Hai việc nối tiếp #134, cả hai đều do CHẠY THẬT
   trên máy Windows mới lộ.
   **(a) PR #136 — `permissions`:** `deny` cũ chặn MỌI force-push kể cả trên nhánh do chính phiên
@@ -200,7 +214,7 @@
   báo oan) nên nó KHÔNG chặn được PR quên bước 0, chỉ cảnh báo sau khi đã merge. Cân nhắc một cổng ở
   `pr-policy.yml` soi diff của PR thay đổi tài liệu khung mà không chạm `PROGRESS.md` — chưa làm, cần bàn
   vì dễ báo oan cho PR nhỏ.
-- Default-branch SHA đã đối chiếu: `ff27855` (`origin/main`, PR #137)
+- Default-branch SHA đã đối chiếu: `5d38a12` (`origin/main`, PR #139)
 - Nhánh đang làm: `main` (không có việc dở)
 - Ngày cập nhật: 2026-09-15
 
