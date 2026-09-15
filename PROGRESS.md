@@ -6,8 +6,8 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, nhánh `claude/admiring-faraday-p9e7gl`, chưa mở PR):
-  ADR-0007 — bỏ `opusplan` làm mặc định.** Người dùng xác nhận `/model opusplan` đã ngừng được CLI
+- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, PR #130 đã merge): ADR-0007 — bỏ `opusplan` làm
+  mặc định.** Người dùng xác nhận `/model opusplan` đã ngừng được CLI
   hỗ trợ. ADR-0007 đảo ngược **một phần** ADR-0006 (mục 2 — "mặc định vẫn là `opusplan`"), không
   sửa ADR-0006: thay bằng chính sách hai pha làm **thủ công** — lập kế hoạch việc lớn chuyển tay
   `/model` sang model cao cấp nhất đang sẵn có, xong tự `/model claude-sonnet-5` quay lại thực thi;
@@ -152,8 +152,8 @@
   báo oan) nên nó KHÔNG chặn được PR quên bước 0, chỉ cảnh báo sau khi đã merge. Cân nhắc một cổng ở
   `pr-policy.yml` soi diff của PR thay đổi tài liệu khung mà không chạm `PROGRESS.md` — chưa làm, cần bàn
   vì dễ báo oan cho PR nhỏ.
-- Default-branch SHA đã đối chiếu: `8436128` (`origin/main`, PR #128)
-- Nhánh đang làm: `claude/admiring-faraday-p9e7gl` (ADR-0007 — bỏ opusplan mặc định, chưa mở PR)
+- Default-branch SHA đã đối chiếu: `81dfd47` (`origin/main`, PR #130)
+- Nhánh đang làm: `main` (không có việc dở)
 - Ngày cập nhật: 2026-09-15
 
 ## Goal đang active
@@ -194,8 +194,8 @@
 
 ## Đang làm / chờ
 
-- **ADR-0007 (bỏ opusplan mặc định) đã xong, chưa mở PR** — xem mục "Giai đoạn hiện tại" ở trên.
-  Còn lại: mở PR + cổng CI xanh trên GitHub (đã tự chạy 2 self-test liên quan cục bộ, xanh).
+- **Không có việc dở.** PR #130 (ADR-0007 — bỏ opusplan mặc định) đã merge — xem mục "Giai đoạn
+  hiện tại" ở trên.
 - PR #106 (agent bảo trì toàn diện) đã merge — xem mục "Giai đoạn hiện tại"
   ở trên. Dùng thử: `/maintain` (Claude Code), `scripts/maintain-run.sh` (CLI khác), hoặc chờ
   workflow tuần `maintenance.yml` mở issue báo cáo.
@@ -264,8 +264,7 @@
 ## Bàn giao phiên
 
 - Lần cập nhật: 2026-09-15
-- State: ĐANG LÀM DỞ — đã sửa xong ADR-0007 (bỏ `opusplan` mặc định) trên nhánh
-  `claude/admiring-faraday-p9e7gl`, **chưa commit/push/mở PR**.
+- State: DONE, không có việc dở. PR #130 (ADR-0007 — bỏ `opusplan` mặc định) đã merge vào `main`.
 - Việc đã xong và bằng chứng: `docs/adr/0007-bo-opusplan-mac-dinh.md` (ADR mới, không sửa
   ADR-0006); đổi `.claude/settings.json` + đổi tên `settings-shared-opusplan.json` →
   `settings-shared-default.json` (model mặc định `claude-sonnet-5`); viết lại
@@ -273,14 +272,10 @@
   `docs/framework/models-and-automation.md`; sửa `orchestration-3-tier.md`,
   `new-project-runbook.md`, `case-study-greenfield-dry-run.md`, `CODEMAP.md`, `README.md`,
   `copy-framework.sh`/`.ps1`, `scripts/model-capability-tiers.json`, `CLAUDE.md` §2, và 7 file
-  `.claude/commands/*.md`. Đã chạy `scripts/check-docs-consistency.sh` (7/7 mục OK) +
-  `scripts/test-hooks-gate.sh` (10/10 ca OK) + `bash -n` cho hook đổi + kiểm JSON hợp lệ — tất cả
-  xanh. Còn 12 tham chiếu `opusplan` sót lại CÓ CHỦ Ý (giải thích "đã ngừng hỗ trợ" trong văn bản
-  hiện hành, hoặc log lịch sử/spec/ADR-0006 đã đóng — không sửa theo luật §1 "không sửa ADR cũ").
-- Việc CHƯA xong + lý do: **chưa chạy `/gate` đầy đủ** (build/lint/format toàn repo — repo khung
-  không có `package.json` nên `/gate` ở đây tương đương các script tự kiểm đã chạy ở trên) và
-  **chưa commit/push/mở PR** — dừng lại theo yêu cầu người dùng để xác nhận trước khi tạo PR.
-- Bước tiếp theo: commit theo Conventional Commits (`docs:`/`chore:`, không phải `feat:` — đây là
-  sửa tài liệu/cấu hình lỗi thời, không phải tính năng mới), mở PR, theo dõi CI.
+  `.claude/commands/*.md`. CI đỏ một lần trên `framework-lint` (contract test C-3: spec cũ đã
+  Approved `docs/specs/2026-09-12-enforcement-guardrails.md` tham chiếu file vừa đổi tên) — vá 1
+  đường dẫn touchpoint, không đổi nội dung quyết định lịch sử; CI xanh lại (9/9 job), merge squash.
+- Việc CHƯA xong + lý do: không có.
+- Bước tiếp theo: chờ yêu cầu người dùng.
 - Quyền/quyết định cần thêm: không có gì mới ngoài việc tồn đọng cũ (import ruleset
   `.github/rulesets/main.json` trên GitHub Settings để `protection-guard` hết đỏ).
