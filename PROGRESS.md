@@ -256,7 +256,7 @@
   báo oan) nên nó KHÔNG chặn được PR quên bước 0, chỉ cảnh báo sau khi đã merge. Cân nhắc một cổng ở
   `pr-policy.yml` soi diff của PR thay đổi tài liệu khung mà không chạm `PROGRESS.md` — chưa làm, cần bàn
   vì dễ báo oan cho PR nhỏ.
-- Default-branch SHA đã đối chiếu: `9351961` (`origin/main`, PR #141)
+- Default-branch SHA đã đối chiếu: `98ccd6f` (`origin/main`, PR #143)
 - Nhánh đang làm: `main` (không có việc dở)
 - Ngày cập nhật: 2026-09-15
 

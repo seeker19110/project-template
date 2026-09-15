@@ -209,6 +209,51 @@ rc="$(run_check "$d" check-docs-consistency.sh)"
 [ "$rc" = "0" ] && ok "KHÔNG chặn oan đường dẫn .css đã khai ở ALLOW_MISSING_PATH" \
                 || bad "chặn OAN styles/theme.css (rc=$rc) — allowlist mất tác dụng"
 
+# --- F-104: PF-1 phải ĐỎ ở ca hẹp (không còn chỉ cảnh báo) -----------------------------
+# Ba điều kiện cùng đúng: trễ >= 2 commit · "Nhánh đang làm" là main · working tree sạch.
+# Thiếu một điều kiện = "đang làm dở" → vẫn chỉ cảnh báo, không đỏ.
+mk_behind() {  # $1 = số commit cho HEAD đi trước SHA đã ghi; echo ra thư mục
+  local dir n; dir="$(setup_repo)"; n="$1"
+  local base; base="$(git -C "$dir" rev-parse HEAD)"
+  sed -i.bak "s|^- Default-branch SHA đã đối chiếu:.*|- Default-branch SHA đã đối chiếu: \`$base\`|" "$dir/PROGRESS.md"
+  rm -f "$dir/PROGRESS.md.bak"
+  git -C "$dir" -c user.email=t@t.local -c user.name=test commit -q -am "ghim SHA gốc"
+  # CHÍNH commit "ghim SHA gốc" đã làm HEAD đi trước 1 — nên chỉ thêm (n-1) commit nữa để `behind`
+  # đúng bằng $1. (Bản đầu của helper này thêm đủ n commit, cho behind = n+1, khiến ca "trễ đúng 1"
+  # thật ra chạy ở mức 2 và đỏ — đọc nhầm thành "bản vá sai". Helper mới là chỗ hỏng, không phải cổng.)
+  local i=1
+  while [ "$i" -lt "$n" ]; do
+    printf 'x\n' >> "$dir/README.md"
+    git -C "$dir" -c user.email=t@t.local -c user.name=test commit -q -am "commit trôi $i"
+    i=$((i+1))
+  done
+  printf '%s\n' "$dir"
+}
+
+d="$(mk_behind 2)"
+rc="$(run_check "$d" check-progress-freshness.sh)"
+[ "$rc" = "1" ] && ok "PF-1 ĐỎ khi trễ 2 commit + nhánh main + tree sạch (F-104)" \
+                || bad "PF-1 chỉ cảnh báo (rc=$rc) — hàng rào §8 bước (5) vẫn không chặn gì"
+
+d="$(mk_behind 1)"
+rc="$(run_check "$d" check-progress-freshness.sh)"
+[ "$rc" = "0" ] && ok "PF-1 KHÔNG đỏ khi trễ đúng 1 commit (chính commit squash — không chặn oan mọi lần merge)" \
+                || bad "PF-1 đỏ ở mức 1 (rc=$rc) — mọi lần merge sẽ đỏ oan"
+
+d="$(mk_behind 3)"
+printf 'dang lam do\n' >> "$d/README.md"   # tree BẨN → đang làm dở
+rc="$(run_check "$d" check-progress-freshness.sh)"
+[ "$rc" = "0" ] && ok "PF-1 KHÔNG đỏ khi working tree bẩn (đang làm dở)" \
+                || bad "PF-1 đỏ dù đang làm dở (rc=$rc) — chặn oan giữa phiên"
+
+d="$(mk_behind 3)"
+sed -i.bak 's|^- Nhánh đang làm:.*|- Nhánh đang làm: `feat/dang-lam`|' "$d/PROGRESS.md"
+rm -f "$d/PROGRESS.md.bak"
+git -C "$d" -c user.email=t@t.local -c user.name=test commit -q -am "đổi nhánh đang làm"
+rc="$(run_check "$d" check-progress-freshness.sh)"
+[ "$rc" != "1" ] && ok "PF-1 KHÔNG đỏ vì trễ khi 'Nhánh đang làm' KHÔNG phải main" \
+                 || bad "PF-1 đỏ dù đang ở nhánh tính năng (rc=$rc)"
+
 echo "== 2. check-ci-policy.sh =="
 
 d="$(setup_repo)"
