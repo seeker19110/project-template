@@ -6,7 +6,23 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, PR #128 đã merge): ADR-0006 — điều phối 3 tầng đa
+- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, nhánh `claude/admiring-faraday-p9e7gl`, chưa mở PR):
+  ADR-0007 — bỏ `opusplan` làm mặc định.** Người dùng xác nhận `/model opusplan` đã ngừng được CLI
+  hỗ trợ. ADR-0007 đảo ngược **một phần** ADR-0006 (mục 2 — "mặc định vẫn là `opusplan`"), không
+  sửa ADR-0006: thay bằng chính sách hai pha làm **thủ công** — lập kế hoạch việc lớn chuyển tay
+  `/model` sang model cao cấp nhất đang sẵn có, xong tự `/model claude-sonnet-5` quay lại thực thi;
+  phân việc/PR cho subagent theo độ phức tạp qua `--tier` giữ nguyên không đổi (ADR-0006). Đổi:
+  `.claude/settings.json` + `settings-shared-opusplan.json` (đổi tên → `settings-shared-default.json`)
+  đặt `"model": "claude-sonnet-5"`; `session-guide.sh` bỏ so khớp `model_id` với `"opusplan"` (không
+  còn ✅/⚠️ theo tên model, chỉ hiển thị + nhắc chính sách); viết lại `models-and-automation.md`
+  (mục 1 đổi tên "opusplan là gì" → "hai pha lập kế hoạch/thực thi"); sửa mọi tham chiếu trong
+  `orchestration-3-tier.md`, `new-project-runbook.md`, `case-study-greenfield-dry-run.md`,
+  `CODEMAP.md`, `README.md`, `copy-framework.sh`/`.ps1`, `model-capability-tiers.json`, và các
+  `.claude/commands/{adr,audit-full,auto,completion,consult,incident,maintain}.md` có dòng nhắc
+  model/effort. `scripts/check-docs-consistency.sh` (7/7 mục) + `test-hooks-gate.sh` (10/10 ca)
+  chạy lại xanh sau đổi — không có tham chiếu gãy tới file đã đổi tên. Không sửa nội dung lịch sử
+  (log cũ trong chính file này, spec đã đóng, ADR-0006) — chỉ ADR mới ghi quyết định đảo ngược.
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-15, PR #128 đã merge): ADR-0006 — điều phối 3 tầng đa
   model, đa nhà cung cấp.** Theo yêu cầu người dùng: trước tác vụ tự động/lập kế hoạch lớn phải
   chọn model cao cấp nhất sẵn có (không giới hạn Claude) theo độ phức tạp, rồi phân việc cho
   subagent đủ năng lực. Thêm `scripts/model-capability-tiers.json` (khuôn giống `model-rates.json`,
@@ -137,8 +153,8 @@
   `pr-policy.yml` soi diff của PR thay đổi tài liệu khung mà không chạm `PROGRESS.md` — chưa làm, cần bàn
   vì dễ báo oan cho PR nhỏ.
 - Default-branch SHA đã đối chiếu: `8436128` (`origin/main`, PR #128)
-- Nhánh đang làm: `main` (không có việc dở)
-- Ngày cập nhật: 2026-09-14
+- Nhánh đang làm: `claude/admiring-faraday-p9e7gl` (ADR-0007 — bỏ opusplan mặc định, chưa mở PR)
+- Ngày cập nhật: 2026-09-15
 
 ## Goal đang active
 
@@ -178,7 +194,9 @@
 
 ## Đang làm / chờ
 
-- **Không có việc dở.** PR #106 (agent bảo trì toàn diện) đã merge — xem mục "Giai đoạn hiện tại"
+- **ADR-0007 (bỏ opusplan mặc định) đã xong, chưa mở PR** — xem mục "Giai đoạn hiện tại" ở trên.
+  Còn lại: mở PR + cổng CI xanh trên GitHub (đã tự chạy 2 self-test liên quan cục bộ, xanh).
+- PR #106 (agent bảo trì toàn diện) đã merge — xem mục "Giai đoạn hiện tại"
   ở trên. Dùng thử: `/maintain` (Claude Code), `scripts/maintain-run.sh` (CLI khác), hoặc chờ
   workflow tuần `maintenance.yml` mở issue báo cáo.
 - PR #93 (hậu kiểm audit 2026-09-13) đã merge: nối `test-next-gen-engines.sh`
@@ -204,8 +222,11 @@
 
 ## Quyết định quan trọng
 
-- **opusplan là điểm ngọt, không đổi** — tối ưu token bằng CHIA VIỆC (subagent, cô lập ngữ cảnh),
-  không "route theo độ khó". Chi tiết: `docs/framework/models-and-automation.md`.
+- **(ĐẢO NGƯỢC MỘT PHẦN 2026-09-15, ADR-0007) `opusplan` không còn là mặc định** — CLI đã ngừng hỗ
+  trợ `/model opusplan`. Chính sách cũ "opusplan là điểm ngọt" (ADR-0006 mục 2) thay bằng hai pha
+  làm thủ công: `/model` sang model cao cấp nhất sẵn có để lập kế hoạch, tự `/model claude-sonnet-5`
+  quay lại thực thi. Tối ưu token vẫn bằng CHIA VIỆC (subagent, cô lập ngữ cảnh) — không đổi. Chi
+  tiết: `docs/framework/models-and-automation.md`, `docs/adr/0007-bo-opusplan-mac-dinh.md`.
 - **(ĐẢO NGƯỢC 2026-09-12, ADR-0004) KHÔNG còn scaffold Web mặc định.** Quyết định cũ "giữ scaffold
   Web (Next.js+Supabase) làm hồ sơ mặc định" đã bị đảo ngược theo yêu cầu người dùng — gỡ hẳn khỏi
   repo khung để nhất quán với nguyên tắc "hỗ trợ mọi loại dự án, research-first" (không sửa ADR-0001
@@ -242,15 +263,24 @@
 
 ## Bàn giao phiên
 
-- Lần cập nhật: 2026-09-13
-- State: DONE, không có việc dở. Phiên trước (2026-09-12) đóng trọn audit toàn diện (G-001..G-004,
-  PR #71→#75) + cơ chế branch-protection/auto-merge mượn từ `Claude-Agents` (PR #73). Phiên này chỉ
-  xác nhận người dùng đã tự xoá hết nhánh remote (W-308, `list_branches` → chỉ còn `main`) và cập
-  nhật lại `PROGRESS.md` cho khớp (bỏ các dòng "31 nhánh" đã lỗi thời).
-- Việc đã xong và bằng chứng: chạy lại đủ 6 script tự kiểm (`check-docs-consistency`,
-  `check-ci-policy`, `check-progress-freshness`, `test-copy-framework`, `test-hooks-gate`,
-  `test-check-scripts`) — tất cả xanh. Xác nhận 0 PR đang mở, 0 nhánh ngoài `main`.
-- Việc CHƯA xong + lý do: chưa có việc AI cần làm.
-- Bước tiếp theo: không có, chờ yêu cầu người dùng.
-- Quyền/quyết định cần thêm: không có gì mới — chỉ còn 1 việc tồn đọng chờ người dùng (import
-  ruleset `.github/rulesets/main.json` trên GitHub Settings để `protection-guard` hết đỏ).
+- Lần cập nhật: 2026-09-15
+- State: ĐANG LÀM DỞ — đã sửa xong ADR-0007 (bỏ `opusplan` mặc định) trên nhánh
+  `claude/admiring-faraday-p9e7gl`, **chưa commit/push/mở PR**.
+- Việc đã xong và bằng chứng: `docs/adr/0007-bo-opusplan-mac-dinh.md` (ADR mới, không sửa
+  ADR-0006); đổi `.claude/settings.json` + đổi tên `settings-shared-opusplan.json` →
+  `settings-shared-default.json` (model mặc định `claude-sonnet-5`); viết lại
+  `.claude/hooks/session-guide.sh` (bỏ so khớp chuỗi `opusplan`); viết lại
+  `docs/framework/models-and-automation.md`; sửa `orchestration-3-tier.md`,
+  `new-project-runbook.md`, `case-study-greenfield-dry-run.md`, `CODEMAP.md`, `README.md`,
+  `copy-framework.sh`/`.ps1`, `scripts/model-capability-tiers.json`, `CLAUDE.md` §2, và 7 file
+  `.claude/commands/*.md`. Đã chạy `scripts/check-docs-consistency.sh` (7/7 mục OK) +
+  `scripts/test-hooks-gate.sh` (10/10 ca OK) + `bash -n` cho hook đổi + kiểm JSON hợp lệ — tất cả
+  xanh. Còn 12 tham chiếu `opusplan` sót lại CÓ CHỦ Ý (giải thích "đã ngừng hỗ trợ" trong văn bản
+  hiện hành, hoặc log lịch sử/spec/ADR-0006 đã đóng — không sửa theo luật §1 "không sửa ADR cũ").
+- Việc CHƯA xong + lý do: **chưa chạy `/gate` đầy đủ** (build/lint/format toàn repo — repo khung
+  không có `package.json` nên `/gate` ở đây tương đương các script tự kiểm đã chạy ở trên) và
+  **chưa commit/push/mở PR** — dừng lại theo yêu cầu người dùng để xác nhận trước khi tạo PR.
+- Bước tiếp theo: commit theo Conventional Commits (`docs:`/`chore:`, không phải `feat:` — đây là
+  sửa tài liệu/cấu hình lỗi thời, không phải tính năng mới), mở PR, theo dõi CI.
+- Quyền/quyết định cần thêm: không có gì mới ngoài việc tồn đọng cũ (import ruleset
+  `.github/rulesets/main.json` trên GitHub Settings để `protection-guard` hết đỏ).

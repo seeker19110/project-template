@@ -73,7 +73,7 @@ Bạn đã clone/tải repo khung về máy. Chọn đúng một nhánh:
 > chạy lệnh").
 
 Đứng **trong repo khung này**, trỏ tới thư mục gốc của dự án đích. Script **không đè** file đang chạy:
-tài liệu khung + `.claude/` (commands, settings opusplan, hooks, agents) + `scripts/` (dev-task, usage-estimate —
+tài liệu khung + `.claude/` (commands, settings mặc định Sonnet 5, hooks, agents) + `scripts/` (dev-task, usage-estimate —
 hook tự động cần 2 file này) copy thẳng; file gốc (`CLAUDE.md`, `PROJECT.md`…) chỉ copy nếu **chưa có**
 (đã có thì để bản `.framework-new` cạnh bên để tự so); file cấu hình/stack đưa vào `_framework-dropins/` để tự merge.
 

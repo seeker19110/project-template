@@ -7,7 +7,7 @@ Bạn đang chạy **`/maintain`** — vòng bảo trì toàn diện, dùng đư
 `/maintain` (mặc định, có kiểm dependency) · `/maintain quick` (bỏ dependency, chỉ mất vài giây) ·
 `/maintain full` (thêm `--gate`: build/type/lint/test) · `/maintain continue` (tiếp kế hoạch đã duyệt).
 
-> 💡 Model/effort: quét + triage là việc Sonnet làm tốt (`opusplan` + `/effort medium`, giao
+> 💡 Model/effort: quét + triage là việc Sonnet làm tốt (model tiêu chuẩn Sonnet 5 + `/effort medium`, giao
 > subagent `maintainer`). Chỉ nâng Opus khi kế hoạch có mục **DỪNG & HỎI** cần cân đánh đổi
 > (major bump phá API, đổi CI, breaking change) — xem `models-and-automation.md` §3.
 
