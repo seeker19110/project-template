@@ -40,10 +40,33 @@ fi
 # Hai ca dưới chứng minh contract test THẬT SỰ bắt lỗi, và KHÔNG đỏ oan.
 scratch="$(mktemp -d)"
 trap 'rm -rf "$scratch"' EXIT
+# Python là chương trình Windows GỐC: nó không hiểu đường dẫn kiểu MSYS (`/tmp/...`) mà `mktemp -d`
+# trả về, nên `unittest discover -s /tmp/...` KHÔNG tìm thấy test nào và luôn thoát khác 0 — AC-2
+# xanh OAN (đỏ nhưng sai lý do) còn AC-3 đỏ oan. Cùng cách xử lý đã dùng cho $ROOT ở đầu file.
+# KHÔNG lộ trên máy dev nếu TMPDIR đã là đường dẫn Windows — chỉ đỏ trên runner windows-latest
+# (nơi TMPDIR là /tmp). Đây chính là lỗi đầu tiên mà job `framework-lint-windows` bắt được.
+if command -v cygpath >/dev/null 2>&1; then scratch="$(cygpath -m "$scratch")"; fi
 mkdir -p "$scratch/docs/specs" "$scratch/tests/contracts" "$scratch/scripts"
 # Test sinh ra tính ROOT_DIR = 3 cấp trên chính nó (<scratch>/tests/contracts/x.py -> <scratch>),
 # nên ca đối chứng phải trỏ tới file có thật TRONG scratch, không phải trong repo.
 printf '#!/usr/bin/env bash\nexit 0\n' > "$scratch/scripts/file-co-that.sh"
+
+# Khi AC-2/AC-3 do, in NGAY thu can de chan doan. Truoc day ca lenh bien dich lan lenh unittest
+# deu bi nuot bang >/dev/null 2>&1, nen mot ca do chi noi "co gi do sai" — phai doan, va doan sai
+# hai luot lien (xem lich su PR them cong Windows).
+ac_diag() {
+  echo "     --- chan doan ---" >&2
+  echo "     scratch      = $scratch" >&2
+  echo "     PYTHON_CMD   = $PYTHON_CMD ($("$PYTHON_CMD" --version 2>&1))" >&2
+  echo "     spec-compiler stdout/stderr:" >&2
+  printf '%s
+' "$out_compile" | sed 's/^/       /' >&2
+  echo "     noi dung $scratch/tests/contracts:" >&2
+  ls -la "$scratch/tests/contracts" 2>&1 | sed 's/^/       /' >&2
+  echo "     unittest stdout/stderr:" >&2
+  printf '%s
+' "${out_ac2:-}" | sed 's/^/       /' >&2
+}
 
 # (a) spec đã Approved khai một đường dẫn KHÔNG tồn tại → contract test phải ĐỎ (AC-2)
 # Tên file thiếu được GHÉP LÚC CHẠY: nếu viết thẳng chuỗi đó trong backtick vào mã nguồn,
@@ -65,9 +88,14 @@ cat > "$scratch/docs/specs/2099-01-01-ca-am.md" <<SPEC
 
 - \`$MISSING_PATH\`
 SPEC
-"$PYTHON_CMD" "$ROOT/scripts/spec-compiler.py" --spec "$scratch/docs/specs/2099-01-01-ca-am.md"   --out-dir "$scratch/tests/contracts" >/dev/null 2>&1
-if "$PYTHON_CMD" -m unittest discover -s "$scratch/tests/contracts" >/dev/null 2>&1; then
-  bad "AC-2: contract test KHÔNG đỏ dù spec Approved trỏ tới file không tồn tại (assertion rỗng?)"
+out_compile="$("$PYTHON_CMD" "$ROOT/scripts/spec-compiler.py" --spec "$scratch/docs/specs/2099-01-01-ca-am.md" --out-dir "$scratch/tests/contracts" 2>&1)"
+out_ac2="$("$PYTHON_CMD" -m unittest discover -s "$scratch/tests/contracts" 2>&1)"
+if [ $? -eq 0 ]; then
+  bad "AC-2: contract test KHÔNG đỏ dù spec Approved trỏ tới file không tồn tại (assertion rỗng?)"; ac_diag
+elif ! printf '%s' "$out_ac2" | grep -q "^Ran [1-9]"; then
+  # Đỏ nhưng KHÔNG phải vì assertion — discover không chạy được test nào (ví dụ đường dẫn MSYS
+  # trên Windows). Nếu không bắt ở đây thì ca này xanh oan và che mất chính lỗi đó.
+  bad "AC-2: đỏ nhưng SAI LÝ DO — unittest không chạy được test nào (discover hỏng?)"; ac_diag
 else
   ok "AC-2: contract test ĐỎ đúng lúc — spec Approved trỏ tới file không tồn tại"
 fi
@@ -75,11 +103,39 @@ fi
 # (b) đối chứng: cùng spec nhưng trỏ tới file CÓ THẬT → phải XANH (không đỏ oan) (AC-3)
 rm -f "$scratch/tests/contracts"/*.py
 sed -i "s|$MISSING_PATH|scripts/file-co-that.sh|" "$scratch/docs/specs/2099-01-01-ca-am.md"
-"$PYTHON_CMD" "$ROOT/scripts/spec-compiler.py" --spec "$scratch/docs/specs/2099-01-01-ca-am.md"   --out-dir "$scratch/tests/contracts" >/dev/null 2>&1
-if "$PYTHON_CMD" -m unittest discover -s "$scratch/tests/contracts" >/dev/null 2>&1; then
+out_compile="$("$PYTHON_CMD" "$ROOT/scripts/spec-compiler.py" --spec "$scratch/docs/specs/2099-01-01-ca-am.md" --out-dir "$scratch/tests/contracts" 2>&1)"
+out_ac2="$("$PYTHON_CMD" -m unittest discover -s "$scratch/tests/contracts" 2>&1)"
+if [ $? -eq 0 ]; then
   ok "AC-3: contract test XANH khi mọi đường dẫn tồn tại (không đỏ oan)"
 else
-  bad "AC-3: contract test đỏ oan dù mọi đường dẫn đều tồn tại"
+  bad "AC-3: contract test đỏ oan dù mọi đường dẫn đều tồn tại"; ac_diag
+fi
+
+# SC-1 (hồi quy, 2026-09-15): `os.path.relpath` NÉM ValueError khi hai đường dẫn nằm trên hai ổ
+# đĩa khác nhau trên Windows. Runner `windows-latest` checkout repo ở ổ D: còn `mktemp -d` trả về
+# thư mục ở ổ C: — spec-compiler chết ngay, không sinh ra test nào, làm AC-2 xanh oan và AC-3 đỏ oan.
+# Ca này **ép** ValueError bằng monkeypatch thay vì chờ có hai ổ đĩa thật, nên nó có nghĩa trên CẢ
+# Linux lẫn Windows — nếu chỉ gọi với đường dẫn "D:/..." thì trên Linux nó xanh vô nghĩa.
+out_sc1="$(PYTHONIOENCODING=utf-8 "$PYTHON_CMD" - "$ROOT" <<'PY' 2>&1
+import importlib.util, os, sys
+root = sys.argv[1]
+spec = importlib.util.spec_from_file_location("sc", os.path.join(root, "scripts", "spec-compiler.py"))
+mod = importlib.util.module_from_spec(spec)
+sys.argv = ["spec-compiler.py"]
+spec.loader.exec_module(mod)
+
+def boom(*_a, **_k):
+    raise ValueError("path is on mount 'C:', start on mount 'D:'")
+
+os.path.relpath = boom
+out = mod._display_path(os.path.join(root, "scripts", "spec-compiler.py"))
+print("OK" if out else "RONG")
+PY
+)"
+if [ "$out_sc1" = "OK" ]; then
+  ok "SC-1: _display_path chịu được ValueError khác ổ đĩa (không làm chết spec-compiler)"
+else
+  bad "SC-1: _display_path vẫn vỡ khi relpath ném ValueError — $out_sc1"
 fi
 
 echo "== 2. Architectural Health & Tech Debt Radar Engine =="

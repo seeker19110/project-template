@@ -83,6 +83,24 @@ def _parse_exemptions(content):
     }
 
 
+def _display_path(path, start=None):
+    """Duong dan de HIEN THI, uu tien tuong doi so voi ROOT_DIR.
+
+    Tren Windows, os.path.relpath NEM ValueError khi hai duong dan nam tren hai o dia khac nhau
+    ("path is on mount 'C:', start on mount 'D:'"). Gap that tren runner windows-latest: repo
+    checkout o o dia D:, con thu muc tam cua mktemp o o dia C: -- spec-compiler chet ngay khi
+    --spec tro toi mot o dia khac. Tren Linux khong bao gio xay ra vi khong co khai niem o dia,
+    nen CI Linux khong bat duoc (cung ho loi chi-no-tren-Windows voi TRAPS.md muc 24/27).
+
+    Day chi la chuoi de doc trong bao cao: khong lay duoc duong dan tuong doi thi dung duong dan
+    tuyet doi, khong co ly do gi de lam hong ca lenh bien dich vi mot nhan hien thi.
+    """
+    try:
+        return os.path.relpath(path, start if start is not None else ROOT_DIR)
+    except ValueError:
+        return os.path.abspath(path)
+
+
 def parse_spec_markdown(spec_path):
     if not os.path.exists(spec_path):
         return None
@@ -97,7 +115,7 @@ def parse_spec_markdown(spec_path):
     referenced_paths = _extract_touchpoint_paths(content) - set(exempt_paths)
 
     return {
-        "spec_file": os.path.relpath(spec_path, ROOT_DIR),
+        "spec_file": _display_path(spec_path),
         "title": title,
         "metadata": _parse_metadata_table(content),
         "sections": _parse_sections(content),
@@ -247,7 +265,7 @@ def main():
         with open(out_file, "w", encoding="utf-8") as f:
             f.write(test_code)
 
-        print(f"Compiled contract test: {os.path.relpath(out_file, ROOT_DIR)}")
+        print(f"Compiled contract test: {_display_path(out_file)}")
 
     if args.json:
         print(json.dumps(compiled_results, indent=2, ensure_ascii=False))
