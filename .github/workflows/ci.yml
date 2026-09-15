@@ -43,6 +43,16 @@ jobs:
       - name: 3 gate chính của khung thật sự bắt được lỗi (docs-consistency/ci-policy/progress-freshness)
         run: bash scripts/test-check-scripts.sh
 
+      # Cùng nguyên tắc F-002 cho 4 engine Python (spec-compiler, arch-health-radar, telemetry-log,
+      # subagent-dispatch): trước đây 2 suite này có trong repo nhưng KHÔNG job nào gọi, nên 3 ca đỏ
+      # (UnicodeEncodeError trên console cp1252) nằm im qua nhiều PR. CP-5 trong check-ci-policy.sh
+      # giờ chặn việc thêm scripts/test-*.sh mới mà quên nối vào đây.
+      - name: 4 engine Python chạy được (spec-compiler/health-radar/telemetry/subagent-dispatch)
+        run: |
+          set -e
+          bash scripts/test-next-gen-engines.sh
+          bash scripts/test-telemetry-and-dispatch.sh
+
       - name: Cài ShellCheck (không dựa vào gói có sẵn của runner)
         run: sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
 

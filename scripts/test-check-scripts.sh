@@ -119,6 +119,15 @@ sed -i.bak '/^ci\.yml: framework-lint$/d' "$d/docs/ops/repository-settings.md" &
 rc="$(run_check "$d" check-ci-policy.sh)"
 [ "$rc" = "1" ] && ok "bắt được job thật thiếu trong bản kê repository-settings.md (CP-1)" || bad "KHÔNG bắt được job thiếu trong bản kê (rc=$rc)"
 
+d="$(setup_repo)"
+# CP-5: thêm một scripts/test-*.sh mà không nối vào ci.yml — đúng khuôn đã làm 2 suite engine
+# nằm đỏ im lặng qua nhiều PR sạch.
+printf '#!/usr/bin/env bash
+exit 0
+' > "$d/scripts/test-mo-coi.sh"
+rc="$(run_check "$d" check-ci-policy.sh)"
+[ "$rc" = "1" ] && ok "bắt được test-*.sh không được ci.yml gọi (CP-5)" || bad "KHÔNG bắt được test mồ côi (rc=$rc)"
+
 ## ============================================================
 ## 3. check-progress-freshness.sh
 ## ============================================================

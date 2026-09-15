@@ -17,13 +17,14 @@
 # Dự án đích dùng bản vitest tương đương trong dropins: scripts/ci-workflow-policy.test.ts.
 # Hai bản KHÔNG được gộp — xem CODEMAP.md khi có.
 #
-# BẢNG KIỂM (mỗi kiểm một ID — khai ở ĐÂY là nguồn sự thật; xem mục 7 và W-302):
+# BẢNG KIỂM (mỗi kiểm một ID — khai ở ĐÂY là nguồn sự thật; xem mục 8 và W-302):
 #   CP-1  job id trong workflow ↔ bản kê required checks (hai chiều)
 #   CP-2  mọi `uses:` ghim full commit SHA
 #   CP-3  `node-version:` khớp .nvmrc
 #   CP-4  mọi job ci.yml có trong `needs:` của job tổng hợp `gate`
+#   CP-5  mọi scripts/test-*.sh được gọi trong ci.yml (test không cổng nào chạy = không tồn tại)
 # Thêm một kiểm mới ở đây → PHẢI khai ID đó trong scripts/ci-workflow-policy.test.ts (bản dropins),
-# dù chỉ để ghi "không áp dụng cho dự án đích: <lý do>". Mục 7 dưới đây cưỡng chế điều đó.
+# dù chỉ để ghi "không áp dụng cho dự án đích: <lý do>". Mục 8 dưới đây cưỡng chế điều đó.
 #
 # Chạy: bash scripts/check-ci-policy.sh
 set -euo pipefail
@@ -176,7 +177,22 @@ else
 fi
 
 
-# --- 7. Hai bản kiểm CI song song không được phân kỳ âm thầm (W-302, F-008). ---
+# --- 7. Mọi scripts/test-*.sh phải được một job trong ci.yml gọi (CP-5). ---
+# VÌ SAO CẦN: `test-next-gen-engines.sh` và `test-telemetry-and-dispatch.sh` được thêm cùng 2
+# engine mới (PR #89, #91) nhưng KHÔNG job nào gọi — 3 ca đỏ nằm im qua nhiều PR sạch.
+# Test không cổng nào chạy thì về thực chất là không tồn tại — cùng khuôn hỏng IM LẶNG với F-002.
+echo "== Mọi scripts/test-*.sh được ci.yml gọi =="
+CI_FILE=".github/workflows/ci.yml"
+for t in scripts/test-*.sh; do
+  [ -e "$t" ] || continue
+  if ! grep -q "$(basename "$t")" "$CI_FILE"; then
+    echo "::error file=$t::$t không được job nào trong $CI_FILE gọi — test không chạy thì không chứng minh được gì (CP-5)."
+    fail=1
+  fi
+done
+
+
+# --- 8. Hai bản kiểm CI song song không được phân kỳ âm thầm (W-302, F-008). ---
 # VÌ SAO: repo khung dùng bản SHELL (không có package.json → không chạy vitest), dự án đích dùng
 # bản VITEST `scripts/ci-workflow-policy.test.ts`. CỐ Ý không gộp — nhưng trước kiểm này không gì
 # ràng hai bên: thêm một kiểm vào bản shell mà quên bản dropins thì dự án đích thiếu cổng đó mà
@@ -199,7 +215,7 @@ fi
 
 
 if [ "$fail" -eq 0 ]; then
-  echo "OK — CP-1..CP-4 đạt; bảng kiểm khớp hai bản (shell ↔ vitest dropins)."
+  echo "OK — CP-1..CP-5 đạt; bảng kiểm khớp hai bản (shell ↔ vitest dropins)."
 fi
 
 exit "$fail"

@@ -17,6 +17,9 @@
 //   CP-4  mọi job ci.yml có trong `needs:` của job tổng hợp `gate`     → KHÔNG ÁP DỤNG cho dự án
 //         đích: job `gate` là quy ước của RIÊNG repo khung (ADR-0003), khung không áp đặt cấu trúc
 //         job lên dự án đích (xem LƯU Ý ngay dưới). Dự án đích tự thêm nếu muốn.
+//   CP-5  mọi scripts/test-*.sh được ci.yml gọi                        → KHÔNG ÁP DỤNG cho dự án
+//         đích: dự án đích chạy test qua test runner (vitest/jest) chứ không qua `scripts/test-*.sh`,
+//         nên quy ước đặt tên này là của RIÊNG repo khung.
 // Thêm/bỏ một CP-* ở bản shell mà quên khai ở đây → `check-ci-policy.sh` mục 7 làm CI đỏ.
 //
 // LƯU Ý cho dự án đích đã tự thêm job tổng hợp (`quality`/`e2e` có `needs:`, chia mảnh E2E…):

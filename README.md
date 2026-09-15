@@ -19,6 +19,21 @@ blockchain, monorepo** (và loại chưa liệt kê). Cách hoạt động:
   né tránh phát hiện vì mục đích xấu, hay việc phạm pháp/xâm phạm quyền riêng tư. Bảo mật **phòng thủ** / kiểm thử
   **có ủy quyền** / CTF / nghiên cứu thì hỗ trợ (xem `CLAUDE.md` §0b).
 
+## Yêu cầu môi trường
+
+| Công cụ | Bắt buộc cho | Thiếu thì sao |
+|---|---|---|
+| `bash` | mọi script `scripts/*.sh`, hook | không chạy được gì (Windows: dùng Git Bash) |
+| **`jq`** | hook `pre-commit-gate.sh`, `block-dangerous-git.sh` | **hàng rào fail-open: hook cảnh báo ra stderr rồi CHO QUA** — commit khi cổng đỏ, `git push --force` lên `main`, `reset --hard` đều không bị chặn |
+| `python3` (≥ 3.7) | 4 engine: `spec-compiler`, `arch-health-radar`, `telemetry-log`, `subagent-dispatch` | các lệnh engine báo lỗi và thoát |
+| `git` | toàn bộ quy trình | — |
+
+> **`jq` là quan trọng nhất.** Hook cố tình fail-open khi thiếu `jq` (fail-closed sẽ chặn oan
+> vì không đọc được lệnh từ payload JSON), nên **máy không có `jq` = dự án không có hàng rào**
+> dù mọi file vẫn đúng chỗ. Kiểm bằng `bash scripts/test-hooks-gate.sh` — thiếu `jq` thì nó
+> báo BỎ QUA kèm cảnh báo thay vì báo xanh giả. Cài: `winget install jqlang.jq` (Windows),
+> `brew install jq` (macOS), `apt install jq` (Debian/Ubuntu).
+
 ## Bắt đầu từ đâu
 
 Mới dùng lần đầu? Đọc **[`docs/framework/quickstart.md`](docs/framework/quickstart.md)** để chọn

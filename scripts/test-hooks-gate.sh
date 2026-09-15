@@ -22,6 +22,18 @@ trap 'rm -rf "$WORK"' EXIT
 fails=0
 ok()   { echo "  ✅ $1"; }
 bad()  { echo "  ❌ $1"; fails=$((fails+1)); }
+skips=0
+skip() { echo "  ⏭  BỎ QUA (thiếu jq): $1"; skips=$((skips+1)); }
+
+# Hook đọc lệnh từ payload JSON bằng jq. Thiếu jq → hook fail-open theo thiết kế, nên mọi ca
+# "phải chặn" lẫn "không chặn oan" đều cho exit 0 — xanh giả hoặc đỏ sai bản chất. Báo BỎ QUA
+# trung thực thay vì kết luận "cổng không hoạt động" (CLAUDE.md §7). CI có jq nên vẫn chứng minh đủ.
+HAS_JQ=0; command -v jq >/dev/null 2>&1 && HAS_JQ=1
+if [ "$HAS_JQ" = "0" ]; then
+  echo "⚠️  Máy này KHÔNG có jq → hook fail-open; chỉ kiểm được ca fail-open (mục 5)."
+  echo "   Cài jq để chạy đủ bộ (xem README → Yêu cầu môi trường)."
+  echo ""
+fi
 
 # --- Dựng dự án giả: chỉ cần scripts/dev-task.sh mà hook sẽ gọi. ---
 setup_project() {   # $1 = exit code mà `dev-task.sh gate` sẽ trả về
@@ -45,9 +57,23 @@ run_hook() {        # $1 = project dir, $2 = lệnh bash, [$3 = "no-jq"], [$4 = 
     # PATH tối giản KHÔNG có jq (giữ coreutils/bash/git để hook chạy được).
     mkdir -p "$WORK/nojq-bin"
     for b in bash cat printf grep git awk sed env dirname pwd cd; do
-      src="$(command -v "$b" 2>/dev/null)" && [ -n "$src" ] && ln -sf "$src" "$WORK/nojq-bin/$b" 2>/dev/null
+      src="$(command -v "$b" 2>/dev/null)" && [ -n "$src" ] &&         { ln -sf "$src" "$WORK/nojq-bin/$b" 2>/dev/null || cp "$src" "$WORK/nojq-bin/$b" 2>/dev/null; }
     done
-    path_override="$WORK/nojq-bin"
+    # PATH giả phải thật sự chạy được: trên Windows/MSYS `ln -s` có thể không tạo được binary
+    # dùng được, hook sẽ chết với exit 127 và test báo "chặn oan" — sai bản chất.
+    # Dự phòng: giữ nguyên PATH thật, chỉ bỏ các thư mục có chứa jq.
+    if env -i PATH="$WORK/nojq-bin" bash -c 'true' 2>/dev/null; then
+      path_override="$WORK/nojq-bin"
+    else
+      local d filtered=""
+      while IFS= read -r d; do
+        [ -n "$d" ] || continue
+        [ -x "$d/jq" ] || [ -x "$d/jq.exe" ] && continue
+        filtered="${filtered:+$filtered:}$d"
+      done <<< "$(printf '%s' "$PATH" | tr ':' '
+')"
+      path_override="$filtered"
+    fi
   fi
   if [ -n "$path_override" ]; then
     printf '%s' "$payload" | env -i PATH="$path_override" CLAUDE_PROJECT_DIR="$dir" bash "$hook" 2>"$WORK/stderr.txt"
@@ -57,13 +83,15 @@ run_hook() {        # $1 = project dir, $2 = lệnh bash, [$3 = "no-jq"], [$4 = 
   echo $?
 }
 
-echo "== 1. Cổng ĐỎ + lệnh git commit → PHẢI chặn (exit 2) =="
 red="$(setup_project 1)"
+green="$(setup_project 0)"
+
+echo "== 1. Cổng ĐỎ + lệnh git commit → PHẢI chặn (exit 2) =="
+if [ "$HAS_JQ" = "0" ]; then skip "hook không đọc được lệnh nên không thể chứng minh việc chặn"; else
 rc="$(run_hook "$red" 'git commit -m "test"')"
 [ "$rc" = "2" ] && ok "hook chặn commit (exit 2)" || bad "hook KHÔNG chặn khi cổng đỏ (exit $rc, kỳ vọng 2)"
 
 echo "== 2. Cổng XANH + git commit → phải cho qua (exit 0) =="
-green="$(setup_project 0)"
 rc="$(run_hook "$green" 'git commit -m "test"')"
 [ "$rc" = "0" ] && ok "hook cho qua khi cổng xanh" || bad "hook chặn oan khi cổng xanh (exit $rc)"
 
@@ -77,8 +105,12 @@ rc="$(run_hook "$red" 'git status')"
 rc="$(run_hook "$red" "echo 'git commit trong chuỗi mô tả'")"
 [ "$rc" = "0" ] && ok "không khớp nhầm chuỗi chứa chữ git commit" || bad "chặn OAN chuỗi mô tả (exit $rc)"
 
+fi
+
+# Máy đã thiếu jq sẵn thì không cần dựng PATH giả — điều kiện cần kiểm đã đúng sẵn.
 echo "== 5. Thiếu jq → fail-open nhưng PHẢI có cảnh báo (không im lặng) =="
-rc="$(run_hook "$red" 'git commit -m "test"' no-jq)"
+mode5="no-jq"; [ "$HAS_JQ" = "1" ] || mode5=""
+rc="$(run_hook "$red" 'git commit -m "test"' "$mode5")"
 if [ "$rc" = "0" ] && grep -q "jq" "$WORK/stderr.txt"; then
   ok "fail-open kèm cảnh báo ra stderr"
 elif [ "$rc" = "0" ]; then
@@ -88,6 +120,7 @@ else
 fi
 
 echo "== 6. NEGATIVE TEST: hook hỏng (luôn exit 0) PHẢI làm test này đỏ =="
+if [ "$HAS_JQ" = "0" ]; then skip "mục 6–10 — vô nghĩa khi mục 1/7 không chạy được"; else
 broken="$WORK/broken-hook.sh"
 printf '#!/usr/bin/env bash\ncat >/dev/null\nexit 0\n' > "$broken"
 rc="$(run_hook "$red" 'git commit -m "test"' "" "$broken")"
@@ -130,8 +163,13 @@ echo "== 10. NEGATIVE TEST cho hook chặn git (hook rỗng phải bị bắt) =
 rc="$(run_hook "$any" 'git reset --hard' "" "$broken")"
 [ "$rc" = "0" ] && ok "test bắt được hook git hỏng" || bad "negative test sai (exit $rc)"
 
+fi
+
 echo ""
-if [ "$fails" -eq 0 ]; then
+if [ "$fails" -eq 0 ] && [ "$skips" -gt 0 ]; then
+  echo "⚠️  $skips nhóm ca BỊ BỎ QUA vì máy thiếu jq — chưa chứng minh được cổng chặn."
+  echo "OK (không có ca nào ĐỎ) — cài jq rồi chạy lại để có bằng chứng đầy đủ."
+elif [ "$fails" -eq 0 ]; then
   echo "OK — hook cổng CHẶN thật + hook chặn lệnh git nguy hiểm hoạt động."
 else
   echo "❌ $fails ca thất bại — cổng chặn commit KHÔNG hoạt động như tài liệu mô tả."
