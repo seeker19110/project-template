@@ -3,9 +3,9 @@
 # complexity) cho mọi engine Python trong `scripts/`.
 #
 # VÌ SAO CÓ FILE NÀY: ngưỡng "CC ≤ 12" đã được nhắc ở nhiều chỗ trong repo (ADR-0005,
-# `scripts/test-engine-characterization.sh`, dấu `DEBT:` của `arch-health-radar.py`) nhưng
+# `scripts/test-engine-characterization.sh`, dấu nợ kỹ thuật của `arch-health-radar.py`) nhưng
 # CHƯA từng có cổng nào cưỡng chế — nó chỉ nằm trong văn xuôi. Đúng khuôn hỏng ghi ở
-# `TRAPS.md` mục 14: luật không có cổng là trang trí, mục âm thầm rồi tái phát. Dấu `DEBT:`
+# `TRAPS.md` mục 14: luật không có cổng là trang trí, mục âm thầm rồi tái phát. Dấu nợ kỹ thuật
 # của `format_markdown_report` ghi rõ điều kiện xem lại là "repo dựng cổng máy cưỡng chế
 # CC <= 12" — file này là cổng đó, nên dấu ấy được giải (hàm đã tách xuống dưới ngưỡng).
 #
