@@ -257,7 +257,34 @@ else
   fi
 fi
 
+echo "== 8. Ký tự điều khiển vô hình trong *.md =="
+# VÌ SAO CẦN (2026-09-15, gặp thật khi rút gọn PROGRESS.md): một chuỗi Python thường chứa "\b"
+# KHÔNG phải hai ký tự literal mà là BACKSPACE (0x08). Khi sinh tài liệu bằng script, ký tự đó
+# lọt vào giữa hai backtick của PROGRESS.md và KHÔNG cổng nào bắt — docs-consistency xanh cả
+# trước lẫn sau. Phát hiện được chỉ vì tình cờ đọc lại `cat -A`.
+#
+# Tổng quát: **ký tự điều khiển trong tài liệu là hỏng IM LẶNG** — trình soạn thảo và trình xem
+# Markdown đều không hiển thị, diff cũng không nêu, nên nó sống vô thời hạn và làm bẩn mọi bản
+# sao chép về sau. Cùng họ với TRAPS mục 27 (CRLF): thứ Git/công cụ coi là "văn bản" vẫn có thể
+# mang byte mà con người không thấy.
+#
+# Mẫu được DỰNG LÚC CHẠY bằng printf: nếu viết ký tự điều khiển thật vào source của chính script
+# này thì nó sẽ tự khớp chính mình (khuôn "bộ dò tự khớp văn bản của thứ nó đang soi" — xem
+# block-dangerous-git.sh). Giữ lại TAB (011), LF (012), CR (015) vì đó là ký tự văn bản hợp lệ.
+# KHÔNG soi NUL (000): không truyền được qua biến shell, và một .md có NUL thì đã là file nhị
+# phân chứ không phải lỗi tài liệu.
+ctrl_class="$(printf '[\001-\010\013\014\016-\037\177]')"
+while IFS= read -r mdfile; do
+  [ -f "$mdfile" ] || continue
+  if hits="$(LC_ALL=C grep -n "$ctrl_class" "$mdfile" 2>/dev/null)"; then
+    line_no="$(printf '%s' "$hits" | head -1 | cut -d: -f1)"
+    echo "::error file=$mdfile,line=$line_no::Co ky tu dieu khien vo hinh (vi du backspace 0x08) trong file Markdown -- trinh xem khong hien thi nen loi song im lang. Tim bang: LC_ALL=C grep -n \"\$(printf '[\001-\010\013\014\016-\037\177]')\" $mdfile | cat -A"
+    fail=1
+  fi
+done < <(git ls-files '*.md')
+
+
 if [ "$fail" -eq 0 ]; then
-  echo "OK — không phát hiện link gãy, tên cũ sót lại, hay lệnh lệch với CLAUDE.md."
+  echo "OK — không phát hiện link gãy, tên cũ sót lại, lệnh lệch với CLAUDE.md, hay ký tự điều khiển trong *.md."
 fi
 exit "$fail"

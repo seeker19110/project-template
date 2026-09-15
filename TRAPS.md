@@ -673,3 +673,30 @@ ValueError`.
 ép `ValueError` bằng monkeypatch nên có nghĩa trên CẢ Linux lẫn Windows (chỉ truyền đường dẫn
 `"D:/..."` thì trên Linux ca đó xanh vô nghĩa) + job `framework-lint-windows` chạy thật trên ổ D:.
 Đã chứng minh SC-1 ĐỎ khi gỡ bản sửa và XANH khi có bản sửa.
+
+## 29. `\b` trong chuỗi Python thường là BACKSPACE — ký tự điều khiển lọt vào tài liệu
+
+**Ngày/PR:** 2026-09-15, gặp thật khi rút gọn một mục trong `PROGRESS.md` bằng script Python.
+
+**Khuôn lỗi:** viết `"...grep \b$jid\b..."` trong một chuỗi Python **thường** (không phải raw
+string): `\b` KHÔNG phải hai ký tự literal mà là **BACKSPACE (0x08)**. Script chạy trót lọt, file
+ghi ra trót lọt, `PROGRESS.md` nhận một ký tự điều khiển vô hình giữa hai backtick. Trình soạn thảo
+không hiển thị, trình xem Markdown không hiển thị, `git diff` cũng không nêu — phát hiện được chỉ vì
+tình cờ đọc lại output qua `cat -A`. Cùng họ này còn `\a` (bell), `\f`, `\v`, và `\1` (đã mắc riêng
+một lần trong cùng phiên: một backreference `\1` của `sed` biến thành ký tự 0x01, làm biểu thức
+`sed` thay bằng chuỗi RỖNG mà không báo lỗi).
+
+Tổng quát: **ký tự điều khiển trong tài liệu là hỏng IM LẶNG** — không công cụ hiển thị nào cho
+thấy nó, nên nó sống vô thời hạn và được sao chép sang mọi bản dẫn xuất. Cùng họ với mục 27 (CRLF):
+thứ mà Git và trình soạn thảo đều coi là "văn bản" vẫn có thể mang byte con người không thấy.
+
+**Cách rà:** sinh tài liệu bằng Python thì dùng **raw string** (`r"..."`) cho mọi chuỗi có dấu
+`\`, hoặc tránh viết ký hiệu regex vào văn xuôi (diễn đạt bằng chữ: "theo ranh giới từ"). Kiểm
+nhanh một file: `LC_ALL=C grep -n "$(printf '[\001-\010\013\014\016-\037\177]')" file.md | cat -A`.
+
+**Cổng chốt chặn:** **mục 8** của `scripts/check-docs-consistency.sh` — quét mọi `*.md` do
+`git ls-files` liệt kê, giữ lại TAB/LF/CR vì đó là ký tự văn bản hợp lệ, KHÔNG soi NUL (file có NUL
+đã là nhị phân chứ không phải lỗi tài liệu). Mẫu được dựng lúc chạy bằng `printf` chứ không viết ký
+tự điều khiển thật vào source — nếu không, chính script sẽ tự khớp mình (khuôn "bộ dò tự khớp văn
+bản của thứ nó đang soi", xem `block-dangerous-git.sh`). Có **negative test** (chèn 0x08 → phải đỏ)
+và **đối chứng** (TAB/CR → phải xanh) trong `scripts/test-check-scripts.sh`.
