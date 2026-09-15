@@ -111,6 +111,33 @@ else
   bad "AC-3: contract test đỏ oan dù mọi đường dẫn đều tồn tại"; ac_diag
 fi
 
+# SC-1 (hồi quy, 2026-09-15): `os.path.relpath` NÉM ValueError khi hai đường dẫn nằm trên hai ổ
+# đĩa khác nhau trên Windows. Runner `windows-latest` checkout repo ở ổ D: còn `mktemp -d` trả về
+# thư mục ở ổ C: — spec-compiler chết ngay, không sinh ra test nào, làm AC-2 xanh oan và AC-3 đỏ oan.
+# Ca này **ép** ValueError bằng monkeypatch thay vì chờ có hai ổ đĩa thật, nên nó có nghĩa trên CẢ
+# Linux lẫn Windows — nếu chỉ gọi với đường dẫn "D:/..." thì trên Linux nó xanh vô nghĩa.
+out_sc1="$(PYTHONIOENCODING=utf-8 "$PYTHON_CMD" - "$ROOT" <<'PY' 2>&1
+import importlib.util, os, sys
+root = sys.argv[1]
+spec = importlib.util.spec_from_file_location("sc", os.path.join(root, "scripts", "spec-compiler.py"))
+mod = importlib.util.module_from_spec(spec)
+sys.argv = ["spec-compiler.py"]
+spec.loader.exec_module(mod)
+
+def boom(*_a, **_k):
+    raise ValueError("path is on mount 'C:', start on mount 'D:'")
+
+os.path.relpath = boom
+out = mod._display_path(os.path.join(root, "scripts", "spec-compiler.py"))
+print("OK" if out else "RONG")
+PY
+)"
+if [ "$out_sc1" = "OK" ]; then
+  ok "SC-1: _display_path chịu được ValueError khác ổ đĩa (không làm chết spec-compiler)"
+else
+  bad "SC-1: _display_path vẫn vỡ khi relpath ném ValueError — $out_sc1"
+fi
+
 echo "== 2. Architectural Health & Tech Debt Radar Engine =="
 
 out_radar="$(bash "$ROOT/scripts/arch-health-radar.sh" --scan 2>&1)"

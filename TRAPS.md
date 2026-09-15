@@ -643,3 +643,33 @@ sẽ làm hỏng lại file vendor — đã gặp thật ngay trong chính lư�
 **Cổng chốt chặn:** `vendor/**  -text` trong `.gitattributes` (kèm `*.py`/`*.ts` `eol=lf` cùng lý do
 với `*.sh`). Ca 4-5 của `scripts/test-check-shell-complexity.sh` (sửa/khôi phục bản vendor) đã sẵn
 bắt được lệch checksum — thiếu mỗi việc file không bị Git làm lệch ngay từ lúc checkout.
+
+## 28. `os.path.relpath` ném ValueError khi hai đường dẫn khác Ổ ĐĨA (chỉ trên Windows)
+
+**Ngày/PR:** 2026-09-15, do chính job `framework-lint-windows` bắt được trong lượt chạy thứ hai của
+nó (PR thêm cổng Windows).
+
+**Khuôn lỗi:** `os.path.relpath(a, b)` trên Windows **ném `ValueError`** nếu `a` và `b` nằm trên hai
+ổ đĩa khác nhau: `path is on mount 'C:', start on mount 'D:'`. Runner `windows-latest` checkout repo
+ở ổ **D:** còn `mktemp -d` trả về thư mục ở ổ **C:** — nên `spec-compiler.py --spec <đường dẫn ở ổ
+C:>` chết ngay ở dòng tính `spec_file`, KHÔNG sinh ra test nào. Trên Linux không bao giờ xảy ra vì
+không có khái niệm ổ đĩa.
+
+Tổng quát: **`relpath` là hàm CÓ THỂ NÉM, không chỉ trả về chuỗi** — và nó chỉ ném trên Windows, nên
+CI Linux không bao giờ bắt được. Dùng nó cho một NHÃN HIỂN THỊ mà không bắt lỗi là để một chuỗi
+trang trí làm chết cả chương trình.
+
+**Hai lớp che khiến nó tồn tại lâu:** (1) lỗi chỉ nổ khi đường dẫn đầu vào ở ổ đĩa khác — hiếm trên
+máy dev, luôn xảy ra trên runner; (2) trong `test-next-gen-engines.sh` cả lệnh compile lẫn lệnh
+unittest đều bị nuốt bằng `>/dev/null 2>&1`, nên triệu chứng chỉ là "AC-3 đỏ oan" — đoán sai hai
+lượt liên tiếp trước khi thêm chẩn đoán. **Bài học: một ca test đỏ mà không in được NGUYÊN NHÂN là
+một ca test chưa xong.**
+
+**Cách rà:** `grep -n relpath scripts/*.py` — mỗi chỗ dùng cho nhãn hiển thị phải có `try/except
+ValueError`.
+
+**Cổng chốt chặn:** `_display_path()` trong `spec-compiler.py` (fallback về đường dẫn tuyệt đối) +
+`try/except` tương tự trong `arch-health-radar.py` + **ca SC-1** trong `test-next-gen-engines.sh`,
+ép `ValueError` bằng monkeypatch nên có nghĩa trên CẢ Linux lẫn Windows (chỉ truyền đường dẫn
+`"D:/..."` thì trên Linux ca đó xanh vô nghĩa) + job `framework-lint-windows` chạy thật trên ổ D:.
+Đã chứng minh SC-1 ĐỎ khi gỡ bản sửa và XANH khi có bản sửa.

@@ -169,7 +169,11 @@ def _walk_repo_files():
                 continue
 
             ext = os.path.splitext(f)[1].lower() or "(no-ext)"
-            rel_path = os.path.relpath(full_path, ROOT_DIR).replace(os.sep, "/")
+            # relpath nem ValueError khi khac o dia tren Windows (xem _display_path cua spec-compiler).
+            try:
+                rel_path = os.path.relpath(full_path, ROOT_DIR).replace(os.sep, "/")
+            except ValueError:
+                rel_path = os.path.abspath(full_path).replace(os.sep, "/")
             acc["total_files"] += 1
             acc["total_lines"] += len(lines)
             acc["file_type_counts"][ext] = acc["file_type_counts"].get(ext, 0) + 1
