@@ -53,6 +53,10 @@ fi
 #   - dữ liệu KHÔNG nháy và KHÔNG heredoc vẫn bị quét — `git push -f origin claude/x && echo main`
 #     vẫn chặn oan. Sửa hẳn cần tách lệnh theo `&&`/`;`/`|` rồi chỉ soi segment bắt đầu bằng `git`;
 #     chưa làm vì phạm vi rộng hơn hẳn và chưa có sự cố thật.
+#   - `<<-EOF` đóng bằng dòng thụt TAB: ĐÃ XỬ LÝ 2026-09-15 (audit F-301). Trước đó dòng đóng
+#     thật là TAB+EOF nên không bằng `EOF`, delim không bao giờ xoá, awk nuốt hết phần còn lại và
+#     `git reset --hard` đứng sau ĐI LỌT (đo được: rc=0 thay vì 2). Nay bỏ TAB đầu trước khi so,
+#     CHỈ khi heredoc mở bằng `<<-`. Hai ca chốt chặn ở `test-hooks-gate.sh` mục 7 và mục 8.
 #   - `cat << EOF` (có khoảng trắng — POSIX cho phép) không được nhận là heredoc nữa, nên thân nó
 #     vẫn bị quét → có thể chặn oan. Đây là đánh đổi CỐ Ý: chặn oan thì người dùng thấy ngay và nói,
 #     còn để lọt thì không ai biết. Chọn chiều an toàn.
@@ -61,11 +65,20 @@ fi
 # lồng nhau, thứ vừa khó đọc vừa dễ hỏng lặng lẽ khi ai đó sửa.
 strip_heredoc_bodies() {
   awk '
-    BEGIN { delim = "" }
+    BEGIN { delim = ""; dash = 0 }
     {
-      if (delim != "") { if ($0 == delim) { delim = "" } ; next }
+      if (delim != "") {
+        line = $0
+        # \011 = TAB. `<<-` (CÓ gạch ngang) cho phép dòng đóng thụt bằng TAB — POSIX.
+        # Không bỏ TAB trước khi so thì delim không bao giờ khớp, awk nuốt hết phần
+        # còn lại của lệnh, và lệnh nguy hiểm đứng sau heredoc KHÔNG bị quét.
+        if (dash) { sub(/^\011+/, "", line) }
+        if (line == delim) { delim = ""; dash = 0 }
+        next
+      }
       if (match($0, /<<-?[\047\042]?[A-Za-z_][A-Za-z0-9_]*[\047\042]?/)) {
         d = substr($0, RSTART, RLENGTH)
+        dash = (substr(d, 1, 3) == "<<-") ? 1 : 0
         sub(/^<<-?/, "", d)
         gsub(/[\047\042]/, "", d)
         delim = d

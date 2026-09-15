@@ -136,6 +136,7 @@ for pair in \
   "git rebase --abort|rebase --abort" \
   "echo \"a << b\"
 git reset --hard HEAD~1|lệnh nguy hiểm SAU một chuỗi chứa '<<' không phải heredoc" \
+  "$(printf 'cat <<-EOF\nnoi dung\n\tEOF\ngit reset --hard HEAD~1')|lệnh nguy hiểm SAU heredoc <<- đóng bằng dòng có TAB đầu" \
 ; do
   c="${pair%%|*}"; label="${pair##*|}"
   rc="$(run_hook "$any" "$c" "" "$DG")"
@@ -154,6 +155,7 @@ quay ve main roi push
 EOF
 git push -u origin claude/abc --force-with-lease|force-push nhánh RIÊNG, chữ 'main' chỉ nằm trong thân heredoc" \
   "git push --force-with-lease origin feat/main-menu|nhánh riêng có chuỗi 'main' trong TÊN nhánh" \
+  "$(printf 'git commit -F - <<-EOF\n\tquay ve main roi push\n\tEOF\ngit push -u origin claude/abc --force-with-lease')|heredoc <<- (thân thụt TAB): chữ 'main' chỉ nằm trong thân, KHÔNG được chặn oan" \
 ; do
   c="${pair%%|*}"; label="${pair##*|}"
   rc="$(run_hook "$any" "$c" "" "$DG")"

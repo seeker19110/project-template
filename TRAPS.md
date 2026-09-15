@@ -700,3 +700,38 @@ nhanh một file: `LC_ALL=C grep -n "$(printf '[\001-\010\013\014\016-\037\177]'
 tự điều khiển thật vào source — nếu không, chính script sẽ tự khớp mình (khuôn "bộ dò tự khớp văn
 bản của thứ nó đang soi", xem `block-dangerous-git.sh`). Có **negative test** (chèn 0x08 → phải đỏ)
 và **đối chứng** (TAB/CR → phải xanh) trong `scripts/test-check-scripts.sh`.
+
+## 30. Heredoc `<<-` đóng bằng dòng thụt TAB — hàng rào an toàn nuốt hết phần còn lại của lệnh
+
+**Ngày/PR:** 2026-09-15 · audit toàn diện F-301.
+
+**Khuôn lỗi:** `strip_heredoc_bodies()` trong `.claude/hooks/block-dangerous-git.sh` nhận diện heredoc
+mở bằng `<<` hoặc `<<-`, rồi so **nguyên văn** từng dòng với delimiter để biết heredoc đã đóng chưa.
+Nhưng biến thể `<<-` (CÓ gạch ngang) được POSIX cho phép đóng bằng dòng **thụt TAB**: dòng đóng thật
+là `TAB` + `EOF`, không bằng `EOF`. Delimiter không bao giờ khớp ⇒ awk coi mọi dòng còn lại vẫn là
+thân heredoc ⇒ **lệnh nguy hiểm đứng sau heredoc không bị quét**.
+
+Đo được, không phải suy đoán:
+
+```
+cmd = "cat <<-EOF\nnoi dung\n\tEOF\ngit reset --hard HEAD~1"  → rc=0  (LỌT)
+cmd = "git reset --hard HEAD~1"                               → rc=2  (chặn đúng)
+```
+
+**Vì sao nguy hiểm hơn vẻ ngoài:** đây là **chiều hỏng để-lọt**, không phải chiều chặn-oan. Chính
+file đó đã ghi ở đầu hàm: *"bỏ thiếu thì chặn oan (thấy ngay), bỏ thừa thì để lọt (không ai biết)"*.
+Khối "GIỚI HẠN CÒN LẠI" có nêu ca `<< EOF` (khoảng trắng) — nhưng đó là ca **chiều an toàn**. Ca
+`<<-` + TAB không được nêu, tức không phải đánh đổi cố ý mà là chỗ sót thật.
+
+**Bài học tổng quát:** một bộ phân tích cú pháp viết tay phải khai **mọi biến thể của cú pháp nó
+đang mô phỏng**, không chỉ biến thể hay gặp. `<<` và `<<-` trông giống nhau một ký tự nhưng **khác
+luật đóng**. Cùng họ với mục 18 (cũng ở hàm này): mỗi lần nới regex heredoc là một lần mở đường lọt.
+
+**Cách rà:** với mỗi biến thể cú pháp mà hàm nhận diện (`<<`, `<<-`, có/không nháy), hỏi *"luật đóng
+của biến thể này có khác không?"* rồi viết một ca cho từng biến thể — **cả ca chặn-bắt-buộc lẫn ca
+không-chặn-oan**, vì sửa theo chiều này rất dễ làm hỏng chiều kia.
+
+**Cổng chốt chặn:** `scripts/test-hooks-gate.sh` — mục 7 có ca chặn-bắt-buộc (`<<-EOF` đóng bằng
+`TAB`+`EOF`, rồi `git reset --hard` ⇒ phải exit 2) và mục 8 có ca đối chứng không-chặn-oan
+(`git commit -F - <<-EOF` thân thụt TAB chứa chữ `main`, rồi force-push nhánh riêng ⇒ phải exit 0).
+Ca thứ hai tồn tại vì bản vá này bỏ TAB đầu dòng: nếu bỏ nhầm cho cả `<<` thường thì sẽ chặn oan.
