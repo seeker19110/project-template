@@ -250,6 +250,7 @@ vào đó: **mỗi mục một commit nguyên tử**, gom vào một PR.
 | 4 | F-102 | ✅ Xong | `+ mục 9` | 8/8 engine nay có mặt (`grep -c` ≥1 cho từng cái); ID hết trùng; **thêm mục 9 vào `check-docs-consistency.sh`** đối chiếu agent+hook ↔ FEATURE-MAP + cấm ID trùng, kèm 2 negative test. |
 | 5 | T-2 | ✅ Xong | `bcde247` | Sweep nay chạy **5/5** cổng `check-*`. Tách "thiếu công cụ" (🟡, chưa kiểm chứng được) khỏi "vi phạm thật" (🔴). 8 ca test gồm ca đối chứng chống regex quá rộng. |
 | 5 | F-306 | ✅ Xong | `ce4bd67` | Test ĐỎ trước (3 thư mục lồng, **rộng hơn audit báo** — có cả `.cursor/rules`) → sau khi sửa sạch. Helper `check_no_nesting` chạy cho **cả hai** bản. TRAPS mục 31. |
+| 5 | F-304 | ✅ Xong | `2ab150e` | Test ĐỎ trước (2 ca chặn oan) → sau khi sửa 3/3 xanh gồm đối chứng "commit thật sau heredoc vẫn chặn". Rút `_hook-lib.sh` dùng chung thay vì chép tay lần hai. |
 
 ### Đính chính khuyến nghị của chính audit (F-101 phần c)
 
@@ -326,3 +327,10 @@ hơn. Radar chỉ cảnh báo khi < 80 nên 99 không chặn gì.
 - **Cổng bắt đúng chính tôi:** mục 1 của `check-docs-consistency.sh` chặn commit vì mục TRAPS mới và
   một comment trong test dùng backtick quanh đường dẫn **sinh lúc chạy** (`.framework-new/...`).
   Đã diễn đạt lại thay vì thêm miễn trừ để né cổng.
+
+### Cổng tự bắt chính người sửa (ghi lại — đây là dấu hiệu cổng sống)
+
+Trong lượt sửa F-304, **mục 9** của `check-docs-consistency.sh` — cổng tôi vừa thêm sáng nay cho
+F-102 — chặn commit vì `_hook-lib.sh` chưa có trên `FEATURE-MAP.md`. Đã khai vào bản đồ (FT-63) +
+`CODEMAP.md` thay vì thêm miễn trừ. Đây là lần thứ hai trong phiên một cổng mới bắt đúng người vừa
+dựng nó (lần đầu: mục 1 chặn đường dẫn `.framework-new` trong TRAPS 31).
