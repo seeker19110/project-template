@@ -110,33 +110,50 @@ node_pm() {
   elif [ -f bun.lockb ];      then echo bun
   else echo npm; fi
 }
+# Mỗi hệ sinh thái một hàm: in lệnh cho loại quét $1 (outdated|audit), hoặc return 1 nếu hệ sinh
+# thái này không có mặt / không có lệnh. Tách ra vì bản gộp từng ở CC 13 — trên trần 12 mà
+# `scripts/check-shell-complexity.sh` cưỡng chế.
+_deps_node() {
+  [ -f package.json ] || return 1
+  local pm; pm="$(node_pm)"
+  case "$1" in
+    outdated) echo "$pm outdated" ;;
+    audit)    [ "$pm" = yarn ] && echo "yarn npm audit --severity high" || echo "$pm audit --audit-level=high" ;;
+  esac
+  return 0   # hệ sinh thái CÓ MẶT → thắng, kể cả khi không có lệnh (bản cũ cũng dừng tại đây)
+}
+_deps_python() {
+  [ -f pyproject.toml ] || [ -f requirements.txt ] || return 1
+  case "$1" in
+    outdated) has pip && echo "pip list --outdated" ;;
+    audit)    has pip-audit && echo "pip-audit" ;;
+  esac
+  return 0   # hệ sinh thái CÓ MẶT → thắng, kể cả khi không có lệnh (bản cũ cũng dừng tại đây)
+}
+_deps_go() {
+  [ -f go.mod ] || return 1
+  case "$1" in
+    outdated) echo "go list -m -u all | grep '\\['" ;;
+    audit)    has govulncheck && echo "govulncheck ./..." ;;
+  esac
+  return 0   # hệ sinh thái CÓ MẶT → thắng, kể cả khi không có lệnh (bản cũ cũng dừng tại đây)
+}
+_deps_rust() {
+  [ -f Cargo.toml ] || return 1
+  case "$1" in
+    outdated) has cargo-outdated && echo "cargo outdated --exit-code 1" ;;
+    audit)    has cargo-audit && echo "cargo audit" ;;
+  esac
+  return 0   # hệ sinh thái CÓ MẶT → thắng, kể cả khi không có lệnh (bản cũ cũng dừng tại đây)
+}
 detect_deps_cmd() { # $1=outdated|audit → in lệnh hoặc rỗng
-  local pm
-  if [ -f package.json ]; then
-    pm="$(node_pm)"
-    case "$1" in
-      outdated) echo "$pm outdated" ;;
-      audit)    [ "$pm" = yarn ] && echo "yarn npm audit --severity high" || echo "$pm audit --audit-level=high" ;;
-    esac; return 0
-  fi
-  if [ -f pyproject.toml ] || [ -f requirements.txt ]; then
-    case "$1" in
-      outdated) has pip && echo "pip list --outdated" ;;
-      audit)    has pip-audit && echo "pip-audit" ;;
-    esac; return 0
-  fi
-  if [ -f go.mod ]; then
-    case "$1" in
-      outdated) echo "go list -m -u all | grep '\\['" ;;
-      audit)    has govulncheck && echo "govulncheck ./..." ;;
-    esac; return 0
-  fi
-  if [ -f Cargo.toml ]; then
-    case "$1" in
-      outdated) has cargo-outdated && echo "cargo outdated --exit-code 1" ;;
-      audit)    has cargo-audit && echo "cargo audit" ;;
-    esac; return 0
-  fi
+  # THỨ TỰ LÀ HÀNH VI: hệ sinh thái đầu tiên CÓ MẶT thắng, kể cả khi nó không có lệnh cho
+  # loại quét này (bản cũ cũng `return 0` ngay tại đó, không rơi xuống hệ sinh thái sau).
+  local eco
+  for eco in _deps_node _deps_python _deps_go _deps_rust; do
+    "$eco" "$1" && return 0
+  done
+  return 0
 }
 sweep_deps() {
   sec "2. Dependency"

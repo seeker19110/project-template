@@ -524,3 +524,24 @@ chèn BOM — nhưng **ghi đúng không cứu được chuỗi đã đọc sai*
 Đây là kỷ luật của người sửa. Hệ quả ở PR #120 được CHẤP NHẬN có ý thức thay vì force-push thêm một
 lượt nữa: chi phí sửa (một vòng force-push nữa) lớn hơn thiệt hại (một dòng hỏng trong thân commit
 squash, tiêu đề trên `main` lấy từ tiêu đề PR nên vẫn sạch).
+
+## 23. `awk` ở máy dev (mawk) nhận cú pháp mà `awk` ở CI (gawk) từ chối
+
+*Ngày/PR:* 2026-09-15, PR #126 (cổng CC shell) — đỏ ngay lượt CI đầu tiên.
+
+**Khuôn lỗi.** Script cổng viết một chương trình `awk` dùng biến tên `func`. Máy dev có
+`/usr/bin/awk → mawk` (Debian mặc định) nhận bình thường; runner `ubuntu-latest` có `awk → gawk`,
+mà `func` là **từ khoá của gawk** (viết tắt của `function`) → `syntax error`, cổng chết TRƯỚC khi đo
+được gì. Mọi lượt chạy tay ở máy đều xanh, CI đỏ 100%.
+
+Đây là một thể hiện khác của khuôn "cổng chết trước khi chạy tới phần cần đo" (`CLAUDE.md` §4, bẫy
+cuối): exit code khác 0 rất dễ bị đọc nhầm thành "đã đo, không có vi phạm".
+
+*Cách rà:* `ls -l /usr/bin/awk` — thấy trỏ vào `mawk` là máy đang chạy dialect KHÁC CI. Chạy lại cổng
+với `PATH` chèn một thư mục có `awk → gawk` (`ln -sf /usr/bin/gawk $d/awk`) để tái hiện đúng môi
+trường runner trước khi push. Từ khoá chỉ có ở gawk hay quên: `func`, `include`, `switch`, `case`,
+`delete` (dạng mảng), `BEGINFILE`, `ENDFILE`.
+
+*Cổng chốt chặn:* ca 6 của `scripts/test-check-shell-complexity.sh` — khi máy CÓ `gawk`, chạy lại
+chính cổng đó dưới gawk và bắt buộc phải xanh. Máy không có gawk thì ca này in ghi chú "bỏ qua" chứ
+không giả vờ xanh; CI luôn có gawk nên nơi đó không bao giờ bỏ qua.

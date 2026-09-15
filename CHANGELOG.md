@@ -13,6 +13,16 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **Cổng máy CC cho mã shell** (`scripts/check-shell-complexity.sh`, spec:
+  `docs/specs/2026-09-15-cong-may-cc-shell.md`) — nối tiếp cổng CC Python: đo bằng
+  `vendor/shellmetrics` (shellmetrics 0.5.0, MIT, **vendor + ghim SHA256** nên chạy offline và
+  không phụ thuộc GitHub), **hai trần**: hàm ≤ 12 (`SH_CC_MAX`), thân script `<main>` ≤ 45
+  (`SH_CC_MAIN_MAX` — nắp chặn trượt đặt trên mức cao nhất đang có là 41). Negative test
+  `scripts/test-check-shell-complexity.sh` chứng minh cả hai trần đều chặn thật, tách rời nhau, và
+  checksum vendor sai làm cổng ĐỎ. Kèm theo: `dev-task.sh::detected_cmd` (18 → tách 5 hàm theo hệ
+  sinh thái) và `maintenance-sweep.sh::detect_deps_cmd` (13 → tách 4) hạ xuống dưới trần, hành vi
+  giữ nguyên (đối chiếu bản cũ ↔ mới trên fixture node/python/go/rust/make).
+
 - **Cổng máy cưỡng chế ngưỡng độ phức tạp vòng CC ≤ 12 cho engine Python**
   (`scripts/check-python-complexity.sh`, spec: `docs/specs/2026-09-14-cong-may-cc-12.md`) — trước đây
   ngưỡng này chỉ nằm trong văn xuôi (ADR-0005, chú thích characterization test) nên không cổng nào đỏ
