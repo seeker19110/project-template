@@ -6,40 +6,20 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, PR #139 đã merge): CỔNG WINDOWS
-  `framework-lint-windows`.** Trước PR này MỌI job cổng chạy `ubuntu-latest`, nên cổng của khung chỉ
-  chứng minh được điều gì đó TRÊN LINUX — trong khi khung nhắm tới người dùng Windows (bản
-  `copy-framework.ps1`, tài liệu tiếng Việt, hướng dẫn PowerShell). Một lượt chạy tay trên máy
-  Windows thật cùng ngày đã lộ ra 5 lỗi nằm im nhiều tháng (PR #134/#137, TRAPS mục 24/26/27), tất
-  cả đều vô hình với CI Linux — job này là cổng máy cho đúng nhóm đó.
-  **Chạy:** 4 suite engine Python · `test-hooks-gate` 21 ca · cổng CC shell + negative test · cổng
-  CC Python (radon) · `test-copy-framework` với `REQUIRE_PWSH=1`. **CỐ Ý không nhân đôi toàn bộ
-  CI:** kiểm thuần văn bản (docs-consistency, ci-policy, progress-freshness) không phụ thuộc nền
-  tảng. **Hai quyết định đáng nhớ:** (a) KHÔNG đặt `core.autocrlf` — mặc định của runner
-  (`autocrlf=true`) chính là điều kiện đã làm hỏng `vendor/shellmetrics`, tắt đi thì cổng mất ý
-  nghĩa; (b) có bước chặn riêng bắt runner PHẢI có `jq` — thiếu `jq` thì `test-hooks-gate` báo BỎ
-  QUA (đúng ở máy dev) nhưng trên CI sẽ thành **xanh giả**. Theo ADR-0003 chỉ cần job mới +
-  `needs:` của `gate` + bản kê `repository-settings.md`, KHÔNG phải sửa cấu hình GitHub.
-  **Job tự trả giá ngay trong 4 lượt chạy đầu — bắt thêm 4 lỗi nữa:**
-  (1) **CP-4 để lọt:** so khớp `needs:` bằng `grep "$jid"` trên cả dòng; `-` không phải ký tự
-  từ nên `framework-lint` KHỚP bên trong `framework-lint-windows` → một job bị gỡ khỏi `needs:` vẫn
-  được coi là có. Sửa: tách `needs:` thành danh sách, so BẰNG ĐÚNG từng tên.
-  (2) **AC-2 xanh oan:** đỏ nhưng SAI LÝ DO (discover không chạy được test nào). Nay đòi thêm
-  `Ran [1-9]` trong output — đỏ thôi chưa đủ, phải đỏ đúng lý do.
-  (3) **Lỗi SẢN PHẨM:** `os.path.relpath` NÉM `ValueError` trên Windows khi hai đường dẫn khác ổ
-  đĩa; runner checkout repo ở D: còn `mktemp -d` trả về C: → `spec-compiler` chết, không sinh test
-  nào. Sửa bằng `_display_path()` (fallback đường dẫn tuyệt đối — đây chỉ là NHÃN HIỂN THỊ, không
-  có lý do gì để nó làm chết cả lệnh biên dịch) + ca hồi quy **SC-1** ép `ValueError` bằng
-  monkeypatch nên có nghĩa trên CẢ Linux lẫn Windows. **TRAPS mục 28.**
-  (4) **Test tự vỡ:** characterization test gọi thẳng `relpath` để tính GIÁ TRỊ KỲ VỌNG → chính
-  dòng kỳ vọng ném lỗi. Biến thể thứ ba trong cùng phiên của khuôn "công cụ đo tự vướng vào thứ nó
-  đang đo" (hai lần trước: `check-docs-consistency` quét chính source của test; `block-dangerous-git`
-  khớp nhầm dữ liệu trong heredoc).
-  **Bài học đắt nhất, ghi ở TRAPS mục 28:** cả lệnh compile lẫn lệnh unittest đều bị nuốt bằng
-  `>/dev/null 2>&1`, nên triệu chứng chỉ là "AC-3 đỏ oan" — đoán sai HAI lượt liên tiếp. Thêm chẩn
-  đoán in ra (đường dẫn, phiên bản Python thật, output của compiler, nội dung thư mục, output của
-  unittest) thì nguyên nhân hiện ra trong MỘT lượt. **Một ca test đỏ mà không in được NGUYÊN NHÂN
-  là một ca test chưa xong.**
+- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, PR #139 đã merge): cổng
+  `framework-lint-windows`.** Trước đó mọi job cổng chạy `ubuntu-latest`, nên cổng của khung chỉ
+  chứng minh được điều gì đó TRÊN LINUX — trong khi khung nhắm tới người dùng Windows. Job mới chạy
+  4 suite engine Python · `test-hooks-gate` · cổng CC shell + Python · `test-copy-framework`
+  (`REQUIRE_PWSH=1`); cố ý không nhân đôi các kiểm thuần văn bản. Hai điểm dễ bị xoá nhầm về sau:
+  KHÔNG đặt `core.autocrlf` (mặc định của runner chính là điều kiện đã làm hỏng `vendor/shellmetrics`)
+  và bước bắt runner PHẢI có `jq` (thiếu `jq` thì `test-hooks-gate` báo BỎ QUA → cổng xanh giả).
+  Theo ADR-0003 chỉ cần job mới + `needs:` của `gate` + bản kê `repository-settings.md`.
+  **Bắt được 4 lỗi trong 4 lượt chạy đầu:** CP-4 so khớp `needs:` bằng `` nên `framework-lint`
+  khớp bên trong `framework-lint-windows` (cổng để lọt) · AC-2 xanh oan vì đỏ sai lý do · **lỗi sản
+  phẩm:** `os.path.relpath` ném `ValueError` khi hai đường dẫn khác ổ đĩa, làm `spec-compiler` chết
+  trên runner (repo ở D:, tmp ở C:) · characterization test tự vỡ vì cũng gọi `relpath` để tính kỳ
+  vọng. Chi tiết + cách rà: **TRAPS mục 28**, kèm bài học **một ca test đỏ mà không in được NGUYÊN
+  NHÂN là một ca test chưa xong** (nuốt output bằng `>/dev/null 2>&1` đã làm đoán sai hai lượt liền).
 - Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-15, PR #136 + #137 đã merge): nới deny force-push
   + dọn nốt lỗi cp1252 ở Python nội tuyến.** Hai việc nối tiếp #134, cả hai đều do CHẠY THẬT
   trên máy Windows mới lộ.
