@@ -87,6 +87,15 @@ jobs:
           bash scripts/check-python-complexity.sh
           bash scripts/test-check-python-complexity.sh
 
+      # Nửa còn lại của cổng CC (PR #123 làm Python): shell đo bằng bản vendor có ghim
+      # `vendor/shellmetrics/` — cổng tự kiểm SHA256 trước khi chạy nên không cần mạng.
+      # HAI trần: hàm ≤ 12 (như Python), thân script ≤ 45 (nắp chặn trượt, đặt trên mức cao
+      # nhất đo được lúc dựng cổng là 41 — xem đầu scripts/check-shell-complexity.sh).
+      - name: Độ phức tạp vòng của mã shell (shellmetrics — hàm ≤ 12, thân script ≤ 45)
+        run: |
+          bash scripts/check-shell-complexity.sh
+          bash scripts/test-check-shell-complexity.sh
+
       - name: Cài ShellCheck (không dựa vào gói có sẵn của runner)
         run: sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
 
