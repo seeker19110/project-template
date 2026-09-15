@@ -100,7 +100,8 @@ d="$(setup_repo)"
 # Đối chứng: TAB và CR là ký tự văn bản HỢP LỆ — chặn chúng là chặn oan (bảng Markdown dùng tab,
 # file checkout trên Windows có CR). Mục 8 phải bỏ qua cả hai.
 printf 'Cot1%sCot2%s
-' "$(printf '	')" "$(printf '')" >> "$d/README.md"
+' "$(printf '	')" "$(printf '
+')" >> "$d/README.md"
 rc="$(run_check "$d" check-docs-consistency.sh)"
 [ "$rc" = "0" ] && ok "KHÔNG chặn oan TAB/CR trong *.md (đối chứng mục 8)" || bad "chặn OAN tab/CR (rc=$rc)"
 
@@ -135,6 +136,55 @@ rc="$(run_check "$d" check-docs-consistency.sh)"
 ## ============================================================
 ## 2. check-ci-policy.sh
 ## ============================================================
+# --- F-403: 5 nhánh phát hiện trước đây KHÔNG có negative test nào ---------------------
+# Hệ quả đo được: mục 7 của check-ci-policy.sh đã HỎNG THẬT (audit F-303) mà không suite nào thấy.
+# Một nhánh cổng không có ca làm nó đỏ thì không ai biết nó còn sống hay đã chết.
+
+d="$(setup_repo)"
+# Mục 2 — tên file cũ còn sót. Ghép chuỗi lúc chạy vì nếu viết thẳng tên cũ vào SOURCE của file này
+# thì chính mục 2 sẽ bắt file test này trên repo thật (bộ dò tự khớp thứ nó đang soi).
+old_name="KHUNG-1"; old_name="${old_name}.md"
+printf '\nTài liệu cũ: %s\n' "$old_name" >> "$d/README.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && ok "bắt được tên file CŨ còn sót (mục 2)" \
+                || bad "KHÔNG bắt được tên cũ còn sót (rc=$rc) — bảng ánh xạ mất tác dụng"
+
+d="$(setup_repo)"
+# Mục 3 chiều A — có file lệnh nhưng CLAUDE.md không khai.
+printf -- '---\ndescription: lệnh giả cho test\n---\nNội dung.\n' > "$d/.claude/commands/lenh-chua-khai.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && ok "bắt được lệnh có file nhưng CLAUDE.md chưa khai (mục 3 chiều A)" \
+                || bad "KHÔNG bắt được lệnh chưa khai (rc=$rc)"
+
+d="$(setup_repo)"
+# Mục 3 chiều B — CLAUDE.md nhắc /tên nhưng không có file lệnh.
+ghost="lenh-khong-ton-tai"
+printf '\nGõ `/%s` để thử.\n' "$ghost" >> "$d/CLAUDE.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && ok "bắt được CLAUDE.md nhắc lệnh không có file (mục 3 chiều B)" \
+                || bad "KHÔNG bắt được lệnh ma (rc=$rc)"
+
+d="$(setup_repo)"
+# Mục 4b — agent tồn tại nhưng không được nhắc trong orchestration-3-tier.md.
+printf -- '---\nname: agent-mo-coi\ndescription: >-\n  Agent giả cho test.\n---\nNội dung.\n' \
+  > "$d/.claude/agents/agent-mo-coi.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && ok "bắt được subagent không được nhắc trong bảng route (mục 4b)" \
+                || bad "KHÔNG bắt được agent mồ côi (rc=$rc) — /auto sẽ dispatch tới nhãn không có agent"
+
+d="$(setup_repo)"
+# check-ci-policy mục 7 — bảng kiểm CP-* lệch giữa bản shell và bản vitest.
+# Xoá một CP khỏi bản vitest => shell có, vitest không => phải đỏ.
+vitest="$d/scripts/ci-workflow-policy.test.ts"
+if [ -f "$vitest" ]; then
+  sed -i.bak '/CP-6/d' "$vitest" && rm -f "$vitest.bak"
+  rc="$(run_check "$d" check-ci-policy.sh)"
+  [ "$rc" = "1" ] && ok "bắt được bảng kiểm CP-* lệch shell ↔ vitest (mục 7)" \
+                  || bad "KHÔNG bắt được CP-* lệch (rc=$rc) — W-302 mất hiệu lực âm thầm"
+else
+  bad "không tìm thấy $vitest — ca mục 7 không chạy được"
+fi
+
 echo "== 2. check-ci-policy.sh =="
 
 d="$(setup_repo)"
