@@ -35,9 +35,31 @@ jobs:
         run: |
           set +e
           bash scripts/maintenance-sweep.sh --no-deps --out maintenance-report.md
-          echo "rc=$?" >> "$GITHUB_OUTPUT"
-          red="$(grep -m1 -oE '🔴 [0-9]+' maintenance-report.md | grep -oE '[0-9]+' || echo 0)"
-          yel="$(grep -m1 -oE '🟡 [0-9]+' maintenance-report.md | grep -oE '[0-9]+' || echo 0)"
+          rc=$?
+          set -e
+
+          # Sweep CHẾT phải khác hẳn sweep SẠCH.
+          # Trước (audit F-202): `rc` được ghi ra $GITHUB_OUTPUT rồi KHÔNG AI ĐỌC, và hai dòng
+          # `grep … || echo 0` biến "không parse được số" thành red=0/yel=0. Hệ quả: sweep chết
+          # giữa chừng (lỗi git, OOM, đầu vào lạ) → báo cáo chưa kịp ghi dòng tổng → bước sau thấy
+          # 0/0 → nó COMMENT "🔴 0 · 🟡 0 — đóng issue" RỒI ĐÓNG issue bảo trì đang mở. Tức lượt
+          # quét thất bại trông y hệt lượt quét sạch, và còn chủ động xoá dấu vết. Job vẫn xanh.
+          # Đây là kênh observability DUY NHẤT chạy theo lịch của repo, nên fail-open ở đây là chỗ
+          # tệ nhất để fail-open.
+          if [ "$rc" -ne 0 ]; then
+            echo "::error::maintenance-sweep.sh thoát $rc — lượt quét KHÔNG hoàn tất. Không đọc số liệu, không đụng issue."
+            exit "$rc"
+          fi
+
+          # Không `|| echo 0`: thiếu dòng tổng nghĩa là báo cáo không hoàn chỉnh, phải đỏ.
+          red="$(grep -m1 -oE '🔴 [0-9]+' maintenance-report.md | grep -oE '[0-9]+' || true)"
+          yel="$(grep -m1 -oE '🟡 [0-9]+' maintenance-report.md | grep -oE '[0-9]+' || true)"
+          if [ -z "$red" ] || [ -z "$yel" ]; then
+            echo "::error::Không đọc được dòng tổng '🔴 N · 🟡 M' trong maintenance-report.md — báo cáo không hoàn chỉnh, KHÔNG được coi là sạch."
+            exit 1
+          fi
+
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
           echo "red=$red" >> "$GITHUB_OUTPUT"
           echo "yel=$yel" >> "$GITHUB_OUTPUT"
           cat maintenance-report.md >> "$GITHUB_STEP_SUMMARY"
