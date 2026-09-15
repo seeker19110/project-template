@@ -40,6 +40,7 @@ Không liệt kê job của `secret-scan.yml`, `dependency-review.yml`, `release
 
 ```
 ci.yml: framework-lint
+ci.yml: framework-lint-windows
 ci.yml: docs-consistency
 ci.yml: copy-framework-smoke
 ci.yml: progress-freshness

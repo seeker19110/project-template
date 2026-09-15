@@ -7,6 +7,7 @@
 | Muốn | Sửa | Rồi chạy |
 | --- | --- | --- |
 | Thêm slash command mới | `.claude/commands/<tên>.md` **+** khai TRIGGER trong `CLAUDE.md` §1 (mục tương ứng) | `scripts/check-docs-consistency.sh` (kiểm hai chiều lệnh ↔ CLAUDE.md) |
+| Sửa thứ **chỉ khác nhau giữa Windows và Linux** (encoding stdout, line-ending, công cụ sẵn có) | chính file đó **+** cân nhắc thêm bước vào job `framework-lint-windows` của `ci.yml` | `framework-lint-windows` (chạy `windows-latest` + Git Bash; CI Linux KHÔNG bắt được nhóm lỗi này — TRAPS mục 24/26/27) |
 | Thêm một `scripts/test-*.sh` mới | script đó **+** một bước gọi nó trong `.github/workflows/ci.yml` (test không cổng nào chạy = không tồn tại — TRAPS.md bẫy 10) | `scripts/check-ci-policy.sh` (CP-5) |
 | Thêm/sửa engine Python (`scripts/*.py`) | file đó, giữ khối `_stream.reconfigure(encoding="utf-8")` ở đầu (TRAPS.md bẫy 9) | `scripts/test-next-gen-engines.sh`, `scripts/test-telemetry-and-dispatch.sh` |
 | Sửa logic một trong 3 gate chính (`check-docs-consistency.sh`, `check-ci-policy.sh`, `check-progress-freshness.sh`) | Đúng script đó | `scripts/test-check-scripts.sh` (negative-test — PHẢI còn bắt được lỗi sau khi sửa, không chỉ hết crash; audit 2026-09-12 G-001) |

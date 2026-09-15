@@ -120,6 +120,69 @@ jobs:
             if [ -f "$f" ]; then jq empty "$f" && echo "OK $f"; fi
           done
 
+  # ---------------------------------------------------------------------------------------------
+  # CỔNG WINDOWS (2026-09-15). VÌ SAO CẦN: mọi job khác chạy ubuntu, nên cổng của khung chỉ chứng
+  # minh được điều gì đó TRÊN LINUX — trong khi khung này nhắm tới người dùng Windows (có bản
+  # `copy-framework.ps1`, tài liệu tiếng Việt, hướng dẫn PowerShell). Trong MỘT lượt chạy tay trên máy
+  # Windows thật (2026-09-15) đã lội ra NĂM lỗi nằm im nhiều tháng, TẤT CẢ đều vô hình với CI Linux:
+  #   · 4 engine Python chết vì `UnicodeEncodeError` trên console cp1252            (TRAPS mục 24, PR #134)
+  #   · Python nội tuyến trong heredoc `.sh` cũng vậy                              (TRAPS mục 24, PR #137)
+  #   · `vendor/shellmetrics` bị CRLF-hoá → SHA256 lệch → cổng CC shell chết hẳn  (TRAPS mục 27, PR #134)
+  #   · thiếu `jq` → hook fail-open → mất sạch hàng rào mà không dấu hiệu gì        (TRAPS mục 26, PR #134)
+  # Job này là cổng máy cho cả bốn khuôn đó. CỐ Ý không nhân đôi toàn bộ CI: chỉ chạy những suite
+  # mà sự khác biệt nền tảng THẬT SỰ đo được (encoding, line-ending, công cụ sẵn có) — kiểm thuần
+  # văn bản (docs-consistency, ci-policy) không phụ thuộc nền tảng nên không lặp lại ở đây.
+  # `shell: bash` trên runner Windows = Git Bash — đúng thứ người dùng Windows thực sự dùng.
+  framework-lint-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # KHÔNG đặt core.autocrlf — để nguyên mặc định của runner Windows (autocrlf=true) CHÍNH LÀ
+      # điều kiện đã làm hỏng `vendor/shellmetrics`. Tắt nó ở đây sẽ làm cổng này mất ý nghĩa.
+      - name: Công cụ bắt buộc phải CÓ (thiếu thì ĐỎ, không được âm thầm bỏ qua)
+        run: |
+          set -e
+          # test-hooks-gate.sh báo "BỎ QUA" khi thiếu jq (đúng ở máy dev — xem TRAPS mục 26).
+          # Trên CI thì KHÔNG: thiếu jq nghĩa là job này chứng minh được ít hơn nó tưởng.
+          command -v jq      >/dev/null || { echo "::error::Runner thiếu jq — test-hooks-gate sẽ BỎ QUA và cổng này thành xanh giả."; exit 1; }
+          command -v python3 >/dev/null || command -v python >/dev/null || { echo "::error::Runner thiếu Python."; exit 1; }
+          echo "jq: $(jq --version) | bash: $BASH_VERSION | awk: $(awk --version 2>&1 | head -1)"
+
+      - name: Engine Python chạy được trên console Windows (cp1252 — TRAPS mục 24)
+        run: |
+          set -e
+          bash scripts/test-next-gen-engines.sh
+          bash scripts/test-telemetry-and-dispatch.sh
+          bash scripts/test-engine-characterization.sh
+          bash scripts/test-usage-estimate.sh
+
+      - name: Hook cổng chặn thật trên Windows (21 ca — cần jq, TRAPS mục 26)
+        run: bash scripts/test-hooks-gate.sh
+
+      # Đây là cổng bắt CRLF: checkout trên Windows với autocrlf mặc định từng đổi
+      # `vendor/shellmetrics` sang CRLF → SHA256 lệch → chính cổng này từ chối chạy (TRAPS mục 27).
+      # Nếu ai đó gỡ `vendor/** -text` khỏi `.gitattributes`, bước này đỏ ngay.
+      - name: Cổng CC shell + tính toàn vẹn bản vendor (TRAPS mục 27)
+        run: |
+          set -e
+          bash scripts/check-shell-complexity.sh
+          bash scripts/test-check-shell-complexity.sh
+
+      - name: Cổng CC Python (radon) trên Windows
+        run: |
+          set -e
+          PY=python3; command -v python3 >/dev/null || PY=python
+          "$PY" -m pip install --quiet "radon==6.0.1"   # ghim: đổi bản radon là đổi cách tính CC
+          bash scripts/check-python-complexity.sh
+          bash scripts/test-check-python-complexity.sh
+
+      - name: copy-framework trên Windows thật (cả .sh lẫn .ps1)
+        run: REQUIRE_PWSH=1 bash scripts/test-copy-framework.sh
+
   # Luôn chạy (không cần package.json) — bắt link gãy / tên file cũ sót lại trong tài liệu
   # của chính repo khung, để không phải rà tay sau mỗi lần đổi tên file.
   docs-consistency:
@@ -216,7 +279,7 @@ jobs:
   # một job cha đỏ, và GitHub coi required check "skipped" là ĐẠT (hỏng im lặng).
   gate:
     if: always()
-    needs: [framework-lint, docs-consistency, copy-framework-smoke, progress-freshness, protection-guard]
+    needs: [framework-lint, framework-lint-windows, docs-consistency, copy-framework-smoke, progress-freshness, protection-guard]
     runs-on: ubuntu-latest
     steps:
       - name: Kết luận từ mọi job cổng
