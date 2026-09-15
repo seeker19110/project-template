@@ -38,11 +38,46 @@ AGENT_TIER = {
 }
 
 
-def load_capability_tiers():
+def load_capability_tiers(required=True):
+    """Đọc bảng cấp năng lực. Thiếu file / hỏng JSON / sai cấu trúc -> dừng hẳn với thông điệp nêu
+    ĐÚNG nguyên nhân, theo khuôn telemetry-log.py:load_rates().
+
+    Bản cũ trả {} cho cả ba ca, nên chúng đều biến thành "tier 'X' không có trong <đường dẫn>" —
+    một thông điệp ĐỔ LỖI SAI CHỖ cho tham số người dùng vừa gõ (audit F-207). Đường dẫn này là thứ
+    AI tự chạy (ADR-0006), không có người đọc lỗi tại chỗ, nên chẩn đoán sai tốn hẳn một vòng.
+
+    `required=False` dùng cho ca chỉ cần biết "có bảng nào không" (vd sinh `choices` của argparse)
+    — ở đó thiếu file không phải lỗi, chỉ là không có tier nào để chọn.
+    """
     if not os.path.exists(CAPABILITY_MAP_FILE):
-        return {}
-    with open(CAPABILITY_MAP_FILE, "r", encoding="utf-8", errors="ignore") as f:
-        return json.load(f).get("tiers", {})
+        if not required:
+            return {}
+        print(
+            f"LỖI: không tìm thấy bảng cấp năng lực {CAPABILITY_MAP_FILE}.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    try:
+        with open(CAPABILITY_MAP_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, json.JSONDecodeError) as exc:
+        if not required:
+            return {}
+        print(
+            f"LỖI: không đọc được {CAPABILITY_MAP_FILE}: {exc}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    tiers = data.get("tiers")
+    if not isinstance(tiers, dict):
+        if not required:
+            return {}
+        print(
+            f"LỖI: {CAPABILITY_MAP_FILE} thiếu khoá gốc 'tiers' (hoặc nó không phải object).",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    return tiers
 
 
 def parse_agent_md(file_path):
@@ -156,10 +191,16 @@ def _build_parser():
         help="Target AI Harness",
     )
     parser.add_argument("--json", action="store_true", help="Output result as JSON")
+    # `choices` SINH TỪ CHÍNH JSON, không hard-code: bản cũ liệt kê 5 tier cứng ở đây, nên thêm một
+    # tier vào file dữ liệu là VÔ HIỆU — argparse chặn trước khi file được mở (audit F-207). Danh
+    # sách từng bị nhân bản 3 nơi: choices, khoá JSON, văn xuôi CLAUDE.md.
+    # `required=False`: lúc dựng parser mà thiếu file thì không phải lỗi — lỗi sẽ được báo đúng chỗ
+    # khi thật sự dùng `--tier`.
+    tier_choices = sorted(load_capability_tiers(required=False).keys()) or None
     parser.add_argument(
         "--tier",
         type=str,
-        choices=["planning", "complex", "spec", "standard", "mechanical"],
+        choices=tier_choices,
         help="In ứng viên đa nhà cung cấp cho một cấp năng lực (scripts/model-capability-tiers.json), không dispatch agent nào",
     )
     return parser
@@ -180,8 +221,19 @@ def _print_tier_candidates(tier, as_json):
     print(f"Cấp năng lực '{tier}': {info.get('desc', '')}")
     for c in info.get("candidates", []):
         flag = " (CẦN xác minh trước khi dùng)" if c.get("verify_before_use") else ""
+        # `.get(..., "?")` thay vì index trần: một ứng viên thiếu trường (gõ nhầm tên khoá khi thêm
+        # nhà cung cấp mới) trước đây ném `KeyError: 'model_hint'` — traceback Python giữa một phiên
+        # AI tự chạy, thay vì một dòng nói rõ chỗ nào khuyết (audit F-207).
+        missing = [k for k in ("provider", "harness", "model_hint") if k not in c]
+        if missing:
+            print(
+                f"  ⚠️  ứng viên thiếu trường {', '.join(missing)} trong {CAPABILITY_MAP_FILE}"
+                f" — sửa file dữ liệu, dòng này in bằng '?' cho phần khuyết",
+                file=sys.stderr,
+            )
         print(
-            f"  - [{c['provider']}] harness={c['harness']} :: {c['model_hint']}{flag}"
+            f"  - [{c.get('provider', '?')}] harness={c.get('harness', '?')}"
+            f" :: {c.get('model_hint', '?')}{flag}"
         )
 
 

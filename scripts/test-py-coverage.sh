@@ -83,6 +83,30 @@ run scripts/subagent-dispatch.py --agent reviewer --task "T" --harness generic -
 run scripts/subagent-dispatch.py --agent khong-ton-tai --task "T"
 run scripts/subagent-dispatch.py
 
+# --- Đường LỖI của bảng cấp năng lực (audit F-207) ---------------------------------------
+# Ba ca hỏng dữ liệu phải cho ba thông điệp KHÁC NHAU, không gộp thành "tier không tồn tại".
+# Cùng khuôn đã dùng cho model-rates.json ngay dưới: sửa file thật rồi KHÔI PHỤC ngay.
+TIERS="scripts/model-capability-tiers.json"
+TIERS_BAK="$WORK/tiers.bak"; cp "$TIERS" "$TIERS_BAK"
+# (a) thiếu file
+mv "$TIERS" "$WORK/tiers.hidden"
+run scripts/subagent-dispatch.py --tier standard
+mv "$WORK/tiers.hidden" "$TIERS"
+# (b) hỏng JSON
+printf '{ hong json' > "$TIERS"; run scripts/subagent-dispatch.py --tier standard; cp "$TIERS_BAK" "$TIERS"
+# (c) thiếu khoá gốc 'tiers'
+printf '{"levels": {}}' > "$TIERS"; run scripts/subagent-dispatch.py --tier standard; cp "$TIERS_BAK" "$TIERS"
+# (d) ứng viên thiếu trường bắt buộc → nhánh cảnh báo, không KeyError
+"$PYTHON_CMD" - "$TIERS" <<'PYX'
+import json, sys
+p = sys.argv[1]
+d = json.load(open(p, encoding="utf-8"))
+d["tiers"]["standard"]["candidates"][0].pop("model_hint", None)
+json.dump(d, open(p, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PYX
+run scripts/subagent-dispatch.py --tier standard
+cp "$TIERS_BAK" "$TIERS"
+
 # --- telemetry-log: record (nhiều model), summary, widget, và ĐƯỜNG LỖI bảng giá ---
 for m in claude-opus-5 claude-sonnet-5 claude-haiku-4-5 gpt-4o model-la-hoac-gi-do; do
   run scripts/telemetry-log.py --record --model "$m" --task "Ca do phu $m" \

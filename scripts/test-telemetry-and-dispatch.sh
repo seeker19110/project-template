@@ -78,6 +78,72 @@ else
   ok "subagent-dispatch --tier chặn giá trị không hợp lệ"
 fi
 
+# --- F-207: dữ liệu hỏng phải báo ĐÚNG CHỖ, không đổ lỗi cho tham số người dùng -------------
+# Đường dẫn này là thứ AI TỰ CHẠY (ADR-0006) — không có người đọc lỗi tại chỗ. Một thông điệp đổ
+# lỗi sai chỗ hoặc một traceback trần giữa phiên tự động tốn hẳn một vòng chẩn đoán.
+# Khuôn đúng đã có sẵn ở telemetry-log.py:load_rates() — "thiếu file/hỏng JSON → dừng hẳn" với
+# thông điệp nêu đúng nguyên nhân. File chị em này chưa theo.
+TIERS_FILE="$ROOT/scripts/model-capability-tiers.json"
+BACKUP="$(mktemp)"; cp "$TIERS_FILE" "$BACKUP"
+restore_tiers() { cp "$BACKUP" "$TIERS_FILE"; }
+trap restore_tiers EXIT
+
+# (a) File KHÔNG tồn tại → thông điệp phải nói THIẾU FILE, không phải "tier không có trong ...".
+mv "$TIERS_FILE" "$TIERS_FILE.hidden"
+out_missing="$(bash "$ROOT/scripts/subagent-dispatch.sh" --tier standard 2>&1)"; rc_missing=$?
+mv "$TIERS_FILE.hidden" "$TIERS_FILE"
+[ "$rc_missing" != "0" ] && ok "thiếu file bảng cấp: thoát khác 0" || bad "thiếu file bảng cấp vẫn thoát 0"
+echo "$out_missing" | grep -qiE 'không đọc được|không tìm thấy|thiếu' \
+  && ok "thiếu file bảng cấp: thông điệp nói ĐÚNG nguyên nhân (thiếu file)" \
+  || bad "thiếu file bảng cấp: thông điệp đổ lỗi sai chỗ — '$out_missing'"
+
+# (b) JSON hỏng cú pháp → phải nói hỏng JSON, không phải traceback trần.
+printf '{ hong json' > "$TIERS_FILE"
+out_broken="$(bash "$ROOT/scripts/subagent-dispatch.sh" --tier standard 2>&1)"; rc_broken=$?
+restore_tiers
+[ "$rc_broken" != "0" ] && ok "JSON hỏng: thoát khác 0" || bad "JSON hỏng vẫn thoát 0"
+echo "$out_broken" | grep -q 'Traceback' \
+  && bad "JSON hỏng: traceback Python trần — không phải thông điệp cố ý" \
+  || ok "JSON hỏng: KHÔNG có traceback trần"
+
+# (c) Đổi CẤU TRÚC (mất khoá gốc 'tiers') → phải nói SAI CẤU TRÚC, khác hẳn ca (a).
+printf '{"levels": {}}' > "$TIERS_FILE"
+out_struct="$(bash "$ROOT/scripts/subagent-dispatch.sh" --tier standard 2>&1)"; rc_struct=$?
+restore_tiers
+[ "$rc_struct" != "0" ] && ok "sai cấu trúc: thoát khác 0" || bad "sai cấu trúc vẫn thoát 0"
+# Không grep chữ "tiers" trần: chuỗi đó có sẵn trong TÊN FILE (model-capability-tiers.json) nên ca
+# này từng xanh GIẢ. Đòi một cụm chỉ xuất hiện khi code thật sự phân biệt được "sai cấu trúc".
+echo "$out_struct" | grep -qiE "thiếu khoá|khoá gốc" \
+  && ok "sai cấu trúc: thông điệp nêu đúng khoá gốc bị thiếu" \
+  || bad "sai cấu trúc: không nêu khoá thiếu — '$out_struct'"
+
+# (d) Ứng viên thiếu trường bắt buộc → không được ném KeyError trần.
+python3 - "$TIERS_FILE" <<'PYX'
+import json, sys
+p = sys.argv[1]
+d = json.load(open(p, encoding="utf-8"))
+d["tiers"]["standard"]["candidates"][0].pop("model_hint", None)
+json.dump(d, open(p, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PYX
+out_key="$(bash "$ROOT/scripts/subagent-dispatch.sh" --tier standard 2>&1)"; rc_key=$?
+restore_tiers
+echo "$out_key" | grep -q 'Traceback' \
+  && bad "ứng viên thiếu trường: KeyError traceback trần (rc=$rc_key)" \
+  || ok "ứng viên thiếu trường: KHÔNG có traceback trần"
+
+# (e) Danh sách tier phải SINH TỪ JSON, không hard-code: thêm tier vào file thì dùng được ngay.
+python3 - "$TIERS_FILE" <<'PYX'
+import json, sys
+p = sys.argv[1]
+d = json.load(open(p, encoding="utf-8"))
+d["tiers"]["tier-moi-cho-test"] = {"desc": "tier thêm lúc chạy", "candidates": []}
+json.dump(d, open(p, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PYX
+out_new="$(bash "$ROOT/scripts/subagent-dispatch.sh" --tier tier-moi-cho-test 2>&1)"; rc_new=$?
+restore_tiers
+[ "$rc_new" = "0" ] && ok "tier thêm vào JSON dùng được ngay (choices sinh từ dữ liệu)" \
+                    || bad "tier thêm vào JSON bị argparse chặn — choices đang hard-code, JSON chưa từng được đọc"
+
 echo "== 2. Telemetry & Observability Engine =="
 
 out_rec="$(bash "$ROOT/scripts/telemetry-log.sh" --record --agent test-agent --harness test-harness --task "Self Test" --duration 1.5 --test-status PASSED 2>&1)"
