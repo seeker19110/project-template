@@ -162,12 +162,18 @@ is_in() { local needle="$1"; shift; for x in "$@"; do [ "$x" = "$needle" ] && re
 echo "== Job của ci.yml có trong needs: của gate =="
 if grep -q "^  gate:" .github/workflows/ci.yml; then
   needs_line="$(grep -A3 "^  gate:" .github/workflows/ci.yml | grep -m1 "needs:")"
+  # Tach thanh DANH SACH job roi so BANG DUNG tung ten. Ban cu grep ca dong voi ...:
+  # "-" khong phai ky tu tu, nen `framework-lint` KHOP ben trong `framework-lint-windows`
+  # => mot job bi go khoi needs: van duoc coi la co, chi vi job KHAC co ten bat dau giong.
+  # Da do that o negative test CP-4 khi them job cong Windows (PR them framework-lint-windows).
+  needs_ids="$(printf '%s' "$needs_line" | sed -E 's/.*needs:[[:space:]]*\[([^]]*)\].*/\1/' | tr ',' ' ')"
   for job in "${!actual_jobs[@]}"; do
     case "$job" in ci.yml:*) ;; *) continue ;; esac
     jid="${job#ci.yml:}"
     [ "$jid" = "gate" ] && continue
     is_in "$job" "${CP4_BOOTSTRAP_EXEMPT[@]}" && continue
-    if ! printf '%s' "$needs_line" | grep -q "\b$jid\b"; then
+    # shellcheck disable=SC2086  # can tach tu: $needs_ids la danh sach ten job
+    if ! is_in "$jid" $needs_ids; then
       echo "::error file=.github/workflows/ci.yml::Job '$jid' KHÔNG có trong needs: của job 'gate' — đỏ sẽ không chặn merge (ADR-0003)."
       fail=1
     fi

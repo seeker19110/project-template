@@ -40,6 +40,12 @@ fi
 # Hai ca dưới chứng minh contract test THẬT SỰ bắt lỗi, và KHÔNG đỏ oan.
 scratch="$(mktemp -d)"
 trap 'rm -rf "$scratch"' EXIT
+# Python là chương trình Windows GỐC: nó không hiểu đường dẫn kiểu MSYS (`/tmp/...`) mà `mktemp -d`
+# trả về, nên `unittest discover -s /tmp/...` KHÔNG tìm thấy test nào và luôn thoát khác 0 — AC-2
+# xanh OAN (đỏ nhưng sai lý do) còn AC-3 đỏ oan. Cùng cách xử lý đã dùng cho $ROOT ở đầu file.
+# KHÔNG lộ trên máy dev nếu TMPDIR đã là đường dẫn Windows — chỉ đỏ trên runner windows-latest
+# (nơi TMPDIR là /tmp). Đây chính là lỗi đầu tiên mà job `framework-lint-windows` bắt được.
+if command -v cygpath >/dev/null 2>&1; then scratch="$(cygpath -m "$scratch")"; fi
 mkdir -p "$scratch/docs/specs" "$scratch/tests/contracts" "$scratch/scripts"
 # Test sinh ra tính ROOT_DIR = 3 cấp trên chính nó (<scratch>/tests/contracts/x.py -> <scratch>),
 # nên ca đối chứng phải trỏ tới file có thật TRONG scratch, không phải trong repo.
@@ -66,8 +72,13 @@ cat > "$scratch/docs/specs/2099-01-01-ca-am.md" <<SPEC
 - \`$MISSING_PATH\`
 SPEC
 "$PYTHON_CMD" "$ROOT/scripts/spec-compiler.py" --spec "$scratch/docs/specs/2099-01-01-ca-am.md"   --out-dir "$scratch/tests/contracts" >/dev/null 2>&1
-if "$PYTHON_CMD" -m unittest discover -s "$scratch/tests/contracts" >/dev/null 2>&1; then
+out_ac2="$("$PYTHON_CMD" -m unittest discover -s "$scratch/tests/contracts" 2>&1)"
+if [ $? -eq 0 ]; then
   bad "AC-2: contract test KHÔNG đỏ dù spec Approved trỏ tới file không tồn tại (assertion rỗng?)"
+elif ! printf '%s' "$out_ac2" | grep -q "^Ran [1-9]"; then
+  # Đỏ nhưng KHÔNG phải vì assertion — discover không chạy được test nào (ví dụ đường dẫn MSYS
+  # trên Windows). Nếu không bắt ở đây thì ca này xanh oan và che mất chính lỗi đó.
+  bad "AC-2: đỏ nhưng SAI LÝ DO — unittest không chạy được test nào (discover hỏng?)"
 else
   ok "AC-2: contract test ĐỎ đúng lúc — spec Approved trỏ tới file không tồn tại"
 fi
