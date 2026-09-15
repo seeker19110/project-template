@@ -311,6 +311,35 @@ else
   skip "usage-guard.sh (cần jq)"
 fi
 
+
+echo "== 14. pre-commit-gate.sh: heredoc nhắc 'git commit' là DỮ LIỆU, không phải lệnh (F-304) =="
+# Bản vá bỏ-thân-heredoc trước đây CHỈ áp cho hook anh em block-dangerous-git.sh. pre-commit-gate.sh
+# chỉ bỏ phần trong nháy, nên một lệnh `cat` viết tài liệu/fixture có heredoc nhắc `git commit` bị
+# hiểu là commit thật → chạy TOÀN BỘ dev-task.sh gate cho một lệnh cat; ở dự án đích đang đỏ thì
+# hook exit 2 và CHẶN OAN một lệnh không liên quan.
+# Chặn oan nguy hiểm vì nó dạy người dùng gõ --no-verify thành phản xạ → mất luôn cổng thật.
+if [ "$HAS_JQ" = "1" ]; then
+  red_proj="$(setup_project 1)"   # dev-task.sh gate LUÔN ĐỎ → nếu hook coi là commit thật thì exit 2
+  heredoc_data="$(printf 'cat > huong-dan.md <<EOF\nBuoc 3: chay git commit -m "xong"\nEOF')"
+  rc="$(run_hook "$red_proj" "$heredoc_data" "" "$HOOK")"
+  [ "$rc" = "0" ] && ok "heredoc nhắc 'git commit' làm dữ liệu: KHÔNG chặn oan (exit 0)" \
+                  || bad "CHẶN OAN lệnh cat có heredoc (exit $rc) — dạy người dùng gõ --no-verify phản xạ"
+
+  # Đối chứng: commit THẬT đứng sau một heredoc vẫn phải bị chặn khi cổng đỏ.
+  real_after="$(printf 'cat > a.md <<EOF\nnoi dung\nEOF\ngit commit -m "that"')"
+  rc="$(run_hook "$red_proj" "$real_after" "" "$HOOK")"
+  [ "$rc" = "2" ] && ok "commit THẬT đứng sau heredoc: vẫn chặn (exit 2)" \
+                  || bad "để LỌT commit thật sau heredoc (exit $rc) — vá quá tay theo chiều nguy hiểm"
+
+  # Đối chứng: heredoc `<<-` thụt TAB cũng phải xử lý đúng (cùng khuôn TRAPS 30).
+  dash_data="$(printf 'cat > b.md <<-EOF\n\tBuoc: git commit -m x\n\tEOF')"
+  rc="$(run_hook "$red_proj" "$dash_data" "" "$HOOK")"
+  [ "$rc" = "0" ] && ok "heredoc <<- thụt TAB: KHÔNG chặn oan" \
+                  || bad "chặn oan heredoc <<- (exit $rc)"
+else
+  skip "pre-commit-gate heredoc (cần jq)"
+fi
+
 if [ "$fails" -eq 0 ] && [ "$skips" -gt 0 ]; then
   echo "⚠️  $skips nhóm ca BỊ BỎ QUA vì máy thiếu jq — chưa chứng minh được cổng chặn."
   echo "OK (không có ca nào ĐỎ) — cài jq rồi chạy lại để có bằng chứng đầy đủ."

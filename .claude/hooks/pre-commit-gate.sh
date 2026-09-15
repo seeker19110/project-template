@@ -21,9 +21,17 @@ else
   exit 0
 fi
 
-# Bỏ phần TRONG DẤU NHÁY trước khi so khớp (audit 2026-09-12): nếu không, một chuỗi mô tả như
-# `echo 'git reset --hard ...'` sẽ bị coi là lệnh git thật và chặn oan.
-cmd_scan="$(printf '%s' "$cmd" | sed "s/'[^']*'//g; s/\"[^\"]*\"//g")"
+# Bỏ THÂN HEREDOC rồi mới bỏ phần trong dấu nháy, trước khi so khớp.
+#   - trong nháy (audit 2026-09-12): `echo 'git reset --hard ...'` là chuỗi mô tả, không phải lệnh.
+#   - thân heredoc (audit 2026-09-15, F-304): `cat > x.md <<EOF … git commit … EOF` là DỮ LIỆU đang
+#     được ghi ra file, không phải commit thật. Thiếu bước này thì hook chạy toàn bộ
+#     `dev-task.sh gate` cho một lệnh `cat`, và ở dự án đích đang đỏ thì CHẶN OAN — thứ dạy người
+#     dùng gõ `--no-verify` thành phản xạ, và lúc đó cổng thật cũng mất tác dụng.
+# `strip_heredoc_bodies` dùng chung với block-dangerous-git.sh qua `_hook-lib.sh`: hai hook soi cùng
+# một thứ (chuỗi lệnh Bash) nên phải hiểu cú pháp giống nhau.
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/_hook-lib.sh"
+cmd_scan="$(printf '%s' "$cmd" | strip_heredoc_bodies | sed "s/'[^']*'//g; s/\"[^\"]*\"//g")"
 
 # Chỉ can thiệp khi thực sự là `git commit` (bỏ qua commit-tree, --help…).
 if ! printf '%s' "$cmd_scan" | grep -Eq '(^|[^-])git[[:space:]]+([^|&;]*[[:space:]])?commit([[:space:]]|$)'; then

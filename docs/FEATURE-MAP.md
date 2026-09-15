@@ -43,7 +43,7 @@
 | FT-21 | Bảo trì toàn diện định kỳ (ngoài bảng route) | `maintainer` (Sonnet) qua `/maintain` hoặc `scripts/maintain-run.sh` (CLI subscription cục bộ, mọi nhà cung cấp) | `scripts/maintenance-sweep.sh` → `docs/ops/MAINTENANCE-REPORT.md`, `docs/ops/MAINTENANCE-PLAN.md`, `docs/ops/MAINTENANCE-LOG.md` | ✅ | `test-maintenance-sweep.sh` (negative+positive) + `test-maintain-run.sh` (stub CLI 5 harness) — job `framework-lint` + smoke dự án đích |
 | FT-22b | Bảo trì không giám sát (VPS/cron) — đẩy nhánh + tự mở PR (GitHub REST API) để duyệt, không tự merge | `scripts/maintain-cron.sh` | nhánh `maint/auto-<ngày>`, `docs/ops/MAINTENANCE-*.md`, PR trên GitHub | ✅ | `test-maintain-cron.sh` (bare-repo remote thật + curl giả) — job `framework-lint` + smoke dự án đích |
 
-## C. Hook tự động (6) — `.claude/hooks/`
+## C. Hook tự động (6) + 1 thư viện dùng chung — `.claude/hooks/`
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
@@ -53,6 +53,7 @@
 | FT-24 | Nạp trạng thái để "tiếp tục" | `session-resume.sh` (SessionStart) | `PROGRESS.md`, git log | ✅ | `test-hooks-gate.sh` mục 12 (2026-09-15, audit F-401) |
 | FT-25 | Nhắc ngân sách quota | `usage-guard.sh` | `usage-estimate.sh`, `.claude/usage-budget.sh` | ✅ | `test-hooks-gate.sh` mục 13 (2026-09-15, audit F-401) — 8 ca gồm negative test |
 | FT-55 | Chặn lệnh git nguy hiểm (force-push main, `reset --hard`, `--abort`) | `block-dangerous-git.sh` (PreToolUse) | lệnh Bash sắp chạy | ✅ | `test-hooks-gate.sh` mục 7–9; TRAPS 18 + 30 |
+| FT-63 | *(thư viện, không phải hook)* Hàm dùng chung cho hook đọc lệnh Bash — bỏ thân heredoc | `_hook-lib.sh` (được `source`) | chuỗi lệnh Bash | ✅ | `test-hooks-gate.sh` mục 7–9 + 14 (qua hai hook dùng nó) |
 
 ## D. Cổng tự kiểm của CHÍNH repo khung (5 cổng `check-*` + 13 suite `test-*`) — `scripts/`
 

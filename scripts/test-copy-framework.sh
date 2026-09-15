@@ -62,6 +62,10 @@ check_structure() {     # check_structure <mô tả> <target>
   [ -d "$target/.claude/commands" ] && [ -f "$target/.claude/commands/gate.md" ] || { echo "  FAIL [$label]: thiếu .claude/commands/gate.md"; ok=0; }
   [ -f "$target/.claude/settings.json" ] || { echo "  FAIL [$label]: thiếu .claude/settings.json"; ok=0; }
   [ -d "$target/.claude/agents" ] || { echo "  FAIL [$label]: thiếu .claude/agents/"; ok=0; }
+  # Thư viện được hook `source` — thiếu nó thì CẢ HAI hook chết ngay dòng đầu ở dự án đích, và
+  # người dùng mất cả cổng chặn commit lẫn hàng rào chặn lệnh git nguy hiểm (TRAPS mục 19: thêm
+  # file bị `source` mà quên đưa vào bộ copy là khuôn đã mắc thật).
+  [ -f "$target/.claude/hooks/_hook-lib.sh" ] || { echo "  FAIL [$label]: thiếu .claude/hooks/_hook-lib.sh (hook sẽ chết khi source)"; ok=0; }
   [ -f "$target/CLAUDE.md" ] || { echo "  FAIL [$label]: thiếu CLAUDE.md"; ok=0; }
   [ -f "$target/_framework-dropins/.github/workflows/pr-policy.yml" ] || { echo "  FAIL [$label]: thiếu PR policy drop-in"; ok=0; }
   [ -f "$target/_framework-dropins/.github/workflows/dependency-review.yml" ] || { echo "  FAIL [$label]: thiếu Dependency Review drop-in"; ok=0; }
