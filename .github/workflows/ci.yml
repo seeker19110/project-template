@@ -116,9 +116,33 @@ jobs:
       - name: JSON cấu hình hợp lệ (jq)
         run: |
           set -e
-          for f in .claude/settings.json .claude/settings-shared-opusplan.json .mcp.json scripts/model-rates.json; do
-            if [ -f "$f" ]; then jq empty "$f" && echo "OK $f"; fi
+          # Danh sách BẮT BUỘC PHẢI CÓ — không bọc `if [ -f ]`.
+          # Trước (audit F-101): danh sách còn trỏ `.claude/settings-shared-opusplan.json`, file đã
+          # được ADR-0007 đổi tên thành `settings-shared-default.json`. Vì `if [ -f ]` bọc ngoài,
+          # bước này KHÔNG đỏ — nó im lặng bỏ qua, nên file thật sự được `copy-framework.sh` phát
+          # cho MỌI dự án đích chưa từng được `jq empty` kiểm kể từ lần đổi tên. Một dấu phẩy thừa
+          # ở đó sẽ đi thẳng xuống mọi dự án dựng từ khung, CI khung vẫn xanh.
+          # Không cổng nào bắt được: check-docs-consistency.sh chỉ quét *.md/*.sh/*.ps1, không *.yml.
+          files="
+            .claude/settings.json
+            .claude/settings-shared-default.json
+            .mcp.json
+            scripts/model-rates.json
+            scripts/model-capability-tiers.json
+            .github/rulesets/main.json
+          "
+          n=0
+          for f in $files; do
+            if [ ! -f "$f" ]; then
+              echo "::error file=$f::Thiếu file JSON bắt buộc '$f' — nếu nó vừa được đổi tên/bỏ đi thì SỬA DANH SÁCH NÀY, đừng để bước kiểm tự tắt im lặng."
+              exit 1
+            fi
+            jq empty "$f" && echo "OK $f"
+            n=$((n + 1))
           done
+          # Tự bảo vệ: danh sách rỗng thì vòng lặp không chạy và bước vẫn xanh — cổng rỗng luôn xanh
+          # là cổng hỏng.
+          [ "$n" -gt 0 ] || { echo "::error::Không kiểm được file JSON nào."; exit 1; }
 
   # ---------------------------------------------------------------------------------------------
   # CỔNG WINDOWS (2026-09-15). VÌ SAO CẦN: mọi job khác chạy ubuntu, nên cổng của khung chỉ chứng
