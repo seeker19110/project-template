@@ -6,7 +6,41 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, PR #136 + #137 đã merge): nới deny force-push
+- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, PR #139 đã merge): CỔNG WINDOWS
+  `framework-lint-windows`.** Trước PR này MỌI job cổng chạy `ubuntu-latest`, nên cổng của khung chỉ
+  chứng minh được điều gì đó TRÊN LINUX — trong khi khung nhắm tới người dùng Windows (bản
+  `copy-framework.ps1`, tài liệu tiếng Việt, hướng dẫn PowerShell). Một lượt chạy tay trên máy
+  Windows thật cùng ngày đã lộ ra 5 lỗi nằm im nhiều tháng (PR #134/#137, TRAPS mục 24/26/27), tất
+  cả đều vô hình với CI Linux — job này là cổng máy cho đúng nhóm đó.
+  **Chạy:** 4 suite engine Python · `test-hooks-gate` 21 ca · cổng CC shell + negative test · cổng
+  CC Python (radon) · `test-copy-framework` với `REQUIRE_PWSH=1`. **CỐ Ý không nhân đôi toàn bộ
+  CI:** kiểm thuần văn bản (docs-consistency, ci-policy, progress-freshness) không phụ thuộc nền
+  tảng. **Hai quyết định đáng nhớ:** (a) KHÔNG đặt `core.autocrlf` — mặc định của runner
+  (`autocrlf=true`) chính là điều kiện đã làm hỏng `vendor/shellmetrics`, tắt đi thì cổng mất ý
+  nghĩa; (b) có bước chặn riêng bắt runner PHẢI có `jq` — thiếu `jq` thì `test-hooks-gate` báo BỎ
+  QUA (đúng ở máy dev) nhưng trên CI sẽ thành **xanh giả**. Theo ADR-0003 chỉ cần job mới +
+  `needs:` của `gate` + bản kê `repository-settings.md`, KHÔNG phải sửa cấu hình GitHub.
+  **Job tự trả giá ngay trong 4 lượt chạy đầu — bắt thêm 4 lỗi nữa:**
+  (1) **CP-4 để lọt:** so khớp `needs:` bằng `grep "$jid"` trên cả dòng; `-` không phải ký tự
+  từ nên `framework-lint` KHỚP bên trong `framework-lint-windows` → một job bị gỡ khỏi `needs:` vẫn
+  được coi là có. Sửa: tách `needs:` thành danh sách, so BẰNG ĐÚNG từng tên.
+  (2) **AC-2 xanh oan:** đỏ nhưng SAI LÝ DO (discover không chạy được test nào). Nay đòi thêm
+  `Ran [1-9]` trong output — đỏ thôi chưa đủ, phải đỏ đúng lý do.
+  (3) **Lỗi SẢN PHẨM:** `os.path.relpath` NÉM `ValueError` trên Windows khi hai đường dẫn khác ổ
+  đĩa; runner checkout repo ở D: còn `mktemp -d` trả về C: → `spec-compiler` chết, không sinh test
+  nào. Sửa bằng `_display_path()` (fallback đường dẫn tuyệt đối — đây chỉ là NHÃN HIỂN THỊ, không
+  có lý do gì để nó làm chết cả lệnh biên dịch) + ca hồi quy **SC-1** ép `ValueError` bằng
+  monkeypatch nên có nghĩa trên CẢ Linux lẫn Windows. **TRAPS mục 28.**
+  (4) **Test tự vỡ:** characterization test gọi thẳng `relpath` để tính GIÁ TRỊ KỲ VỌNG → chính
+  dòng kỳ vọng ném lỗi. Biến thể thứ ba trong cùng phiên của khuôn "công cụ đo tự vướng vào thứ nó
+  đang đo" (hai lần trước: `check-docs-consistency` quét chính source của test; `block-dangerous-git`
+  khớp nhầm dữ liệu trong heredoc).
+  **Bài học đắt nhất, ghi ở TRAPS mục 28:** cả lệnh compile lẫn lệnh unittest đều bị nuốt bằng
+  `>/dev/null 2>&1`, nên triệu chứng chỉ là "AC-3 đỏ oan" — đoán sai HAI lượt liên tiếp. Thêm chẩn
+  đoán in ra (đường dẫn, phiên bản Python thật, output của compiler, nội dung thư mục, output của
+  unittest) thì nguyên nhân hiện ra trong MỘT lượt. **Một ca test đỏ mà không in được NGUYÊN NHÂN
+  là một ca test chưa xong.**
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-15, PR #136 + #137 đã merge): nới deny force-push
   + dọn nốt lỗi cp1252 ở Python nội tuyến.** Hai việc nối tiếp #134, cả hai đều do CHẠY THẬT
   trên máy Windows mới lộ.
   **(a) PR #136 — `permissions`:** `deny` cũ chặn MỌI force-push kể cả trên nhánh do chính phiên
@@ -200,7 +234,7 @@
   báo oan) nên nó KHÔNG chặn được PR quên bước 0, chỉ cảnh báo sau khi đã merge. Cân nhắc một cổng ở
   `pr-policy.yml` soi diff của PR thay đổi tài liệu khung mà không chạm `PROGRESS.md` — chưa làm, cần bàn
   vì dễ báo oan cho PR nhỏ.
-- Default-branch SHA đã đối chiếu: `ff27855` (`origin/main`, PR #137)
+- Default-branch SHA đã đối chiếu: `5d38a12` (`origin/main`, PR #139)
 - Nhánh đang làm: `main` (không có việc dở)
 - Ngày cập nhật: 2026-09-15
 
