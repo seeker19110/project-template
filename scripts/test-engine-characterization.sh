@@ -333,8 +333,19 @@ class TestParseSpecMarkdown(unittest.TestCase):
     def test_spec_file_la_duong_dan_tuong_doi_theo_root_dir(self):
         path = write(self.dir, "rel.md", "# T\n")
         parsed = compiler.parse_spec_markdown(path)
-        self.assertEqual(parsed["spec_file"],
-                         os.path.relpath(path, compiler.ROOT_DIR))
+        # Ky vong tinh qua CHINH _display_path chu khong goi thang os.path.relpath: tren Windows
+        # relpath NEM ValueError khi spec va ROOT_DIR khac o dia (runner: repo o D:, tmp o C:)
+        # -- va khi do chinh DONG KY VONG cua test se vo, chu khong phai ham dang duoc kiem.
+        # Xem TRAPS.md muc 28.
+        self.assertEqual(parsed["spec_file"], compiler._display_path(path))
+        # Van phai la duong dan TUONG DOI khi cung o dia -- neu khong, khang dinh tren rong
+        # tuech (ca hai ve goi cung mot ham). Chi doi hoi dieu do khi relpath tinh duoc that.
+        try:
+            expected_rel = os.path.relpath(path, compiler.ROOT_DIR)
+        except ValueError:
+            expected_rel = None
+        if expected_rel is not None:
+            self.assertEqual(parsed["spec_file"], expected_rel)
 
 
 class TestDispatchMain(unittest.TestCase):
