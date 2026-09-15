@@ -621,6 +621,11 @@ gần như luôn là binary/vendor, đúng loại tuyệt đối không được
 **Cách rà:** `git check-attr -a <file>` thấy `text: auto` trên thứ đáng lẽ bất khả xâm phạm;
 hoặc `file <path>` báo "with CRLF line terminators" trên file vendor.
 
+**LƯU Ý khi cập nhật:** sửa `.gitattributes` KHÔNG tự chữa bản sao đã CRLF-hoá trong cây làm
+việc sẵn có — luật mới chỉ áp lúc checkout. Sau khi kéo bản sửa về phải chạy `git checkout -- vendor`
+một lần (clone mới thì không cần). Cùng lý do, mọi `git reset --hard` về một commit TRƯỚC bản sửa
+sẽ làm hỏng lại file vendor — đã gặp thật ngay trong chính lượt sửa này.
+
 **Cổng chốt chặn:** `vendor/**  -text` trong `.gitattributes` (kèm `*.py`/`*.ts` `eol=lf` cùng lý do
 với `*.sh`). Ca 4-5 của `scripts/test-check-shell-complexity.sh` (sửa/khôi phục bản vendor) đã sẵn
 bắt được lệch checksum — thiếu mỗi việc file không bị Git làm lệch ngay từ lúc checkout.
