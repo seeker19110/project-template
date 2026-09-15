@@ -255,7 +255,7 @@
 | **C-03 Bề mặt đã tới hạn** | Thấp | Người dùng | 12 lệnh · 10 subagent · 10 cổng · 4 engine · 98 file tài liệu (8.6k dòng) · 13 file `CLAUDE.md` §1 bảo phải đọc. Đề xuất ĐÓNG BĂNG: chỉ thêm khi có nhu cầu gặp thật ở C-01 | đánh giá tổng thể 2026-09-14 |
 | Case-study Bước 6–8 (branch protection/Supabase/Vercel) chưa kiểm chứng | Thấp | Người dùng | Kiểm khi áp khung vào dự án thật có tài khoản | `docs/framework/case-study-greenfield-dry-run.md` |
 | ~~31 nhánh đã merge còn tồn trên remote (F-014)~~ | — | — | ✅ Đã xoá 2026-09-13 (người dùng, qua GitHub UI) — `list_branches` xác nhận chỉ còn `main` | `docs/ops/COMPLETION-PLAN.md` W-308 |
-| Ruleset `.github/rulesets/main.json` chưa import trên GitHub | Vừa | Người dùng | Import: Settings → Rules → Rulesets → New ruleset → Import a ruleset — job CI `protection-guard` đỏ tới khi làm (CỐ Ý chưa nằm trong `needs:` của `gate` để tránh deadlock — xem `CP4_BOOTSTRAP_EXEMPT` ở `check-ci-policy.sh`). Sau khi import + job xanh: mở PR thêm `protection-guard` vào `needs:` của `gate` + xoá khỏi allowlist đó | `docs/ops/repository-settings.md` |
+| ~~Ruleset `.github/rulesets/main.json` chưa import trên GitHub~~ | — | — | ✅ Đã import (xác nhận lại 2026-09-15: log job `protection-guard` live trên PR #131 in "OK — main đang được bảo vệ, và mọi required status check khai trong file đều đã bắt buộc"). `protection-guard` đã nằm trong `needs:` của `gate`, `CP4_BOOTSTRAP_EXEMPT` rỗng — dòng này lẽ ra phải gạch từ mốc PR #75 (mục "Đang làm / chờ" ở trên) nhưng bị bỏ sót, nay sửa cho khớp | `docs/ops/repository-settings.md` |
 | ~~G-003 (`orchestration-3-tier.md` dòng sơ đồ ASCII còn "Opus·high")~~ | — | — | ✅ Đã sửa — nhánh `fix/g003-g004-stale-effort-label` | `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md` |
 | ~~G-004 (effort/model lặp 6 file, không cổng đối chiếu)~~ | — | — | ✅ Đã sửa — mục 5 mới trong `check-docs-consistency.sh` (cấm "Opus · high" sống lại) + negative-test trong `test-check-scripts.sh` | `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md` |
 | ~~W-303 test RLS~~ | — | — | ➖ Hết hiệu lực (ADR-0004) — dropins Supabase đã gỡ, không còn gì để test | `docs/ops/COMPLETION-PLAN.md` W-303 |
@@ -277,5 +277,5 @@
   đường dẫn touchpoint, không đổi nội dung quyết định lịch sử; CI xanh lại (9/9 job), merge squash.
 - Việc CHƯA xong + lý do: không có.
 - Bước tiếp theo: chờ yêu cầu người dùng.
-- Quyền/quyết định cần thêm: không có gì mới ngoài việc tồn đọng cũ (import ruleset
-  `.github/rulesets/main.json` trên GitHub Settings để `protection-guard` hết đỏ).
+- Quyền/quyết định cần thêm: không có. Ruleset đã import từ trước (xác nhận lại qua log
+  `protection-guard` live 2026-09-15) — mục "Rủi ro/nợ kỹ thuật" đã gạch dòng lỗi thời tương ứng.
