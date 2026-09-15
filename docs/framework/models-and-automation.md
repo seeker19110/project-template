@@ -253,8 +253,25 @@ Model (§2) là cần thứ nhất, effort (§4) là cần thứ hai; **cách v�
 | `model` | `claude-sonnet-5` | Model tiêu chuẩn cho pha thực thi; pha lập kế hoạch chuyển tay bằng `/model` (mục 1) |
 | `fallbackModel` | `[sonnet-5, haiku-4-5]` | Dự phòng khi model chính bận |
 | `permissions.allow` | Edit/Write/Read, git an toàn, dev-task.sh, test/format/build | Auto-mode chạy không hỏi |
-| `permissions.deny` | rm -rf, force push, reset --hard, sudo, chmod 777, đọc .env/secrets | **Deny thắng allow** |
+| `permissions.deny` | rm -rf, force-push **vào `main`/`master`**, reset --hard, sudo, chmod 777, đọc .env/secrets | **Deny thắng allow** |
+| `permissions.ask` | force-push nhánh khác (`--force`/`-f`/`--force-with-lease`) | Hỏi từng lần, không chặn cứng |
 | `hooks` | SessionStart, PreToolUse, PostToolUse, Stop | 4 hook tự động (bảng dưới) |
+
+> **Ba lớp cho force-push (2026-09-15).** Trước đây `deny` chặn **mọi** force-push, kể cả trên nhánh
+> do chính phiên tạo — rộng hơn luật thật (`AGENTS.md`: cấm force-push **vào `main`/`master`**), và
+> đã làm kẹt thật hai lần khi cần `--amend` một commit merge sai tiêu đề (PR #125 phải đóng và
+> dựng lại nhánh; PR #134 phải nhờ người dùng gõ tay). Nay chia ba lớp:
+>
+> 1. `permissions.deny` — các cách viết nhắm thẳng `main`/`master` (`... main`, `...:main`, `-f`,
+>    `--force`, `--force-with-lease`): **chặn cứng, không hỏi**. Lớp này không phụ thuộc `jq`.
+> 2. `permissions.ask` — mọi force-push còn lại: **hỏi người dùng từng lần**, không im lặng cho qua.
+> 3. `.claude/hooks/block-dangerous-git.sh` — lớp hiểu NGỮ CẢNH: chặn khi có `main`/`master`,
+>    chỉ **cảnh báo** với nhánh riêng, và đã loại trừ dữ liệu trong nháy/heredoc để không chặn oan.
+>
+> **Giới hạn nói thật:** mẫu của `deny` so khớp **chuỗi lệnh**, nên `git push --force` trống (đang
+> đứng sẵn trên `main`, không ghi tên nhánh) KHÔNG khớp lớp 1 — nó rơi xuống lớp 2 (hỏi) và lớp 3.
+> Mà lớp 3 **fail-open khi thiếu `jq`** (`TRAPS.md` bẫy 26), nên trên máy không có `jq` thì ca này
+> chỉ còn lớp 2 canh. Đây là lý do nữa để cài `jq` (xem `README.md` → Yêu cầu môi trường).
 
 **Subagent — `.claude/agents/`**
 
