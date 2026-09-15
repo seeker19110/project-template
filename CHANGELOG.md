@@ -13,6 +13,52 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added (Thêm)
 
+- **Cổng máy CC cho mã shell** (`scripts/check-shell-complexity.sh`, spec:
+  `docs/specs/2026-09-15-cong-may-cc-shell.md`) — nối tiếp cổng CC Python: đo bằng
+  `vendor/shellmetrics` (shellmetrics 0.5.0, MIT, **vendor + ghim SHA256** nên chạy offline và
+  không phụ thuộc GitHub), **hai trần**: hàm ≤ 12 (`SH_CC_MAX`), thân script `<main>` ≤ 45
+  (`SH_CC_MAIN_MAX` — nắp chặn trượt đặt trên mức cao nhất đang có là 41). Negative test
+  `scripts/test-check-shell-complexity.sh` chứng minh cả hai trần đều chặn thật, tách rời nhau, và
+  checksum vendor sai làm cổng ĐỎ. Kèm theo: `dev-task.sh::detected_cmd` (18 → tách 5 hàm theo hệ
+  sinh thái) và `maintenance-sweep.sh::detect_deps_cmd` (13 → tách 4) hạ xuống dưới trần, hành vi
+  giữ nguyên (đối chiếu bản cũ ↔ mới trên fixture node/python/go/rust/make).
+
+- **Cổng máy cưỡng chế ngưỡng độ phức tạp vòng CC ≤ 12 cho engine Python**
+  (`scripts/check-python-complexity.sh`, spec: `docs/specs/2026-09-14-cong-may-cc-12.md`) — trước đây
+  ngưỡng này chỉ nằm trong văn xuôi (ADR-0005, chú thích characterization test) nên không cổng nào đỏ
+  vì nó, đúng khuôn `TRAPS.md` mục 14. Trần mặc định 12 (`PY_CC_MAX`), **không có miễn trừ theo hàm**;
+  thiếu `radon` → ĐỎ chứ không skip. Negative test `scripts/test-check-python-complexity.sh` chứng minh
+  cổng bắt đúng vi phạm. Kèm theo: `format_markdown_report` của `arch-health-radar.py` tách
+  `_optional_report_blocks` để xuống dưới trần (đầu ra báo cáo giữ nguyên) — trả dấu `DEBT:` duy nhất
+  của repo đúng điều kiện xem lại đã ghi.
+
+- **Ba luật rút từ đợt đối chiếu với nguồn ngoài `DietrichGebert/ponytail`** (bản đối chiếu ba cột:
+  `docs/reports/2026-09-14-doi-chieu-ponytail.md`; spec: `docs/specs/2026-09-14-ladder-va-dau-no-ky-thuat.md`)
+  — (1) `CLAUDE.md` §3 mục A4: **thang kiểm trước khi viết code** (có cần tồn tại → repo đã có chưa →
+  thư viện chuẩn → tính năng nền tảng → dependency đã cài → bản tối thiểu), chạy *sau* khi đã hiểu vấn đề,
+  dừng ở nấc đầu tiên khớp; (2) `CLAUDE.md` §3 mục A7: quy ước dấu nợ
+  `DEBT: <gì> | trần: <giới hạn> | xem lại khi: <điều kiện>` — **có cổng thật**: `maintenance-sweep.sh`
+  mảng 3 đếm dấu và cảnh báo 🟡 riêng cho dấu thiếu điều kiện xem lại (khuôn đã tái phát thật ở
+  `TRAPS.md` mục 14), kèm negative+positive test; (3) `/audit-optimize` thêm **nhóm 5 "tự viết lại thứ
+  đã có"** (nhãn `stdlib:`/`native:` — thứ knip/depcheck không đo được) và dòng tổng
+  `net: -N dòng, -M dependency`. Ba mâu thuẫn luật của nguồn (mức cường độ `ultra`, "không bao giờ dừng
+  hỏi khi có thể mặc định", luật rút gọn văn nói) được **nêu ra và từ chối**, không tự hoà giải.
+- **Agent bảo trì toàn diện** (spec `docs/specs/2026-09-14-maintenance-agent.md`) — subagent
+  `maintainer` + lệnh `/maintain` (quét → triage → kế hoạch chờ duyệt → PR nhỏ qua `/gate` → hội tụ)
+  + engine `scripts/maintenance-sweep.sh` (6 mảng mục nát theo thời gian, mức 🔴/🟡, `--strict`,
+  tự dò stack) + runner `scripts/maintain-run.sh` chạy agent bằng **CLI subscription cục bộ của mọi
+  nhà cung cấp AI** (Claude Code/Hermes/Codex/OpenCode, không API key) + workflow tuần
+  `.github/workflows/maintenance.yml` (một issue tổng hợp) + wrapper không giám sát
+  `scripts/maintain-cron.sh` cho VPS/cron (đồng bộ nhánh chính, chạy agent, đẩy CHỈ
+  `docs/ops/MAINTENANCE-*.md` lên nhánh riêng `maint/auto-<ngày>`, không bao giờ đụng nhánh chính,
+  có khoá tiến trình chống chạy chồng). Ba self-test có negative-test/bare-repo thật + stub CLI,
+  nối vào `framework-lint` và smoke dự án đích. **Bổ sung cùng ngày:**
+  `maintain-cron.sh` tự mở PR qua GitHub REST API khi có `GITHUB_TOKEN`/`GH_TOKEN` (kênh báo cáo
+  chính cho chủ dự án khi chạy không giám sát), tránh mở PR trùng; sửa hai lỗi thật bắt được khi
+  viết test (push same-day rerun chỉ "thành công" nhờ trùng giây → đổi sang `--force-with-lease`
+  giới hạn đúng một nhánh; biến gán trong hàm gọi qua subshell không thấy được ở ngoài) — xem
+  `TRAPS.md` mục 16–17.
+
 - **Quick Start + adoption preflight** — thêm `docs/framework/quickstart.md` để định hướng nhanh
   Greenfield/Brownfield, dẫn về Standard Delivery Contract và cung cấp checklist xác nhận lệnh/gate
   thật của ứng dụng, CI, bảo mật, ruleset và vận hành. README cùng framework index đã liên kết tới

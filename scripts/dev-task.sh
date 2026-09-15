@@ -32,6 +32,7 @@ declared_cmd() {
   # In ra lệnh khai báo cho $1 nếu có, ngược lại rỗng.
   [ -f "$DECL" ] || return 0
   # Nạp trong subshell để không rò biến; lấy giá trị biến trùng tên task.
+  # shellcheck source=/dev/null  # $DECL là file khai báo của DỰ ÁN ĐÍCH, không tồn tại ở repo khung
   ( set +u; . "$DECL" >/dev/null 2>&1; eval "printf '%s' \"\${$1:-}\"" )
 }
 
@@ -52,45 +53,58 @@ node_has_script() {
   fi
 }
 
+# Mỗi hệ sinh thái một hàm dò riêng: in lệnh cho task $1 rồi return 0, hoặc return 1 nếu
+# hệ sinh thái này không nhận task đó. Tách ra vì `detected_cmd` gộp cả năm từng ở CC 18 — trên
+# trần 12 mà `scripts/check-shell-complexity.sh` cưỡng chế; thêm một hệ sinh thái nữa là thêm
+# một hàm + một dòng trong danh sách dưới, không phải thêm một nhánh vào hàm đã quá tải.
+_cmd_node() {
+  [ -f "$ROOT/package.json" ] && node_has_script "$1" || return 1
+  echo "$(node_pm) run $1"
+}
+_cmd_python() {
+  [ -f "$ROOT/pyproject.toml" ] || return 1
+  case "$1" in
+    format)    command -v ruff >/dev/null 2>&1 && { echo "ruff format ."; return 0; }
+               command -v black >/dev/null 2>&1 && { echo "black ."; return 0; } ;;
+    lint)      command -v ruff >/dev/null 2>&1 && { echo "ruff check ."; return 0; } ;;
+    typecheck) command -v mypy >/dev/null 2>&1 && { echo "mypy ."; return 0; } ;;
+    test)      command -v pytest >/dev/null 2>&1 && { echo "pytest -q"; return 0; } ;;
+  esac
+  return 1
+}
+_cmd_go() {
+  [ -f "$ROOT/go.mod" ] || return 1
+  case "$1" in
+    format) echo "gofmt -l -w ." ;;
+    lint)   echo "go vet ./..." ;;
+    test)   echo "go test ./..." ;;
+    build)  echo "go build ./..." ;;
+    *)      return 1 ;;
+  esac
+}
+_cmd_rust() {
+  [ -f "$ROOT/Cargo.toml" ] || return 1
+  case "$1" in
+    format) echo "cargo fmt" ;;
+    lint)   echo "cargo clippy -- -D warnings" ;;
+    test)   echo "cargo test" ;;
+    build)  echo "cargo build" ;;
+    *)      return 1 ;;
+  esac
+}
+_cmd_make() {
+  [ -f "$ROOT/Makefile" ] && grep -Eq "^$1:" "$ROOT/Makefile" || return 1
+  echo "make $1"
+}
+
 detected_cmd() {
   # In ra lệnh tự-dò cho task $1, hoặc rỗng nếu không dò được.
-  local t="$1" pm
-  # Node/JS: ưu tiên script cùng tên trong package.json
-  if [ -f "$ROOT/package.json" ] && node_has_script "$t"; then
-    pm="$(node_pm)"; echo "$pm run $t"; return 0
-  fi
-  # Python (pyproject.toml)
-  if [ -f "$ROOT/pyproject.toml" ]; then
-    case "$t" in
-      format)    command -v ruff >/dev/null 2>&1 && { echo "ruff format ."; return 0; }
-                 command -v black >/dev/null 2>&1 && { echo "black ."; return 0; } ;;
-      lint)      command -v ruff >/dev/null 2>&1 && { echo "ruff check ."; return 0; } ;;
-      typecheck) command -v mypy >/dev/null 2>&1 && { echo "mypy ."; return 0; } ;;
-      test)      command -v pytest >/dev/null 2>&1 && { echo "pytest -q"; return 0; } ;;
-    esac
-  fi
-  # Go
-  if [ -f "$ROOT/go.mod" ]; then
-    case "$t" in
-      format)    echo "gofmt -l -w ."; return 0 ;;
-      lint)      echo "go vet ./..."; return 0 ;;
-      test)      echo "go test ./..."; return 0 ;;
-      build)     echo "go build ./..."; return 0 ;;
-    esac
-  fi
-  # Rust
-  if [ -f "$ROOT/Cargo.toml" ]; then
-    case "$t" in
-      format)    echo "cargo fmt"; return 0 ;;
-      lint)      echo "cargo clippy -- -D warnings"; return 0 ;;
-      test)      echo "cargo test"; return 0 ;;
-      build)     echo "cargo build"; return 0 ;;
-    esac
-  fi
-  # Makefile target trùng tên
-  if [ -f "$ROOT/Makefile" ] && grep -Eq "^$t:" "$ROOT/Makefile"; then
-    echo "make $t"; return 0
-  fi
+  # THỨ TỰ LÀ HÀNH VI: Node trước (script khai trong package.json thắng mọi suy đoán khác),
+  # rồi Python/Go/Rust, Makefile cuối cùng (chỉ khớp khi có target trùng tên).
+  local eco
+  for eco in _cmd_node _cmd_python _cmd_go _cmd_rust _cmd_make; do
+    "$eco" "$1" && return 0
+  done
   return 0
 }
 
@@ -109,6 +123,7 @@ run_task() { # $1=task -> chạy; 0 nếu ok hoặc no-op, khác 0 nếu lệnh 
 # --- format-file: format ĐÚNG file vừa sửa (dùng cho auto-format hook) --------
 declared_format_file() {
   [ -f "$DECL" ] || return 0
+  # shellcheck source=/dev/null  # như trên: đường dẫn chỉ có ở dự án đích
   ( set +u; . "$DECL" >/dev/null 2>&1; eval "printf '%s' \"\${format_file:-}\"" )
 }
 resolve_format_file() { # $1=path -> in lệnh format 1 file, rỗng nếu không có per-file formatter

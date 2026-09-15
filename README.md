@@ -56,7 +56,9 @@ một quy trình song song bằng cảm tính.
   khung; dự án đích tự thêm job build/test/lint theo stack đã chọn vào cùng file),
   `secret-scan.yml` (gitleaks), `dependency-review.yml`,
   `pr-policy.yml` (spec/evidence), `release.yml` (release-please),
-  `stale-pr-alert.yml` (cảnh báo PR kẹt vì required check không thể xanh).
+  `stale-pr-alert.yml` (cảnh báo PR kẹt vì required check không thể xanh),
+  `maintenance.yml` (quét bảo trì hằng tuần bằng `scripts/maintenance-sweep.sh` → một issue tổng hợp;
+  xử lý bằng `/maintain` hoặc `scripts/maintain-run.sh` với CLI subscription cục bộ của mọi nhà cung cấp AI).
 - `LICENSE` (MIT — đổi chủ sở hữu/giấy phép theo dự án), `SECURITY.md`, `CONTRIBUTING.md`,
   `CODE_OF_CONDUCT.md` (Quy tắc ứng xử — Contributor Covenant v2.1 tiếng Việt),
   `SUPPORT.md` + `GOVERNANCE.md` (kênh hỗ trợ + quản trị dự án).
@@ -86,7 +88,7 @@ Bạn đã clone/tải repo khung về máy. Chọn đúng một nhánh:
 > chạy lệnh").
 
 Đứng **trong repo khung này**, trỏ tới thư mục gốc của dự án đích. Script **không đè** file đang chạy:
-tài liệu khung + `.claude/` (commands, settings opusplan, hooks, agents) + `scripts/` (dev-task, usage-estimate —
+tài liệu khung + `.claude/` (commands, settings mặc định Sonnet 5, hooks, agents) + `scripts/` (dev-task, usage-estimate —
 hook tự động cần 2 file này) copy thẳng; file gốc (`CLAUDE.md`, `PROJECT.md`…) chỉ copy nếu **chưa có**
 (đã có thì để bản `.framework-new` cạnh bên để tự so); file cấu hình/stack đưa vào `_framework-dropins/` để tự merge.
 

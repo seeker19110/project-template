@@ -84,7 +84,7 @@ echo ""
 echo "[1/4] Tài liệu khung (Lớp 1 — dùng được ngay, mọi stack):"
 copy_into "docs/framework"
 copy_into "docs/ops"
-copy_into ".claude/commands"                   # slash commands của khung: /consult /bootstrap /auto /gate /adr /ui-ux /audit-optimize /audit-full /completion /incident /grill /debug
+copy_into ".claude/commands"                   # slash commands của khung: /consult /bootstrap /auto /gate /adr /ui-ux /audit-optimize /audit-full /completion /incident /grill /debug /maintain
 copy_if_absent "docs/adr/0000-template.md"
 
 # ── Dấu bản khung (luôn ghi đè — phản ánh LẦN COPY GẦN NHẤT) ──
@@ -134,22 +134,29 @@ copy_if_absent ".claude/settings.local.json.example"  # mẫu permission cá nh�
 
 # ── Cấu hình Claude Code + script tự động: copy thẳng (KHÔNG đè cấu hình đã có) ──
 echo ""
-echo "[2/4] Cấu hình Claude Code (opusplan — tối ưu token) + script tự động (hook gọi qua dev-task.sh):"
+echo "[2/4] Cấu hình Claude Code (model tiêu chuẩn Sonnet 5 — tối ưu token) + script tự động (hook gọi qua dev-task.sh):"
 mkdir -p "$TARGET/.claude"
 if [ -e "$TARGET/.claude/settings.json" ]; then
-  cp "$SRC/.claude/settings-shared-opusplan.json" "$TARGET/.claude/settings.json.framework-new"
+  cp "$SRC/.claude/settings-shared-default.json" "$TARGET/.claude/settings.json.framework-new"
   echo "  ~ .claude/settings.json đã tồn tại → bản khung để ở settings.json.framework-new (tự so/merge)"
 else
-  cp "$SRC/.claude/settings-shared-opusplan.json" "$TARGET/.claude/settings.json"
-  echo "  + .claude/settings.json (opusplan; fallback Sonnet 5 → Haiku 4.5)"
+  cp "$SRC/.claude/settings-shared-default.json" "$TARGET/.claude/settings.json"
+  echo "  + .claude/settings.json (Sonnet 5; fallback Sonnet 5 → Haiku 4.5)"
 fi
 copy_if_absent ".claude/hooks"
 copy_if_absent ".claude/agents"
 # Hook phụ thuộc các script này — thiếu thì hook no-op (mất auto-format + cổng chặn commit đỏ + nhắc quota):
 copy_if_absent "scripts/dev-task.sh"
 copy_if_absent "scripts/usage-estimate.sh"
+copy_if_absent "scripts/test-usage-estimate.sh"
 copy_if_absent "scripts/subagent-dispatch.py"
+# Helper dùng chung — PHẢI phát trước các script source/exec chúng, nếu không dự án đích nhận
+# script gãy (khuôn lỗi TRAPS.md mục 19: danh sách file viết tay không biết về file mới).
+copy_if_absent "scripts/_python-exec.sh"
+copy_if_absent "scripts/_test-lib.sh"
 copy_if_absent "scripts/subagent-dispatch.sh"
+copy_if_absent "scripts/model-rates.json"
+copy_if_absent "scripts/model-capability-tiers.json"
 copy_if_absent "scripts/telemetry-log.py"
 copy_if_absent "scripts/telemetry-log.sh"
 copy_if_absent "scripts/spec-compiler.py"
@@ -158,18 +165,25 @@ copy_if_absent "scripts/arch-health-radar.py"
 copy_if_absent "scripts/arch-health-radar.sh"
 copy_if_absent "scripts/test-telemetry-and-dispatch.sh"
 copy_if_absent "scripts/test-next-gen-engines.sh"
+# Agent bảo trì toàn diện (spec 2026-09-14): engine quét + runner đa-provider + 2 self-test (smoke ở dự án đích)
+copy_if_absent "scripts/maintenance-sweep.sh"
+copy_if_absent "scripts/maintain-run.sh"
+copy_if_absent "scripts/test-maintenance-sweep.sh"
+copy_if_absent "scripts/test-maintain-run.sh"
+copy_if_absent "scripts/maintain-cron.sh"
+copy_if_absent "scripts/test-maintain-cron.sh"
 # Test chứng minh hook cổng CHẶN thật (audit 2026-09-12, F-002) — đi cùng .claude/hooks ở trên.
 copy_if_absent "scripts/test-hooks-gate.sh"
 # 2 file mẫu để dự án tự điền (bản điền thật .claude/*.sh đã nằm trong .gitignore của khung):
 copy_if_absent ".claude/project-commands.example.sh"
 copy_if_absent ".claude/usage-budget.example.sh"
-chmod +x "$TARGET/scripts/dev-task.sh" "$TARGET/scripts/usage-estimate.sh" "$TARGET/scripts/test-hooks-gate.sh" 2>/dev/null || true
+chmod +x "$TARGET/scripts/dev-task.sh" "$TARGET/scripts/usage-estimate.sh" "$TARGET/scripts/test-hooks-gate.sh" "$TARGET/scripts/maintenance-sweep.sh" "$TARGET/scripts/maintain-run.sh" "$TARGET/scripts/maintain-cron.sh" 2>/dev/null || true
 chmod +x "$TARGET/.claude/hooks/"*.sh 2>/dev/null || true
 
 echo ""
 echo "[3/4] File CI/quy ước GitHub (Lớp 2 — KHÔNG đè; để bạn tự so/merge với CI đã có):"
 for f in \
-  .github/workflows/ci.yml .github/workflows/stale-pr-alert.yml \
+  .github/workflows/ci.yml .github/workflows/stale-pr-alert.yml .github/workflows/maintenance.yml \
   .github/workflows/secret-scan.yml .github/workflows/dependency-review.yml \
   .github/workflows/pr-policy.yml .github/workflows/release.yml \
   .github/pull_request_template.md .github/dependabot.yml .github/ISSUE_TEMPLATE .github/CODEOWNERS \
@@ -184,16 +198,16 @@ echo ""
 echo "[4/4] Xong. Tiếp theo trong dự án đích:"
 cat <<'NEXT'
 
-  1) Cấu hình Claude Code đã sẵn sàng: .claude/settings.json dùng opusplan (tối ưu token).
-     → Opus lập kế hoạch, Sonnet code, Haiku (subagent) việc phụ — chỉ trả giá Opus khi thực sự cần.
+  1) Cấu hình Claude Code đã sẵn sàng: .claude/settings.json dùng model tiêu chuẩn Sonnet 5.
+     → Việc lập kế hoạch lớn: chủ động /model sang model cao cấp nhất đang sẵn có, xong tự /model
+       claude-sonnet-5 quay lại — không còn chế độ opusplan tự chuyển (ADR-0007, CLI đã ngừng hỗ trợ).
      → Hook tự động (auto-format + chặn commit đỏ + nhắc quota) chạy qua scripts/dev-task.sh
        (tự dò stack). Dự án có lệnh riêng → copy .claude/project-commands.example.sh
        thành .claude/project-commands.sh rồi điền.
-     ✅ Dự án nhỏ muốn rẻ hơn nữa: đổi "model" thành "claude-sonnet-5".
-     ✅ Dự án rất phức tạp: nâng riêng lúc cần bằng /model claude-opus-4-8 (hoặc claude-fable-5).
+     ✅ Dự án rất phức tạp: nâng riêng lúc cần bằng /model claude-opus-5 (hoặc claude-fable-5-1).
 
   2) Mở phiên Claude Code NGAY TRONG dự án đích.
-     → AI tự đọc CLAUDE.md + .claude/settings.json (opusplan sẵn sàng).
+     → AI tự đọc CLAUDE.md + .claude/settings.json (model tiêu chuẩn sẵn sàng).
      → Chạy Bước 0 của docs/framework/existing-project-adoption.md
        (tự dò stack bằng cách đọc package.json/config — không cần bạn khai stack).
 

@@ -6,15 +6,155 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. PR #69→#91 đã merge (Universal Subagent Dispatch Protocol, AI Telemetry Engine, Spec-to-Contract Compiler Engine `scripts/spec-compiler.py`, Architectural Health Radar Engine `scripts/arch-health-radar.py`, self-testing suite, và sửa tương thích CRLF/MSYS Windows).
+- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, PR #130 đã merge): ADR-0007 — bỏ `opusplan` làm
+  mặc định.** Người dùng xác nhận `/model opusplan` đã ngừng được CLI
+  hỗ trợ. ADR-0007 đảo ngược **một phần** ADR-0006 (mục 2 — "mặc định vẫn là `opusplan`"), không
+  sửa ADR-0006: thay bằng chính sách hai pha làm **thủ công** — lập kế hoạch việc lớn chuyển tay
+  `/model` sang model cao cấp nhất đang sẵn có, xong tự `/model claude-sonnet-5` quay lại thực thi;
+  phân việc/PR cho subagent theo độ phức tạp qua `--tier` giữ nguyên không đổi (ADR-0006). Đổi:
+  `.claude/settings.json` + `settings-shared-opusplan.json` (đổi tên → `settings-shared-default.json`)
+  đặt `"model": "claude-sonnet-5"`; `session-guide.sh` bỏ so khớp `model_id` với `"opusplan"` (không
+  còn ✅/⚠️ theo tên model, chỉ hiển thị + nhắc chính sách); viết lại `models-and-automation.md`
+  (mục 1 đổi tên "opusplan là gì" → "hai pha lập kế hoạch/thực thi"); sửa mọi tham chiếu trong
+  `orchestration-3-tier.md`, `new-project-runbook.md`, `case-study-greenfield-dry-run.md`,
+  `CODEMAP.md`, `README.md`, `copy-framework.sh`/`.ps1`, `model-capability-tiers.json`, và các
+  `.claude/commands/{adr,audit-full,auto,completion,consult,incident,maintain}.md` có dòng nhắc
+  model/effort. `scripts/check-docs-consistency.sh` (7/7 mục) + `test-hooks-gate.sh` (10/10 ca)
+  chạy lại xanh sau đổi — không có tham chiếu gãy tới file đã đổi tên. Không sửa nội dung lịch sử
+  (log cũ trong chính file này, spec đã đóng, ADR-0006) — chỉ ADR mới ghi quyết định đảo ngược.
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-15, PR #128 đã merge): ADR-0006 — điều phối 3 tầng đa
+  model, đa nhà cung cấp.** Theo yêu cầu người dùng: trước tác vụ tự động/lập kế hoạch lớn phải
+  chọn model cao cấp nhất sẵn có (không giới hạn Claude) theo độ phức tạp, rồi phân việc cho
+  subagent đủ năng lực. Thêm `scripts/model-capability-tiers.json` (khuôn giống `model-rates.json`,
+  có `_verified_on`/`_source`, model chưa xác minh đánh `verify_before_use`) +
+  `scripts/subagent-dispatch.py --tier <planning|complex|spec|standard|mechanical>` (tra ứng viên
+  đa nhà cung cấp, không dispatch) + ca test trong `test-telemetry-and-dispatch.sh` +
+  `test-py-coverage.sh`. Cập nhật `CLAUDE.md` §2, `orchestration-3-tier.md` (mục "Chọn đa nhà cung
+  cấp"), `models-and-automation.md` §2b, `CODEMAP.md`, `copy-framework.sh`/`.ps1`. Tận dụng hạ tầng
+  đa-harness đã có sẵn (`subagent-dispatch.py --harness`, `maintain-run.sh`) — không viết engine
+  mới. Spec: `docs/specs/2026-09-15-da-model-da-nha-cung-cap.md` (Approved for implementation).
+  **PR #125 (nhánh `claude/hien-trang-b89ids`) bị đóng không merge**: một commit merge trên nhánh
+  đó có tiêu đề không theo Conventional Commits ("Merge remote-tracking branch...") làm cổng
+  `metadata` đỏ vĩnh viễn; sửa cần `git push --force-with-lease`, nhưng thao tác này bị deny-list
+  tường minh trong `.claude/settings.json`/`.claude/settings-shared-opusplan.json`
+  (`Bash(git push --force*)`) nên phiên không có quyền chạy dù trên nhánh tự tạo. Xử lý: dựng lại
+  nhánh sạch `claude/da-model-da-nha-cung-cap` từ `main` (một commit, cùng nội dung), mở PR #128,
+  merge bằng đó. Bài học: **không hard-code giả định "trên nhánh mình tạo thì amend/force-push
+  luôn được phép"** — luôn kiểm `.claude/settings.json` (deny thắng allow) trước khi thử.
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-15, PR #126 đã merge): CỔNG CC CHO SHELL** — nửa còn lại của cổng CC.
+  `scripts/check-shell-complexity.sh` đo bằng `vendor/shellmetrics` (bản vendor có ghim SHA256,
+  chạy offline), **hai trần**: hàm ≤ 12 như Python, thân script `<main>` ≤ 45 — trần thứ hai đặt
+  ngay trên mức cao nhất đo được (41) làm **nắp chặn trượt**, vì ép thân một script cổng xuống 12
+  chỉ đẩy nhánh vào hàm một-lần-gọi chứ không dễ đọc hơn (người dùng chốt phương án này). Hạ CC
+  2 hàm vượt trần, hành vi giữ nguyên có đối chiếu fixture: `dev-task.sh::detected_cmd` 18 → tách
+  5 hàm theo hệ sinh thái, `maintenance-sweep.sh::detect_deps_cmd` 13 → tách 4.
+  Spec: `docs/specs/2026-09-15-cong-may-cc-shell.md`. Lượt CI đầu ĐỎ vì `func` là từ khoá của
+  gawk (runner) chứ không phải mawk (máy dev) — sửa + `TRAPS.md` mục 23 + ca 6 của negative test
+  chạy lại cổng dưới gawk.
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-14, PR #123 đã merge): CỔNG MÁY
+  cho ngưỡng CC 12** — trả lời trực tiếp phát hiện của mốc trước ("không có cổng máy nào cưỡng chế
+  CC ≤ 12, ngưỡng chỉ nằm trong văn xuôi"). Thêm `scripts/check-python-complexity.sh` (radon, trần 12
+  qua `PY_CC_MAX`, **không có miễn trừ theo hàm**) + `scripts/test-check-python-complexity.sh`
+  (negative test: hàm CC 13 phải làm cổng ĐỎ · nâng trần trên đúng file đó phải làm nó XANH · thiếu
+  `radon` phải ĐỎ chứ không skip) + bước mới trong job `framework-lint`. Dấu `DEBT:` duy nhất của repo
+  **được trả đúng điều kiện xem lại của chính nó**: `format_markdown_report` 13 → 9 bằng cách tách
+  `_optional_report_blocks` (báo cáo sinh ra không đổi cấu trúc — chỉ khác các con số đếm dòng của
+  chính repo). Spec: `docs/specs/2026-09-14-cong-may-cc-12.md`. Repo còn 0 dấu `DEBT:`.
+- Giai đoạn trước đó: GĐ 8. PR #69→#121 đã merge (#120 = phần còn lại của audit tối ưu; #121 = `TRAPS.md`
+  mục 22 + đồng bộ `PROGRESS.md`).
+  **Mốc nội dung gần nhất (2026-09-14, nhánh
+  `claude/cool-gauss-4dk9ln`): phần CÒN LẠI của lượt `/audit-optimize`** mà PR #118 cố ý hoãn ở mục
+  "Reviewer focus #2". Tách `_scripts_inventory` 15→5 và `subagent-dispatch::main` 12→4; hàm thứ ba
+  `format_markdown_report` (13) **giữ nguyên có lý do đo được** + dấu `DEBT:` có trần và điều kiện
+  xem lại — dấu `DEBT:` THẬT đầu tiên của repo, và cổng đếm ở `maintenance-sweep.sh` mảng 3 (PR #115)
+  đã chứng minh giá trị ngay: nó bắt bản viết 3 dòng vì bộ dò đi theo dòng. Đính chính PR #118: nó ghi
+  "bốn hàm vượt ngưỡng" nhưng đo thật chỉ có ba (`spec-compiler::main` là 11). Và **không có cổng máy
+  nào cưỡng chế CC ≤ 12** trong repo — ngưỡng chỉ nằm trong văn xuôi, nên đây là phán đoán chứ không
+  phải bịt cổng đỏ. `TRAPS.md` mục 20 + 21 (hai khuôn xanh-giả/đo-sai mắc thật trong phiên, mục 20 bắt
+  được TRƯỚC khi commit). 14/14 cổng khung xanh, coverage 96%.
+- **Mốc PR #118 (2026-09-14):**
+  chạy `/audit-optimize` lên CHÍNH repo khung. GĐ 1 đo baseline: 0 dead code, 0 dependency thừa
+  (4 engine Python chỉ stdlib), 15/15 GitHub Actions ghim SHA, jscpd 0,52% trùng lặp — repo đã
+  tối ưu sẵn. GĐ 2 làm 3 việc: `scripts/_python-exec.sh` gộp boilerplate 4 wrapper (77→44 dòng) ·
+  `scripts/_test-lib.sh` gộp `ok`/`bad`/`fails` của 8 script test · hạ complexity
+  `scan_codebase_health` 18→1 và `parse_spec_markdown` 18→3 kèm 23 ca characterization
+  (`scripts/test-engine-characterization.sh`, đã nối vào `ci.yml`).
+- **Bài học PR #118 (quan trọng hơn chính bản refactor):** (a) ước tính "net −91 dòng" của báo cáo
+  audit SAI — thực tế +366 dòng; với repo đã tối ưu sẵn, *giảm dòng là chỉ số sai* để duyệt kế hoạch
+  tối ưu, giá trị thật nằm ở CC và ở test khoá hành vi. (b) Rút helper dùng chung làm đỏ MỌI nơi
+  liệt kê file bằng tay — tái phát HAI lần trong cùng một PR (2 test sandbox, rồi
+  `copy-framework.sh`/`.ps1` khiến dự án đích nhận script gãy); ghi thành `TRAPS.md` mục 19.
+  (c) Nghiệm thu bằng "cổng LIÊN QUAN xanh" thay vì TOÀN BỘ test (`CLAUDE.md` §6) đã để lọt một
+  hồi quy lên `origin` — xanh giả nguy hiểm hơn đỏ.
+- **Mốc trước (2026-09-14, PR #115):** đối chiếu nguồn ngoài `ponytail` →
+  ba luật: thang kiểm trước khi viết code `CLAUDE.md` §3 A4 · dấu nợ `DEBT:` có điều kiện xem lại
+  §3 A7 **kèm cổng thật** ở `maintenance-sweep.sh` mảng 3 + negative/positive test · nhóm 5 "tự viết
+  lại thứ đã có" cho `/audit-optimize`. Bản đối chiếu ba cột:
+  `docs/reports/2026-09-14-doi-chieu-ponytail.md` — 3/~14 hạng mục được lấy; ba mâu thuẫn luật của
+  nguồn được nêu ra và từ chối. Phát hiện tự đính chính giữ nguyên trong báo cáo: đọc README suýt
+  làm lỡ đúng hạng mục có bằng chứng sự cố mạnh nhất.
+- **Mốc PR #114: ADR-0005 — TDD mặc định bắt buộc cho code MỚI có logic** (nhánh điều kiện / tính
+  toán / xử lý lỗi-quyền), kèm **danh sách ngoại lệ ĐÓNG** 5 mục (scaffolding từ template · đổi
+  tên-di chuyển cơ học · chỉ tài liệu-comment-config thuần · code sinh tự động · prototype vứt đi có
+  timebox); mỗi lần dùng ngoại lệ phải ghi một dòng trong PR. **Không** chép bản cứng tuyệt đối của
+  `Claude-Agents` — nó mâu thuẫn với lý luận "nghi thức rỗng" đã có trong khung (lý luận đó đúng),
+  khung phục vụ 10 hồ sơ chứ không phải một repo Python, và bản cứng đó đi kèm `fail_under = 100` mà
+  chép nửa vời thì mất một nửa cơ chế. Điểm chạm quy trình: `CLAUDE.md` §5/§7 + `/gate` Bước 3 có
+  mục `Đỏ-trước cho code mới có logic ✅/❌/ngoại lệ-N`. **Không có cổng máy** — "test này từng đỏ"
+  không đọc được từ trạng thái cuối của repo; cưỡng chế bằng review (ADR §Hệ quả).
+- Mốc trước (PR #113): **CP-5 — sổ job được
+  phép skip.** Job `gate` tính mọi `skipped` là đạt (cần thế, vì `progress-freshness` cố ý chỉ chạy
+  trên push vào nhánh chính), nên một job bị `if:` viết hỏng loại ra sẽ không chạy mà vẫn qua cổng —
+  cổng xanh giả, cùng họ CP-4 nhưng vào cửa khác. Sửa hai lớp: `ci.yml` có sổ `SKIP_ALLOWED` tường
+  minh (dùng `toJSON(needs)` vì `join(needs.*.result)` mất TÊN job), và `check-ci-policy.sh` CP-5 so
+  sổ **bằng đúng** tập job có `if:`, hai chiều. Logic `gate` đã chạy thử ngoài CI trên 4 trạng thái
+  trước khi push, vì chiều "để lọt" thì CI không nói hộ được.
+- Mốc trước (PR #112): sửa hàng rào **Mốc gần nhất (2026-09-14, PR #112): sửa hàng rào
+  `block-dangerous-git.sh` chặn oan vì DỮ LIỆU trong lệnh** — hook quét cả chuỗi lệnh nên commit
+  message chứa chữ "main" (trong thân heredoc) làm nó tưởng đang force-push nhánh chính; thân
+  `python3 - <<PY` chứa `git reset --hard` làm fixture cũng bị chặn. Bản vá đầu TỰ TẠO một lỗ hổng
+  (nhận `<<` có khoảng trắng thành heredoc → nuốt mọi dòng sau → `git reset --hard` ở dòng kế KHÔNG
+  bị chặn); vòng hai sửa bằng cách cấm khoảng trắng sau `<<`. `TRAPS.md` mục 18 (khuôn mới: bộ dò tự
+  khớp văn bản của chính thứ nó soi) + mục 14 (tái phát: commit rơi nhầm vào nhánh chính, lần này do
+  chính bug hook chặn mất lệnh ghép nên KHÔNG có output lỗi git nào để đọc). `test-hooks-gate` 15/15.
+  Trước đó PR #109 (ba luật từ đợt đối chiếu Claude-Agents), #110 (sync PROGRESS).
+- Giai đoạn (mốc cũ): PR #69→#109 đã merge. **Mốc gần nhất (2026-09-14, PR #109): ba luật rút từ đợt đối
+  chiếu với `seeker19110/Claude-Agents`** — (1) `CLAUDE.md` §11 + `docs/framework/adopt-from-outside.md`:
+  phương pháp ba cột khi học từ repo/khung/skill NGOÀI (*đã có và sâu hơn* / *đã có nhưng nông hơn* / *chưa
+  có*), cổng "chưa có phải ứng với SỰ CỐ THẬT", và luật cốt lõi **grep CỔNG ĐANG CHẠY đừng đọc văn xuôi**;
+  (2) `CLAUDE.md` §4 "không tin lời khai" — năm bước trước khi nói xong/pass (§7 đã có khuôn báo cáo nhưng
+  chưa có luật sinh ra nó); (3) `quality-supplements-group2.md` — sổ trần cho bốn lối thoát khỏi cổng
+  coverage, so **bằng đúng** (bớt cũng đỏ), kèm bẫy "bộ đếm tự khớp chính nó" + luật đo nhánh chứ không chỉ
+  đo dòng. Nguồn sự cố cho (1) và (2) là chính phiên 2026-09-14: hai lần liên tiếp đề xuất "bổ sung" một
+  thứ mà repo đích ĐÃ CÓ cổng thật đang chạy (Claude-Agents PR #295, #297), và một lần tính phép đo là "đã
+  chứng minh" trong khi lệnh đã chết trước khi chạy tới phần cần đo. 8/8 cổng PR xanh.
+- Trước đó: PR #108 (bỏ qua `__pycache__` trong `.gitignore`), PR #86 (làm rõ nhãn C1 "MẶC ĐỊNH" để
+  không thiên lệch web cho dự án không phải web). Mốc PR #106: thêm **agent bảo trì
+  toàn diện** — subagent `maintainer` + lệnh `/maintain` (quét → triage → `docs/ops/MAINTENANCE-PLAN.md`
+  dừng chờ duyệt → PR nhỏ qua `/gate` → hội tụ), engine `scripts/maintenance-sweep.sh` (6 mảng mục
+  nát theo thời gian: git/dependency/tài liệu/bí mật/CI/cổng khung), `scripts/maintain-run.sh` (chạy
+  agent qua CLI subscription cục bộ mọi nhà cung cấp — Claude Code/Hermes/Gemini qua Antigravity/
+  Codex/OpenCode, không API key), `scripts/maintain-cron.sh` (wrapper không giám sát cho VPS/cron,
+  `--force-with-lease` chỉ cho nhánh riêng `maint/auto-<ngày>`, tự mở PR báo cáo qua GitHub REST API
+  khi có `GITHUB_TOKEN`), workflow tuần `maintenance.yml`. Bốn self-test mới, nối vào `framework-lint`
+  + smoke dự án đích. Xem `TRAPS.md` mục 16–17 (hai lỗi thật bắt được khi viết test cho
+  `maintain-cron.sh`: push same-day rerun chỉ thành công nhờ trùng giây; biến gán trong hàm chạy qua
+  subshell). 9/9 cổng PR xanh, radar 100/100.
 - **Lưu ý khuôn lỗi (PR #82):** auto-merge (squash) có thể merge PR ngay khi CI của commit ĐẦU
   TIÊN xanh — một commit push SAU khi đã bật auto-merge (vd cập nhật PROGRESS.md cùng PR) có thể
   KHÔNG kịp vào trước khi merge xảy ra, dù mới push xong. Xác nhận lại bằng `git log origin/main`/
   `git show <sha> --stat` trước khi tin PROGRESS.md trong PR đã vào `main`; nếu thiếu, mở PR sync
-  riêng — không coi im lặng là "đã vào".
-- Default-branch SHA đã đối chiếu: `26e5529` (`origin/main`, PR #91)
-- Nhánh đang làm: `main`
-- Ngày cập nhật: 2026-09-13
+  riêng — không coi im lặng là "đã vào". **Tái diễn ở PR #106:** PR #106 không kèm cập nhật
+  `PROGRESS.md` trong cùng PR (bỏ sót bước 0 của CLAUDE.md §8) — sửa bằng PR sync này ngay sau khi
+  merge, đúng theo chính lưu ý này. **Tái diễn lần thứ ba ở PR #109** — cùng một bỏ sót (PR không kèm
+  `PROGRESS.md`), dù lưu ý này nằm ngay trong file bị bỏ sót. Ba lần liên tiếp nghĩa là nhắc bằng văn xuôi
+  không đủ: job `progress-freshness` chỉ chạy trên push vào `main` (đúng thiết kế — kiểm lúc PR còn mở sẽ
+  báo oan) nên nó KHÔNG chặn được PR quên bước 0, chỉ cảnh báo sau khi đã merge. Cân nhắc một cổng ở
+  `pr-policy.yml` soi diff của PR thay đổi tài liệu khung mà không chạm `PROGRESS.md` — chưa làm, cần bàn
+  vì dễ báo oan cho PR nhỏ.
+- Default-branch SHA đã đối chiếu: `d594299` (`origin/main`, PR #132)
+- Nhánh đang làm: `main` (không có việc dở)
+- Ngày cập nhật: 2026-09-15
 
 ## Goal đang active
 
@@ -44,7 +184,7 @@
 - **(2026-09-12) PR #69 — cổng chống PROGRESS.md lỗi thời + chia đơn vị PR/trần effort medium/
   auto-merge**: `scripts/check-progress-freshness.sh` + job CI `progress-freshness`; quy trình mới
   sau bước duyệt kế hoạch cho việc đủ lớn cần điều phối 3 tầng — xem `TRAPS.md` mục 8.
-- PR đã merge gần nhất: **#69** (freshness gate + PR-splitting/effort/auto-merge), **#68** (tổng quát hoá harness), **#67** (ADR-0004 gỡ scaffold Web), **#66**
+- PR đã merge gần nhất: **#114** (ADR-0005 TDD), **#113** (CP-5 sổ job skip), **#112** (sửa hook chặn oan + TRAPS 18/14), **#111** (đóng, thay bằng #112), **#110** (sync PROGRESS), **#109** (ba luật từ đợt đối chiếu Claude-Agents), **#86** (nhãn C1), **#108** (`.gitignore` `__pycache__`), **#106** (agent bảo trì toàn diện — `maintainer`/`/maintain`/`maintenance-sweep`/`maintain-run`/`maintain-cron`), **#105→#104** (PROGRESS sync + fix telemetry/smoke, xem mục "Giai đoạn hiện tại" ở trên), **#69** (freshness gate + PR-splitting/effort/auto-merge), **#68** (tổng quát hoá harness), **#67** (ADR-0004 gỡ scaffold Web), **#66**
   (đóng Nhóm 11 audit), **#62** (TRAPS.md + CODEMAP.md + `check-ci-policy.sh` + golden test/TDD —
   2 spec `docs/specs/2026-09-12-*.md`, 7 PR gộp thành 1, rút từ lượt quét 15 repo dẫn xuất/lân cận),
   **#61** (verify-dropins ERESOLVE), **#52** (hoàn thiện khung theo COMPLETION-PLAN, 4 đợt/22 việc
@@ -54,26 +194,39 @@
 
 ## Đang làm / chờ
 
-- **Không có việc dở.** Audit toàn diện 2026-09-12 (12/12 nhóm, G-001..G-004) đã đóng hết qua PR
+- **Không có việc dở.** PR #130 (ADR-0007 — bỏ opusplan mặc định) đã merge — xem mục "Giai đoạn
+  hiện tại" ở trên.
+- PR #106 (agent bảo trì toàn diện) đã merge — xem mục "Giai đoạn hiện tại"
+  ở trên. Dùng thử: `/maintain` (Claude Code), `scripts/maintain-run.sh` (CLI khác), hoặc chờ
+  workflow tuần `maintenance.yml` mở issue báo cáo.
+- PR #93 (hậu kiểm audit 2026-09-13) đã merge: nối `test-next-gen-engines.sh`
+  + `test-telemetry-and-dispatch.sh` vào job `framework-lint`, thêm mục 6 cho
+  `check-docs-consistency.sh` (script ↔ `CODEMAP.md`) kèm negative-test hai chiều, tách bảng giá ra
+  `scripts/model-rates.json`, đổi default harness về `claude`/`anthropic`. Xem `TRAPS.md` mục 11–12.
+- Audit toàn diện 2026-09-12 (12/12 nhóm, G-001..G-004) đã đóng hết qua PR
   #71→#75. Nhánh remote đã dọn sạch (2026-09-13). Người dùng đã import `.github/rulesets/main.json`
   trên GitHub — `protection-guard` xanh thật, đã thêm vào `needs:` của `gate` (nhánh hiện tại), xoá
   khỏi `CP4_BOOTSTRAP_EXEMPT`. Vòng "mượn cơ chế branch-protection từ Claude-Agents" đã khép kín.
 
 ## Tiếp theo
 
-- **Ngay lập tức:** không có việc dở — chờ yêu cầu tiếp theo của người dùng.
+- **Ngay lập tức:** không có việc dở. A-01→A-04 đã đóng; độ phủ cổng CI đạt **100%** (18/18
+  script) và điểm radar **100/100** — cả hai đều có đối chứng động chứng minh là phép đo thật,
+  không phải hằng số in ra.
 - Cả 4 phát hiện Trung của audit toàn diện 2026-09-12 đã đóng: G-001 (PR #72), G-002 (dọn trong PR
   #73), G-003 + G-004 (PR #75).
 - Có thể làm khi được yêu cầu: bắt đầu dự án đích mới bằng khung này (`/consult` hoặc `/auto`), tiếp
   tục quét thêm repo dẫn xuất khác (gói D–I của lượt quét 2026-09-12: script `check-*` của `xboss`,
   hook `block-dangerous-git.sh`, gitleaks pre-commit, gate-agent `sc-gate-*`, `eval-record.yml`),
-  hoặc audit định kỳ khác (`/audit-full`). Ngoài ra vẫn còn tồn đọng chờ người dùng ở mục "Rủi ro"
-  bên dưới (import ruleset `.github/rulesets/main.json`).
+  hoặc audit định kỳ khác (`/audit-full`).
 
 ## Quyết định quan trọng
 
-- **opusplan là điểm ngọt, không đổi** — tối ưu token bằng CHIA VIỆC (subagent, cô lập ngữ cảnh),
-  không "route theo độ khó". Chi tiết: `docs/framework/models-and-automation.md`.
+- **(ĐẢO NGƯỢC MỘT PHẦN 2026-09-15, ADR-0007) `opusplan` không còn là mặc định** — CLI đã ngừng hỗ
+  trợ `/model opusplan`. Chính sách cũ "opusplan là điểm ngọt" (ADR-0006 mục 2) thay bằng hai pha
+  làm thủ công: `/model` sang model cao cấp nhất sẵn có để lập kế hoạch, tự `/model claude-sonnet-5`
+  quay lại thực thi. Tối ưu token vẫn bằng CHIA VIỆC (subagent, cô lập ngữ cảnh) — không đổi. Chi
+  tiết: `docs/framework/models-and-automation.md`, `docs/adr/0007-bo-opusplan-mac-dinh.md`.
 - **(ĐẢO NGƯỢC 2026-09-12, ADR-0004) KHÔNG còn scaffold Web mặc định.** Quyết định cũ "giữ scaffold
   Web (Next.js+Supabase) làm hồ sơ mặc định" đã bị đảo ngược theo yêu cầu người dùng — gỡ hẳn khỏi
   repo khung để nhất quán với nguyên tắc "hỗ trợ mọi loại dự án, research-first" (không sửa ADR-0001
@@ -86,13 +239,23 @@
 
 | Mục | Severity | Owner | Trigger/next action | Link |
 | --- | --- | --- | --- | --- |
+| ~~B-01 Feature gate né được qua tiêu đề COMMIT~~ | — | — | ✅ ĐÃ SỬA — `pr-policy.yml` nay soi CẢ tiêu đề PR LẪN tiêu đề từng commit; mọi commit phải conventional. Vẫn NÊN bật thêm Settings → 'Default to PR title for squash merge commits' (rẻ hơn, chặn ở tầng nền tảng). Cũ: `pr-policy.yml` kiểm `pr.title`, nhưng squash merge dùng tiêu đề **COMMIT** khi PR chỉ có **một** commit → `main` nhận được commit `feat:` chưa từng qua Feature gate. Xảy ra THẬT ở PR #99 (`76fc65e feat(test): ...` dù tiêu đề PR đã đổi thành `test:`). Sửa: bật "Default to PR title" cho squash trong Settings, HOẶC thêm cổng đối chiếu tiền tố tiêu đề commit ↔ tiêu đề PR | audit 2026-09-13 (lượt 2) |
+| ~~B-02 `CLAUDE.md` ↔ `AGENTS.md` không có cổng đối chiếu~~ | — | — | ✅ ĐÃ SỬA — `AGENTS.md` kê đủ 4 engine + mục 7 mới trong `check-docs-consistency.sh` đối chiếu danh sách engine hai file, có negative-test hai chiều. Cũ: `CLAUDE.md` §1 khai 4 engine; `AGENTS.md` chỉ kê 2 (`subagent-dispatch`, `telemetry-log`) — thiếu `spec-compiler` và `arch-health-radar`. `CLAUDE.md` §1 bắt "sửa luật ở đây thì soát lại AGENTS.md" nhưng **không cổng máy nào kiểm**, nên lệch âm thầm | audit 2026-09-13 (lượt 2) |
+| ~~B-03 CI chạy shellcheck mức `error`, luật ghi "0 cảnh báo"~~ | — | — | ✅ ĐÃ SỬA — CI nay chạy `shellcheck --severity=warning` đúng luật §5; sửa 1 ca SC2164 và khai directive KÈM LÝ DO cho 3 ca SC1090 + file `.example`. Cũ: `CLAUDE.md` §5 ghi "Lint 0 cảnh báo" nhưng `ci.yml` dùng `--severity=error`. Mức `warning` hiện có 6 phát hiện (4×SC1090 sourcing động — chấp nhận được; 2×SC2164 `cd` không `|| exit` ở `test-copy-framework.sh:10` và một chỗ nữa). Sửa: nâng CI lên `--severity=warning` + sửa 2 ca SC2164, HOẶC sửa luật §5 cho khớp thực tế | audit 2026-09-13 (lượt 2) |
+| ~~A-01 `spec-compiler.py` sinh assertion RỖNG~~ | — | — | ✅ ĐÃ SỬA — sinh 3 hợp đồng kiểm được thật (C-1 State, C-2 mã yêu cầu, C-3 đường dẫn touchpoints tồn tại), có negative-test hai chiều. Cũ: 82/82 test sinh ra đều là `assertTrue(len([]) >= 0)` — hằng đúng, không thể đỏ; lại nằm trong `.gitignore` và không job CI nào chạy. Tệ hơn không có vì tạo cảm giác an toàn giả. Sửa: parse `**FR-n**`/`AC-n` thành assertion thật + đưa vào CI, HOẶC gỡ hẳn engine | audit 2026-09-13 |
+| ~~A-02 `arch-health-radar.py` không đo kiến trúc~~ | — | — | ✅ ĐÃ SỬA — 5 tín hiệu có trọng số, in công thức, tách `.md` khỏi phép đếm code; điểm 100/100 đạt bằng việc thật. Cũ: Điểm chỉ gồm hai thành phần: trừ 5 cho mỗi file >400 dòng (tối đa 20), trừ 10 nếu tỷ lệ dòng mở đầu bằng dấu thăng < 5%. Không có coupling/complexity/coverage. Còn đếm văn xuôi Markdown là "code" → báo 84% code cho repo 67% là `.md`. Sửa: bỏ `.md` khỏi phép đếm code + đổi tên chỉ số cho đúng cái nó đo | audit 2026-09-13 |
+| ~~A-03 `--harness claude` xuất lệnh không tồn tại~~ | — | — | ✅ ĐÃ SỬA — nêu đúng tool Task + `subagent_type`; test cũ vốn khoá chặt chính lỗi này cũng đã sửa. Cũ: Sinh ra `/subagent <tên> <task>`, nhưng `.claude/commands/` không có `subagent.md` — dán vào Claude Code sẽ không chạy. Docstring còn kê Cursor/Windsurf/Gemini trong khi `choices` chỉ có 4. Sửa hoặc bỏ lựa chọn đó | audit 2026-09-13 |
+| ~~A-04 chưa có hướng dẫn `user.email` cho phiên AI~~ | — | — | ✅ ĐÃ SỬA — mục 4b `new-project-runbook.md` + `TRAPS.md` mục 13. Cũ: `require_extra_approval_for_unattributed_changes` trong ruleset chặn MỌI PR do AI tạo nếu commit không gắn được vào tài khoản GitHub (đã xảy ra ở PR #93). Sửa: ghi cách cấu hình author/committer vào `new-project-runbook.md` + mục `TRAPS.md` | `.github/rulesets/main.json` |
 | F-011 `--theme-transition` dead token | Thấp | AI | **Chấp nhận rủi ro (xác nhận 2026-09-01)** — không sửa | `docs/ops/COMPLETION-PLAN.md` |
 | F-014 usage-guard số thập phân | Thấp | AI | **Chấp nhận rủi ro (xác nhận 2026-09-01)** — không sửa | `docs/ops/COMPLETION-PLAN.md` |
 | F-309 `dev-task.sh` fallback grep | Thấp | AI | **Chấp nhận rủi ro (xác nhận 2026-09-01)** — không sửa | `docs/ops/COMPLETION-PLAN.md` |
 | ~~5 PR dependabot chưa merge~~ | — | — | ➖ Lỗi thời (G-002, audit 2026-09-12) — #53→#57 đã merge từ trước, `list_pull_requests(state=open)` xác nhận 0 PR đang mở | `docs/ops/COMPLETION-PLAN.md` W-101 |
+| **C-01 Khung chưa từng dùng trọn vẹn cho một dự án thật** | **Cao** | Người dùng | ~100 PR tự hoàn thiện, chưa lần nào đi hết `/consult`→`/bootstrap`→ra sản phẩm. Bug #104 (telemetry chết ở mọi dự án đích, sống qua nhiều PR trong khi CI xanh 100%) tìm ra chỉ bằng cách copy khung vào thư mục trống rồi chạy thử — tỷ lệ phát hiện mà audit nội bộ không đạt được. Đề xuất: làm một dự án nhỏ có thật (CLI, hoặc API 3 endpoint) | đánh giá tổng thể 2026-09-14 |
+| **C-02 Hàng rào lệch về phía repo khung** | Vừa | AI | 6/10 cổng CHỈ phục vụ repo khung; dự án đích chỉ nhận 3 self-test. `dev-task.sh`, `usage-estimate.sh`, `.claude/hooks/` được phát đi nhưng CHƯA từng chạy thật ở dự án đích — cùng loại rủi ro đã gây ra #104, chưa phủ | `TRAPS.md` mục 15 |
+| **C-03 Bề mặt đã tới hạn** | Thấp | Người dùng | 12 lệnh · 10 subagent · 10 cổng · 4 engine · 98 file tài liệu (8.6k dòng) · 13 file `CLAUDE.md` §1 bảo phải đọc. Đề xuất ĐÓNG BĂNG: chỉ thêm khi có nhu cầu gặp thật ở C-01 | đánh giá tổng thể 2026-09-14 |
 | Case-study Bước 6–8 (branch protection/Supabase/Vercel) chưa kiểm chứng | Thấp | Người dùng | Kiểm khi áp khung vào dự án thật có tài khoản | `docs/framework/case-study-greenfield-dry-run.md` |
 | ~~31 nhánh đã merge còn tồn trên remote (F-014)~~ | — | — | ✅ Đã xoá 2026-09-13 (người dùng, qua GitHub UI) — `list_branches` xác nhận chỉ còn `main` | `docs/ops/COMPLETION-PLAN.md` W-308 |
-| Ruleset `.github/rulesets/main.json` chưa import trên GitHub | Vừa | Người dùng | Import: Settings → Rules → Rulesets → New ruleset → Import a ruleset — job CI `protection-guard` đỏ tới khi làm (CỐ Ý chưa nằm trong `needs:` của `gate` để tránh deadlock — xem `CP4_BOOTSTRAP_EXEMPT` ở `check-ci-policy.sh`). Sau khi import + job xanh: mở PR thêm `protection-guard` vào `needs:` của `gate` + xoá khỏi allowlist đó | `docs/ops/repository-settings.md` |
+| ~~Ruleset `.github/rulesets/main.json` chưa import trên GitHub~~ | — | — | ✅ Đã import (xác nhận lại 2026-09-15: log job `protection-guard` live trên PR #131 in "OK — main đang được bảo vệ, và mọi required status check khai trong file đều đã bắt buộc"). `protection-guard` đã nằm trong `needs:` của `gate`, `CP4_BOOTSTRAP_EXEMPT` rỗng — dòng này lẽ ra phải gạch từ mốc PR #75 (mục "Đang làm / chờ" ở trên) nhưng bị bỏ sót, nay sửa cho khớp | `docs/ops/repository-settings.md` |
 | ~~G-003 (`orchestration-3-tier.md` dòng sơ đồ ASCII còn "Opus·high")~~ | — | — | ✅ Đã sửa — nhánh `fix/g003-g004-stale-effort-label` | `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md` |
 | ~~G-004 (effort/model lặp 6 file, không cổng đối chiếu)~~ | — | — | ✅ Đã sửa — mục 5 mới trong `check-docs-consistency.sh` (cấm "Opus · high" sống lại) + negative-test trong `test-check-scripts.sh` | `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md` |
 | ~~W-303 test RLS~~ | — | — | ➖ Hết hiệu lực (ADR-0004) — dropins Supabase đã gỡ, không còn gì để test | `docs/ops/COMPLETION-PLAN.md` W-303 |
@@ -100,15 +263,19 @@
 
 ## Bàn giao phiên
 
-- Lần cập nhật: 2026-09-13
-- State: DONE, không có việc dở. Phiên trước (2026-09-12) đóng trọn audit toàn diện (G-001..G-004,
-  PR #71→#75) + cơ chế branch-protection/auto-merge mượn từ `Claude-Agents` (PR #73). Phiên này chỉ
-  xác nhận người dùng đã tự xoá hết nhánh remote (W-308, `list_branches` → chỉ còn `main`) và cập
-  nhật lại `PROGRESS.md` cho khớp (bỏ các dòng "31 nhánh" đã lỗi thời).
-- Việc đã xong và bằng chứng: chạy lại đủ 6 script tự kiểm (`check-docs-consistency`,
-  `check-ci-policy`, `check-progress-freshness`, `test-copy-framework`, `test-hooks-gate`,
-  `test-check-scripts`) — tất cả xanh. Xác nhận 0 PR đang mở, 0 nhánh ngoài `main`.
-- Việc CHƯA xong + lý do: chưa có việc AI cần làm.
-- Bước tiếp theo: không có, chờ yêu cầu người dùng.
-- Quyền/quyết định cần thêm: không có gì mới — chỉ còn 1 việc tồn đọng chờ người dùng (import
-  ruleset `.github/rulesets/main.json` trên GitHub Settings để `protection-guard` hết đỏ).
+- Lần cập nhật: 2026-09-15
+- State: DONE, không có việc dở. PR #130 (ADR-0007 — bỏ `opusplan` mặc định) đã merge vào `main`.
+- Việc đã xong và bằng chứng: `docs/adr/0007-bo-opusplan-mac-dinh.md` (ADR mới, không sửa
+  ADR-0006); đổi `.claude/settings.json` + đổi tên `settings-shared-opusplan.json` →
+  `settings-shared-default.json` (model mặc định `claude-sonnet-5`); viết lại
+  `.claude/hooks/session-guide.sh` (bỏ so khớp chuỗi `opusplan`); viết lại
+  `docs/framework/models-and-automation.md`; sửa `orchestration-3-tier.md`,
+  `new-project-runbook.md`, `case-study-greenfield-dry-run.md`, `CODEMAP.md`, `README.md`,
+  `copy-framework.sh`/`.ps1`, `scripts/model-capability-tiers.json`, `CLAUDE.md` §2, và 7 file
+  `.claude/commands/*.md`. CI đỏ một lần trên `framework-lint` (contract test C-3: spec cũ đã
+  Approved `docs/specs/2026-09-12-enforcement-guardrails.md` tham chiếu file vừa đổi tên) — vá 1
+  đường dẫn touchpoint, không đổi nội dung quyết định lịch sử; CI xanh lại (9/9 job), merge squash.
+- Việc CHƯA xong + lý do: không có.
+- Bước tiếp theo: chờ yêu cầu người dùng.
+- Quyền/quyết định cần thêm: không có. Ruleset đã import từ trước (xác nhận lại qua log
+  `protection-guard` live 2026-09-15) — mục "Rủi ro/nợ kỹ thuật" đã gạch dòng lỗi thời tương ứng.

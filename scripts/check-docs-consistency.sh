@@ -22,6 +22,10 @@ EXCLUDE_SOURCE=(
   "PROGRESS.md" "docs/framework/README.md" "docs/framework/case-study-greenfield-dry-run.md"
   "CHANGELOG.md" "TRAPS.md" "docs/ops/COMPLETION-PLAN.md" "docs/ops/COMPREHENSIVE-AUDIT-STATUS.md"
   "docs/adr/0004-remove-default-web-scaffold.md"
+  # Characterization test dựng repo TỔNG HỢP trong thư mục tạm: mọi đường dẫn trong nó
+  # (scripts/beta.sh, docs/specs/weak.md …) là FIXTURE cố ý không tồn tại, không phải
+  # tham chiếu tài liệu hỏng.
+  "scripts/test-engine-characterization.sh"
 )
 
 # Thư mục nguồn được miễn trừ theo TIỀN TỐ. `docs/specs/` là contract HƯỚNG TỚI TƯƠNG LAI: một
@@ -44,6 +48,8 @@ ALLOW_MISSING_PATH=(
   "app/sitemap.ts" "app/sw.ts" "components/theme-toggle.tsx" "e2e/smoke.spec.ts" \
   "i18n/request.ts" "lib/env.ts" "messages/en.json" "messages/vi.json" \
   ".github/workflows/lighthouse-ci.yml" "scripts/verify-dropins.sh"
+  # Sinh tại runtime bởi /maintain (maintenance-sweep.sh + agent maintainer), không đóng gói sẵn.
+  "docs/ops/MAINTENANCE-REPORT.md" "docs/ops/MAINTENANCE-PLAN.md" "docs/ops/MAINTENANCE-LOG.md"
 )
 
 is_in() { local needle="$1"; shift; for x in "$@"; do [ "$x" = "$needle" ] && return 0; done; return 1; }
@@ -183,6 +189,73 @@ while IFS= read -r hit; do
   fail=1
 done < <(git grep --untracked -noE 'Opus[[:space:]]*·[[:space:]]*\*{0,2}high' -- '*.md' '*.sh' '*.ps1' 2>/dev/null || true)
 
+
+# ── 6. Mọi script trong scripts/ phải được CODEMAP.md khai (audit 2026-09-13, CAO-2). ──
+# VÌ SAO: PR #89/#91 thêm 4 engine (~650 dòng Python) mà KHÔNG thêm dòng nào vào CODEMAP.md và
+# không khai trong CLAUDE.md §1. Hậu quả không phải "docs xấu" mà là CODE CHẾT: một phiên AI mới
+# chỉ đọc CLAUDE.md/CODEMAP.md nên không bao giờ biết 4 engine đó tồn tại. Cổng cũ chỉ kiểm hai
+# chiều LỆNH ↔ CLAUDE.md (mục 3), không kiểm SCRIPT ↔ CODEMAP — nên lỗ hổng này lọt sạch.
+# CỐ Ý chỉ kiểm SỰ CÓ MẶT của tên file trong CODEMAP.md, không kiểm nội dung mô tả: ép nội dung sẽ
+# biến cổng thành vật cản mỗi lần sửa một dòng bảng (cùng lý lẽ với ci-workflow-policy.test.ts).
+echo "== 6. Script (scripts/) ↔ CODEMAP.md =="
+CODEMAP_FILE="CODEMAP.md"
+# Script phụ trợ CỐ Ý không cần dòng riêng trong CODEMAP (bản wrapper mỏng gọi thẳng file .py cùng
+# tên đã được khai, hoặc dữ liệu đi kèm). Thêm vào đây phải kèm lý do, không thêm để né cổng.
+CODEMAP_EXEMPT=(
+  "arch-health-radar.sh" "spec-compiler.sh" "subagent-dispatch.sh" "telemetry-log.sh"
+)
+if [ ! -f "$CODEMAP_FILE" ]; then
+  echo "::error::Không tìm thấy $CODEMAP_FILE — không đối chiếu được script ↔ bản đồ sửa-ở-đâu."
+  fail=1
+else
+  seen_any=0
+  for f in scripts/*.sh scripts/*.py scripts/*.json scripts/*.ts; do
+    [ -e "$f" ] || continue
+    seen_any=1
+    base="$(basename "$f")"
+    is_in "$base" "${CODEMAP_EXEMPT[@]}" && continue
+    if ! grep -qF "$base" "$CODEMAP_FILE"; then
+      echo "::error file=$CODEMAP_FILE::Script '$f' tồn tại nhưng KHÔNG được khai trong $CODEMAP_FILE — thêm một dòng 'sửa ở đâu → cổng nào chặn' cho nó (CLAUDE.md §8 bước 0: tài liệu đi CÙNG PR), hoặc khai lý do miễn trừ ở CODEMAP_EXEMPT trong $0."
+      fail=1
+    fi
+  done
+  # Tự bảo vệ khỏi test rỗng luôn xanh (cùng nguyên tắc F-002): glob không khớp gì là bất thường.
+  if [ "$seen_any" -eq 0 ]; then
+    echo "::error::Không tìm thấy script nào trong scripts/ — glob hỏng, mục 6 đang xanh giả."
+    fail=1
+  fi
+fi
+
+# ── 7. Engine khai ở CLAUDE.md §1 phải có mặt trong AGENTS.md (audit 2026-09-13, B-02). ──
+# VÌ SAO: CLAUDE.md §1 bắt "sửa luật cốt lõi ở đây thì soát lại AGENTS.md cho khớp", nhưng KHÔNG
+# cổng nào kiểm — nên CLAUDE.md khai 4 engine trong khi AGENTS.md chỉ kê 2, lệch âm thầm suốt
+# nhiều PR. Đúng khuôn TRAPS.md mục 11: luật có, cơ chế thi hành không có.
+# CỐ Ý hẹp: chỉ đối chiếu DANH SÁCH ENGINE (thứ agent ngoài Claude Code cần biết để gọi), không
+# so ngữ nghĩa toàn văn hai file — prose mỗi bên viết một kiểu, so toàn văn sẽ báo oan liên tục
+# (cùng lý lẽ đã ghi ở mục 5).
+echo "== 7. Engine trong CLAUDE.md §1 ↔ AGENTS.md =="
+if [ ! -f AGENTS.md ] || [ ! -f CLAUDE.md ]; then
+  echo "OK — thiếu CLAUDE.md hoặc AGENTS.md (không áp dụng)."
+else
+  engine_line="$(grep -m1 -F 'Engine chạy được trong' CLAUDE.md || true)"
+  if [ -z "$engine_line" ]; then
+    echo "OK — CLAUDE.md không có mục khai engine (không áp dụng)."
+  else
+    mapfile -t engines < <(printf '%s' "$engine_line" | grep -oE '`scripts/[a-z0-9-]+\.sh`' | tr -d '\`' | sort -u)
+    if [ "${#engines[@]}" -eq 0 ]; then
+      echo "::error file=CLAUDE.md::Có mục 'Engine chạy được trong scripts/' nhưng không đọc được tên engine nào trong dấu \`...\` — mục 7 đang xanh giả."
+      fail=1
+    else
+      for eng in "${engines[@]}"; do
+        base="$(basename "$eng")"
+        if ! grep -qF "$base" AGENTS.md; then
+          echo "::error file=AGENTS.md::CLAUDE.md §1 khai engine '$eng' nhưng AGENTS.md KHÔNG nhắc tới — agent ngoài Claude Code sẽ không biết engine này tồn tại. Bổ sung vào mục engine của AGENTS.md (CLAUDE.md §1: sửa luật ở CLAUDE.md thì soát lại AGENTS.md cho khớp)."
+          fail=1
+        fi
+      done
+    fi
+  fi
+fi
 
 if [ "$fail" -eq 0 ]; then
   echo "OK — không phát hiện link gãy, tên cũ sót lại, hay lệnh lệch với CLAUDE.md."

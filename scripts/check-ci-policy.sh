@@ -22,7 +22,8 @@
 #   CP-2  mọi `uses:` ghim full commit SHA
 #   CP-3  `node-version:` khớp .nvmrc
 #   CP-4  mọi job ci.yml có trong `needs:` của job tổng hợp `gate`
-#   CP-5  mọi scripts/test-*.sh được gọi trong ci.yml (test không cổng nào chạy = không tồn tại)
+#   CP-5  sổ SKIP_ALLOWED của `gate` khớp BẰNG ĐÚNG tập job có `if:` (job nào skip được phải có lý do)
+#   CP-6  mọi scripts/test-*.sh được gọi trong ci.yml (test không cổng nào chạy = không tồn tại)
 # Thêm một kiểm mới ở đây → PHẢI khai ID đó trong scripts/ci-workflow-policy.test.ts (bản dropins),
 # dù chỉ để ghi "không áp dụng cho dự án đích: <lý do>". Mục 8 dưới đây cưỡng chế điều đó.
 #
@@ -177,22 +178,61 @@ else
 fi
 
 
-# --- 7. Mọi scripts/test-*.sh phải được một job trong ci.yml gọi (CP-5). ---
+# --- 6b. CP-5: sổ job ĐƯỢC PHÉP skip phải khớp bằng đúng tập job có `if:`. ---
+# VÌ SAO: `gate` tính `skipped` là đạt (cần thế, vì `progress-freshness` cố ý chỉ chạy trên push vào
+# nhánh chính). Hệ quả không ai canh: một job bị `if:` viết hỏng loại ra sẽ KHÔNG chạy và vẫn qua
+# cổng — cổng xanh giả, cùng họ với CP-4 nhưng vào bằng cửa khác. Sổ `SKIP_ALLOWED` trong bước
+# "Kết luận từ mọi job cổng" là danh sách tường minh; kiểm này giữ nó khớp CHÍNH XÁC hai chiều:
+# thêm `if:` cho một job mà quên kê ⇒ đỏ (job mới skip được mà không ai biết); kê thừa một job không
+# còn `if:` ⇒ cũng đỏ (sổ nói dối, và sẽ che đúng job đó nếu sau này nó skip vì lý do khác).
+# Chỉ soi ci.yml: `gate` chỉ hội tụ job của ci.yml.
+echo "== CP-5: sổ SKIP_ALLOWED khớp tập job có 'if:' =="
+skippable=""
+cur_job=""
+in_jobs=0
+while IFS= read -r line; do
+  if [[ "$line" == "jobs:" ]]; then in_jobs=1; continue; fi
+  [ "$in_jobs" -eq 1 ] || continue
+  if [[ "$line" =~ ^\ \ ([A-Za-z0-9_-]+): ]]; then
+    cur_job="${BASH_REMATCH[1]}"
+  elif [[ "$line" =~ ^[A-Za-z] ]]; then
+    in_jobs=0
+  elif [[ "$line" =~ ^\ \ \ \ if: ]] && [ -n "$cur_job" ] && [ "$cur_job" != "gate" ]; then
+    # `gate` tự nó có `if: always()` — đó là thứ khiến nó CHẠY dù job con đỏ, không phải thứ khiến
+    # nó bị bỏ qua. Loại ra, nếu không sổ sẽ phải kê chính người đang cầm sổ.
+    skippable+="$cur_job "
+  fi
+done < <(tr -d '\r' < .github/workflows/ci.yml)
+
+declared="$(grep -m1 'SKIP_ALLOWED:' .github/workflows/ci.yml | sed -E 's/.*SKIP_ALLOWED:[[:space:]]*"?([^"]*)"?.*/\1/')"
+norm() { printf '%s\n' $1 | LC_ALL=C sort | tr '\n' ' '; }
+if ! grep -q 'SKIP_ALLOWED:' .github/workflows/ci.yml; then
+  echo "::error file=.github/workflows/ci.yml::Thiếu sổ SKIP_ALLOWED trong job 'gate' — không có sổ thì mọi 'skipped' lại được tính là đạt (CP-5)."
+  fail=1
+elif [ "$(norm "$skippable")" != "$(norm "$declared")" ]; then
+  echo "::error file=.github/workflows/ci.yml::SKIP_ALLOWED lệch tập job có 'if:'. Job có 'if:': [$(norm "$skippable")] — sổ ghi: [$(norm "$declared")]. Thêm 'if:' cho một job thì kê tên + LÝ DO vào sổ; bỏ 'if:' thì xoá khỏi sổ. Sổ chỉ có giá trị khi khớp đúng hai chiều (CP-5)."
+  fail=1
+else
+  echo "OK: sổ SKIP_ALLOWED khớp tập job có 'if:' ($(norm "$declared"))"
+fi
+
+
+# --- 6c. CP-6: mọi scripts/test-*.sh phải được một job trong ci.yml gọi. ---
 # VÌ SAO CẦN: `test-next-gen-engines.sh` và `test-telemetry-and-dispatch.sh` được thêm cùng 2
-# engine mới (PR #89, #91) nhưng KHÔNG job nào gọi — 3 ca đỏ nằm im qua nhiều PR sạch.
+# engine mới (PR #89, #91) nhưng KHÔNG job nào gọi — 3 ca đỏ nằm im qua nhiều PR sạch (đã nối tay ở PR trước; đây là cổng chống tái phát).
 # Test không cổng nào chạy thì về thực chất là không tồn tại — cùng khuôn hỏng IM LẶNG với F-002.
-echo "== Mọi scripts/test-*.sh được ci.yml gọi =="
+echo "== CP-6: mọi scripts/test-*.sh được ci.yml gọi =="
 CI_FILE=".github/workflows/ci.yml"
 for t in scripts/test-*.sh; do
   [ -e "$t" ] || continue
   if ! grep -q "$(basename "$t")" "$CI_FILE"; then
-    echo "::error file=$t::$t không được job nào trong $CI_FILE gọi — test không chạy thì không chứng minh được gì (CP-5)."
+    echo "::error file=$t::$t không được job nào trong $CI_FILE gọi — test không chạy thì không chứng minh được gì (CP-6)."
     fail=1
   fi
 done
 
 
-# --- 8. Hai bản kiểm CI song song không được phân kỳ âm thầm (W-302, F-008). ---
+# --- 7. Hai bản kiểm CI song song không được phân kỳ âm thầm (W-302, F-008). ---
 # VÌ SAO: repo khung dùng bản SHELL (không có package.json → không chạy vitest), dự án đích dùng
 # bản VITEST `scripts/ci-workflow-policy.test.ts`. CỐ Ý không gộp — nhưng trước kiểm này không gì
 # ràng hai bên: thêm một kiểm vào bản shell mà quên bản dropins thì dự án đích thiếu cổng đó mà
@@ -215,7 +255,7 @@ fi
 
 
 if [ "$fail" -eq 0 ]; then
-  echo "OK — CP-1..CP-5 đạt; bảng kiểm khớp hai bản (shell ↔ vitest dropins)."
+  echo "OK — CP-1..CP-6 đạt; bảng kiểm khớp hai bản (shell ↔ vitest dropins)."
 fi
 
 exit "$fail"

@@ -162,7 +162,391 @@ HEAD; PF-2: nhánh nêu trong "Nhánh đang làm" còn tồn tại trên remote)
 (chỉ chạy khi push vào `main`, `needs:` của `gate`) + `CLAUDE.md` §8 bắt buộc cập nhật `PROGRESS.md`
 ngay sau khi quay về `main`.
 
-## 9. Script Python in tiếng Việt/emoji → chết trên console Windows (cp1252)
+## 9. Nhãn "C1 — MẶC ĐỊNH" gây thiên lệch web cho dự án không phải web
+
+**Ngày/nguồn:** 2026-09-13, phát hiện qua phân tích ngoài phiên.
+
+**Khuôn lỗi:** `docs/framework/03-tech-selection-and-proactive-advice.md` đặt nhãn `C1 — Hồ sơ Web app (MẶC ĐỊNH)` và `PROJECT.md` ghi "mặc định theo hồ sơ Web app" — trong khi `README`, `CLAUDE.md` và `existing-project-adoption.md` đều khẳng định khung **không có stack mặc định**. Với agent thiếu cẩn thận, hai chữ "MẶC ĐỊNH" có thể dẫn đến thiên lệch chọn Next.js/React/TS + cổng Lighthouse/a11y/CWV cho dự án backend thuần, CLI, plugin Revit/AutoCAD hay bất kỳ loại nào không phải web. Trong các phiên brownfield lặp lại hoặc khi context bị nén, agent có thể không đọc đủ chú thích và áp hồ sơ C1 như mặc định thật sự.
+
+*Cách rà*: trước khi đề xuất stack/cổng, kiểm tra `PROJECT.md` mục 0 (Loại dự án & Hồ sơ) đã được điền chưa. Nếu chưa điền, chạy PHẦN A0 của KHUNG-3 để phân loại — không giả định C1 vì "đây là mặc định". Nhãn "MẶC ĐỊNH" trong C1 chỉ có nghĩa file cấu hình **drop-in** của khung giả định hồ sơ này, không có nghĩa mọi dự án nên dùng C1.
+
+*Cổng chốt chặn*: làm rõ nhãn C1 trong `03-tech-selection-and-proactive-advice.md` và chú thích nguồn gốc trong `PROJECT.md` để agent luôn thấy ngữ cảnh giải thích khi đọc hai chữ "MẶC ĐỊNH". (2026-09-13)
+
+## 11. Thêm code chạy được mà không nối cổng CI → code chết, không ai biết nó tồn tại
+
+*Ngày: 2026-09-13 · PR #89, #91 (mắc) → PR sửa: audit 2026-09-13.*
+
+PR #89 và #91 thêm 4 engine Python (`spec-compiler.py`, `arch-health-radar.py`,
+`subagent-dispatch.py`, `telemetry-log.py`, ~650 dòng) **kèm cả self-test** —
+`test-next-gen-engines.sh` và `test-telemetry-and-dispatch.sh` — nhưng **không nối self-test nào
+vào `ci.yml`**, và không thêm dòng nào vào `CODEMAP.md` hay `CLAUDE.md` §1.
+
+Hai hậu quả, cái thứ hai nặng hơn: (a) code không có cổng bảo vệ, sửa gãy không ai bắt; (b) **code
+chết trên thực tế** — một phiên AI mới chỉ đọc `CLAUDE.md`/`CODEMAP.md` nên không bao giờ biết 4
+engine đó tồn tại, dù chúng chạy hoàn hảo. Viết self-test rồi không cắm vào CI tạo cảm giác an toàn
+giả: `ls scripts/` thấy có test, nhưng không lần chạy nào là bắt buộc.
+
+Lỗ hổng lọt vì cổng cũ chỉ kiểm hai chiều **lệnh ↔ `CLAUDE.md`** (mục 3 của
+`check-docs-consistency.sh`), không kiểm **script ↔ `CODEMAP.md`**. Khi thêm cổng mới, nó bắt luôn
+2 script cũ cũng chưa khai (`usage-estimate.sh`, `ci-workflow-policy.test.ts`) — tức khuôn này đã
+âm thầm lặp lại nhiều lần trước đó.
+
+**Cách rà:** với mọi PR thêm file vào `scripts/`, hỏi đúng 3 câu — (1) có job/step CI nào *bắt buộc*
+chạy nó không? (2) có dòng trong `CODEMAP.md` không? (3) một phiên AI mới, chỉ đọc `CLAUDE.md`, có
+biết nó tồn tại không? Không đủ 3 thì chưa xong, dù test có xanh.
+
+**Cổng chốt chặn:** `scripts/check-docs-consistency.sh` **mục 6** (mọi `scripts/*.{sh,py,json,ts}`
+phải được `CODEMAP.md` khai; miễn trừ phải ghi lý do ở `CODEMAP_EXEMPT`) + 2 step mới trong job CI
+`framework-lint` chạy `test-next-gen-engines.sh` và `test-telemetry-and-dispatch.sh` + negative-test
+của chính mục 6 trong `scripts/test-check-scripts.sh` (cả chiều đỏ lẫn chiều xanh).
+
+## 12. `test-check-scripts.sh` chỉ kiểm được cổng ĐÃ COMMIT — sửa cổng mà chưa commit thì test mới xanh giả
+
+*Ngày: 2026-09-13 · phát hiện khi thêm mục 6 ở trên.*
+
+`setup_repo()` dựng sandbox bằng `git archive HEAD` — **chỉ lấy file đã commit**. Nên khi vừa thêm
+mục kiểm mới vào `check-docs-consistency.sh` (chưa commit) rồi chạy `test-check-scripts.sh` ngay,
+sandbox vẫn chạy **bản cũ** của cổng: ca negative (`rc` phải = 1) đỏ vì cổng cũ không có mục đó, còn
+ca đối chứng (`rc` phải = 0) **xanh giả** — xanh vì cổng không kiểm gì, không phải vì nó kiểm đúng.
+
+Nguy hiểm ở chỗ nếu chỉ viết ca đối chứng (không viết ca negative), bộ test sẽ báo xanh toàn bộ và
+người viết tin rằng cổng mới đã hoạt động. Đây là lý do mỗi mục kiểm **phải có cả ca đỏ lẫn ca xanh**
+(nguyên tắc F-002/G-001 áp cho chính mình).
+
+**Cách rà:** sửa bất kỳ `check-*.sh` nào → **commit trước** rồi mới chạy `test-check-scripts.sh`;
+nếu một ca negative mới báo `rc=0`, nghi ngờ "chưa commit" *trước* khi nghi ngờ logic cổng.
+
+**Cổng chốt chặn:** không có cổng máy (bản chất là thứ tự thao tác) — chốt bằng chính mục này +
+ghi chú trong đầu `scripts/test-check-scripts.sh`.
+
+## 13. Commit của phiên AI không gắn được tài khoản GitHub → auto-merge kẹt, triệu chứng không nói ra nguyên nhân
+
+*Ngày: 2026-09-13 · PR #93.*
+
+Ruleset `.github/rulesets/main.json` bật `require_extra_approval_for_unattributed_changes`.
+Phiên AI commit bằng một email **chưa liên kết** tài khoản GitHub → GitHub coi đó là thay đổi
+"unattributed" và **chặn auto-merge**, dù `required_approving_review_count` = 0 và **toàn bộ
+required check đều xanh**.
+
+Triệu chứng đánh lạc hướng: PR ở trạng thái `blocked` nhưng mọi cổng đều ✅, không thông báo nào
+nói lý do. Rất dễ đi tìm nhầm trong CI. Dấu hiệu nhận ra: gọi API commit thấy **thiếu** trường
+`author.login` (commit đã gắn được sẽ có), và trên giao diện GitHub avatar tác giả không hiện.
+
+Điểm dễ mắc thứ hai: sửa bằng `--reset-author` sẽ đặt **cả** author lẫn committer, làm mất danh
+tính harness (và mất chữ ký Verified). Git tách hai trường này nên **không phải đánh đổi**:
+author quyết định attribution, committer quyết định chữ ký.
+
+**Cách rà:** trước khi mở PR từ phiên AI — `git log -1 --format='%an <%ae> | %cn <%ce>'`; email
+author phải nằm trong `Settings → Emails` của tài khoản GitHub.
+
+**Cổng chốt chặn:** không có cổng máy trong repo (thuộc cấu hình môi trường chạy, không phải nội
+dung repo) — chốt bằng mục **4b** trong `docs/framework/new-project-runbook.md` + mục này.
+
+## 14. `git checkout -b` thất bại vì nhánh đã tồn tại → commit rơi nhầm vào `main`
+
+*Ngày: 2026-09-13 · mắc ngay trong phiên xử lý audit 2026-09-13.*
+
+`git checkout -b <nhánh>` báo `fatal: a branch named '<nhánh>' already exists` và **giữ nguyên
+nhánh đang đứng**. Nếu lệnh đó nằm trong một chuỗi `&&`/nhiều lệnh và output không được đọc kỹ,
+các lệnh sau vẫn chạy — nhưng trên **nhánh cũ**. Hậu quả trong phiên này: commit đồng bộ
+`PROGRESS.md` rơi vào `main` cục bộ, rồi `git push origin <nhánh>` lại đẩy **nhánh cũ** (nội dung
+đã merge từ trước) lên, tạo PR #94 sai nội dung mà vẫn bật auto-merge.
+
+May mắn PR đó squash ra **commit rỗng** nên `main` không thụt lùi — nhưng đó là may, không phải
+do cổng nào chặn.
+
+**Cách rà:** sau mỗi lần chuyển nhánh, xác nhận bằng `git branch --show-current` **trước khi**
+commit; đừng tin lệnh checkout đã thành công chỉ vì các lệnh sau nó không lỗi. Dùng
+`git switch -c <nhánh> || git switch <nhánh>` để ý định "tạo hoặc chuyển sang" là tường minh.
+Trước khi push, đối chiếu `git log --oneline -1 <nhánh>` với commit vừa tạo.
+
+**TÁI PHÁT 2026-09-14 (PR #111), qua một đường khác và tệ hơn:** lần này `git checkout -B <nhánh>`
+không *thất bại* — nó **không hề chạy**. Lệnh đó nằm chung một dòng `&&` với một heredoc `python3`,
+và cả dòng bị chính `block-dangerous-git.sh` chặn ở `PreToolUse` (bug chặn oan ở mục 18). Lệnh bị
+chặn trước khi thực thi ⇒ không có output lỗi nào của git để mà đọc — dấu hiệu sớm ở mục này
+("đừng tin checkout đã thành công chỉ vì lệnh sau không lỗi") **không áp dụng được**, vì không có
+lệnh sau nào chạy cả. Ba commit sửa hook rơi vào `main` cục bộ; `git push -q -u origin <nhánh>` đẩy
+**nhánh cũ** (đã merge) lên, tạo PR #111 sai nội dung.
+
+Hai thứ làm nó sống lâu thêm:
+- `git push -q` nuốt output, và tôi **không đối chiếu remote sau khi push** — tin vào dòng "Create a
+  pull request for ..." mà dòng đó xuất hiện cả khi ref được tạo từ một nhánh khác.
+- Hàng rào này chính là thứ đang được sửa trong PR đó: một hook chặn oan không chỉ phiền, nó **làm
+  hỏng lệnh ghép theo cách không để lại dấu vết**.
+
+**Cách rà (bổ sung, đây là phần đắt nhất):** sau **mỗi** `git push`, đối chiếu hai SHA trước khi nói
+bất kỳ câu nào về kết quả — `git fetch origin && git rev-parse HEAD` so với
+`git rev-parse origin/<nhánh>`. Bằng nhau mới là đã vào. Đây đúng `CLAUDE.md` §4 bước 1–3 (xác định
+lệnh CHỨNG MINH được câu mình định nói, chạy đủ, đọc hết output) áp cho thao tác git. Và: **không
+ghép `git checkout` vào cùng một dòng với lệnh khác** — chạy riêng, đọc `git branch --show-current`.
+
+**Cổng chốt chặn:** không có cổng máy (thuộc thao tác, không phải nội dung repo) — chốt bằng mục
+này. Dấu hiệu sớm: hook `stop-hook-git-check` báo "unpushed commit(s) on branch 'main'".
+
+## 15. "Đã copy đủ file" không có nghĩa là "dùng được ở dự án đích"
+
+*Ngày: 2026-09-14 · gây ra ở PR #93, phát hiện khi đánh giá tổng thể.*
+
+PR #93 bắt `telemetry-log.py` đọc `scripts/model-rates.json` và **thoát mã 1** nếu thiếu (cố ý:
+thà không có báo cáo còn hơn báo cáo chi phí bằng số bịa). Nhưng `copy-framework.sh`/`.ps1`
+**không phát** file dữ liệu đó, trong khi vẫn phát `telemetry-log.py`. Hậu quả:
+`telemetry-log.sh --record` **chết trên MỌI dự án đích**, suốt nhiều PR, mà không cổng nào kêu.
+
+Vì sao lọt: `test-copy-framework.sh` kiểm **đúng file có được copy không** — cấu trúc, không phải
+hành vi. Self-test đi kèm (`test-telemetry-and-dispatch.sh`) bắt được ngay, nhưng **chưa ai chạy
+nó BÊN TRONG dự án đích**. Khung tự kiểm chính mình rất kỹ, còn thứ nó **phát đi** thì không.
+
+Cùng lượt smoke đầu tiên còn lộ thêm 2 ca nữa, đều cùng gốc "chạy ở repo khung thì xanh, ở dự án
+đích thì không": `spec-compiler --compile-all` im lặng không in gì khi chưa có `docs/specs/`
+(dự án mới thì đương nhiên chưa có), và ca AHR-3 assert "độ phủ phải TỤT" trong khi dự án đích
+chưa có `ci.yml` nên độ phủ đã là 0 — không có gì để tụt.
+
+**Cách rà:** mỗi khi thêm/sửa thứ được `copy-framework` phát đi, hỏi hai câu — (1) nó có phụ thuộc
+file/thư mục nào mà dự án đích CHƯA có không? (2) đã chạy thật nó trong một dự án đích trống chưa?
+Trạng thái "trống" (chưa có spec, chưa có CI, chưa có budget) là HỢP LỆ, phải xử lý tử tế chứ
+không được coi là lỗi.
+
+**Cổng chốt chặn:** `scripts/test-copy-framework.sh` mục "Smoke" — dựng dự án đích thật rồi CHẠY
+các self-test được phát kèm ngay trong đó; đỏ là chặn. Chạy trong job CI `copy-framework-smoke`.
+
+## 16. Push lại cùng nhánh cùng ngày chỉ "thành công" nhờ trùng giây — không thật sự an toàn
+
+*Ngày: 2026-09-14 · phát hiện khi viết test cho `scripts/maintain-cron.sh` (agent bảo trì chạy
+không giám sát trên VPS/cron).*
+
+`maintain-cron.sh` thiết kế: nhánh `maint/auto-<ngày>` chạy lại cùng ngày thì `git reset --hard`
+về nhánh nền rồi commit lại từ đầu (không cộng dồn). Bản đầu push bằng `git push -u origin
+<nhánh>` (không force). Test tay chạy hai lượt LIÊN TIẾP RẤT NHANH (cùng giây đồng hồ) thấy xanh —
+kết luận sai là "ổn". Viết thêm ca test 5 lượt (7a→7e, có xử lý tốn vài giây giữa các lượt) mới lộ
+ra: commit thứ hai có nội dung/parent giống hệt commit thứ nhất nhưng **khác giây** → khác SHA →
+không phải hậu duệ của commit cũ trên remote → git từ chối `non-fast-forward`. Lượt test nhanh
+trước đó "xanh" thuần tuý vì hai commit **trùng giây tuyệt đối** nên trùng SHA, push thành no-op.
+
+**Bài học tổng quát:** một test tay chạy đủ NHANH để né race condition không chứng minh gì — thời
+gian trôi qua giữa hai bước là một BIẾN, không phải hằng số; test tự động phải cố tình để đủ thời
+gian trôi qua (nhiều bước xen giữa, hoặc gọi mạng/subprocess thật) chứ không chỉ lặp lại lệnh liền
+kề nhau.
+
+**Sửa:** `git fetch origin <nhánh>` trước, rồi `git push --force-with-lease=<nhánh>` — CHỈ áp cho
+nhánh do chính wrapper sở hữu (`maint/auto-*`), không bao giờ cho nhánh chính; `--force-with-lease`
+(khác `--force` thường) bị remote từ chối nếu ai đó đã đẩy lên đúng nhánh đó sau lượt fetch.
+
+**Cổng chốt chặn:** `scripts/test-maintain-cron.sh` mục 4 — hai lượt chạy cách nhau qua nhiều bước
+xử lý thật (không phải `sleep` giả), xác nhận push thành công và không cộng dồn commit.
+
+## 17. Biến gán trong hàm gọi qua `$(...)` không bao giờ thấy được ở ngoài — kể cả có khai `local`
+
+*Ngày: 2026-09-14 · cùng lượt viết `maintain-cron.sh` (bước tự mở PR qua GitHub REST API).*
+
+Một hàm `http_call()` ghi đường dẫn file tạm vào biến `http_body_file` (khai `local` ở hàm CHA gọi
+nó), rồi hàm cha đọc lại biến đó ngay sau khi gọi. Chạy `bash -n`/shellcheck đều sạch. Lỗi chỉ lộ
+lúc CHẠY THẬT: `set -u` báo `http_body_file: unbound variable`. Nguyên nhân: mọi lệnh gọi hàm đều
+qua `code="$(http_call ...)"` — cú pháp `$(...)` luôn chạy trong **subshell**; một biến được gán
+BÊN TRONG subshell đó biến mất khi subshell kết thúc, bất kể biến được khai `local` ở scope nào.
+
+**Bài học tổng quát:** không bao giờ dùng một biến "kênh phụ" (side-channel) để hàm A truyền dữ
+liệu ra ngoài trong khi lệnh gọi hàm A lại đi qua command substitution để lấy giá trị IN RA
+stdout — hai kênh giao tiếp (biến + stdout) không cùng sống sót qua ranh giới subshell. Dữ liệu
+"ra ngoài" thứ hai phải đi qua tham số truyền vào (caller tạo sẵn, truyền path/tên vào) hoặc gộp
+chung vào output có cấu trúc, không bao giờ qua biến toàn cục/`local` chia sẻ ngầm.
+
+**Sửa:** đổi `http_call()` nhận đường dẫn file tạm làm THAM SỐ tường minh (`http_call METHOD URL
+BODYFILE [DATA]`), caller tự `mktemp` trước khi gọi — không còn kênh phụ nào.
+
+**Cổng chốt chặn:** `scripts/test-maintain-cron.sh` mục 7 — chạy thật hàm `open_pr()` qua `curl`
+giả (không mock ở mức hàm bash, chạy nguyên vẹn dưới `set -u`) mới bắt được; test tĩnh không đủ.
+
+## 18. Hook an toàn quét CẢ chuỗi lệnh → chặn oan vì DỮ LIỆU trong lệnh (heredoc/nháy)
+
+**Ngày/PR:** 2026-09-14, khi đồng bộ `PROGRESS.md` sau PR #109. Mắc **hai lần trong cùng một lượt**.
+
+`.claude/hooks/block-dangerous-git.sh` nhận nguyên văn chuỗi lệnh rồi `grep` bốn khuôn nguy hiểm
+trên **toàn bộ chuỗi đó**. Nhưng một lệnh shell chứa cả *lệnh* lẫn *dữ liệu*, và dữ liệu nhiều từ
+thường nằm trong thân heredoc:
+
+1. `git commit -F - <<EOF … EOF && git push -u origin claude/<nhánh> --force-with-lease` bị quy tắc
+   1 ("force-push vào nhánh chính") chặn, vì **commit message** có chữ `main` đứng riêng ("quay về
+   main"). Nhánh đích là nhánh riêng.
+2. Ngay sau đó, một lệnh `python3 - <<PY … PY` bị quy tắc 2 chặn, vì thân script có chuỗi
+   `git reset --hard` làm **dữ liệu fixture** cho test.
+
+Phần trong dấu nháy đã được bỏ từ audit 2026-09-12 — nhưng heredoc thì chưa, và heredoc mới là chỗ
+văn bản dài sống.
+
+**Vì sao nghiêm trọng hơn là "phiền":** hàng rào báo oan dạy người ta gõ `ALLOW_DANGEROUS_GIT=1`
+thành phản xạ, và lúc đó nó không còn chặn được ca thật. Một cổng bị vô hiệu hoá vì mất lòng tin
+nguy hiểm hơn một cổng không tồn tại, vì tài liệu vẫn khai là có.
+
+**Khuôn tổng quát:** *bộ dò tự khớp văn bản của chính thứ nó đang soi*. Cùng họ với bẫy bộ đếm miễn
+trừ tự đếm chính mình (`docs/framework/quality-supplements-group2.md` §"Sổ trần cho LỐI THOÁT khỏi
+cổng coverage"). Trước khi viết bất kỳ bộ dò dạng grep-trên-văn-bản nào, hỏi: *văn bản mình đang
+soi có thể chứa chính mẫu mình đang tìm, dưới dạng dữ liệu, không?*
+
+**Cách rà:** cho bộ dò chạy trên một đầu vào **chứa mẫu dưới dạng dữ liệu** (chuỗi, comment, thân
+heredoc, fixture test) và xác nhận nó KHÔNG báo động — đồng thời giữ ca chiều ngược (mẫu thật vẫn
+bị bắt). Thiếu một trong hai chiều thì test vô nghĩa.
+
+**Sửa:** bỏ thân heredoc khỏi chuỗi trước khi so khớp (`strip_heredoc_bodies`), cùng lý do đã bỏ
+phần trong dấu nháy. Giới hạn còn lại được ghi thẳng trong comment của hook: dữ liệu không nháy,
+không heredoc (`… && echo main`) vẫn bị quét — sửa hẳn cần tách lệnh theo `&&`/`;`/`|` rồi chỉ soi
+segment bắt đầu bằng `git`, chưa làm vì chưa có sự cố thật.
+
+**Bẫy TRONG chính bản sửa — bản vá đầu tiên NỚI LỎNG hàng rào:** bản đầu nhận heredoc bằng
+`<<-?[[:space:]]*DELIM`, nên `echo "a << b"` khớp thành heredoc với delimiter `b`, và **mọi dòng sau
+đó bị nuốt** — `git reset --hard` ở dòng kế KHÔNG còn bị chặn. Đo được bằng một lần chạy hook thật,
+không phải suy đoán; phát hiện vì tự kiểm lại một ca xấu đã nêu ra miệng mà chưa test (`CLAUDE.md`
+§4 bước 1: xác định lệnh nào CHỨNG MINH được câu mình định nói). Sửa: cấm khoảng trắng giữa `<<` và
+delimiter.
+
+**Bài học riêng của ca này:** khi bản vá là "bỏ bớt đầu vào khỏi phép quét", hai chiều hỏng KHÔNG
+đối xứng — bỏ thiếu thì chặn oan (thấy ngay, có người kêu), bỏ thừa thì **để lọt** (không ai biết).
+Mọi bản vá dạng này phải có ít nhất một ca chặn-bắt-buộc đi kèm, không chỉ ca không-chặn-oan.
+
+**Cổng chốt chặn:** `scripts/test-hooks-gate.sh` — mục 8 hai ca không-chặn-oan (`force-push nhánh
+RIÊNG, chữ 'main' chỉ nằm trong thân heredoc`; `nhánh riêng có chuỗi 'main' trong TÊN nhánh`) và
+mục 7 một ca chặn-bắt-buộc mới (`lệnh nguy hiểm SAU một chuỗi chứa '<<' không phải heredoc`), cùng
+5 ca chặn thật có sẵn làm chiều ngược. 15/15.
+
+---
+
+## 19. Rút helper dùng chung làm đỏ test COPY một danh sách file cố định
+
+**Ngày/PR:** 2026-09-14, nhánh `claude/confident-brown-6vb0f7` (commit `4f9e740` gây, vá ở commit kế).
+
+**Khuôn lỗi:** một refactor "gộp boilerplate" tạo file mới (`scripts/_python-exec.sh`) và biến nó
+thành **phụ thuộc lúc chạy** của script cũ (`subagent-dispatch.sh`). Mọi test dựng sandbox bằng cách
+`cp` một **danh sách file viết tay** vào thư mục tạm đều đỏ ngay — vì danh sách đó không biết về file
+mới. Ở đây là `test-maintain-cron.sh:24` và `test-maintain-run.sh:31`.
+
+**Vì sao lọt:** refactor được nghiệm thu bằng đúng hai test *trực tiếp* của bốn wrapper
+(`test-next-gen-engines.sh`, `test-telemetry-and-dispatch.sh`) — cả hai chạy trong cây repo thật nên
+file mới luôn có mặt. Hai test đỏ nằm ở **script khác, tên không liên quan**, không ai nghĩ tới.
+Sai lầm quy trình: "cổng liên quan xanh" bị đọc thành "không đổi hành vi", trong khi `CLAUDE.md` §6
+đòi chạy **TOÀN BỘ** test trước khi merge. Xanh giả kiểu này còn nguy hiểm hơn đỏ.
+
+**Cách rà:** sau khi thêm bất kỳ file nào bị `source`/`exec` bởi script khác, grep danh sách copy:
+`grep -rn 'cp .*scripts/{' scripts/` — mọi danh sách có chứa script tiêu thụ thì phải có thêm file mới.
+Tổng quát hơn: `grep -rn "$(basename FILE_MOI)" scripts/` phải khớp **cả nơi dùng lẫn nơi copy**.
+
+**Cổng chốt chặn:** `scripts/test-maintain-cron.sh` + `scripts/test-maintain-run.sh` (job CI
+`framework-lint`) — đã xanh trở lại sau khi thêm `_python-exec.sh` vào hai danh sách `cp`. Đo thật:
+exit 0/0 ở `HEAD~1`, exit 9/22 sau refactor, exit 0/0 sau bản vá.
+
+## 20. Test xanh nhưng nhánh cần đo KHÔNG bị chạm — `chmod 000` vô hiệu dưới uid 0
+
+**Ngày/PR:** 2026-09-14, nhánh `claude/cool-gauss-4dk9ln` (bắt được TRƯỚC khi commit, khi tự kiểm).
+
+**Khuôn lỗi:** viết characterization test cho nhánh `except OSError: continue` của
+`arch-health-radar.py::_scripts_inventory` bằng cách `os.chmod(file, 0o000)` rồi assert kết quả.
+Test **xanh** — nhưng xanh vì đi đường BÌNH THƯỜNG: phiên chạy dưới `uid 0` (container/CI hay gặp),
+và root đọc được cả file `0o000`, nên `open()` không hề ném `OSError`. Nhánh định khoá vẫn trần trụi.
+
+**Vì sao nguy hiểm:** đây là xanh giả *ngược chiều* với mục 19. Mục 19 là "cổng liên quan xanh bị đọc
+thành không đổi hành vi"; mục này là **chính test được viết ra để khoá một nhánh lại không chạm tới
+nhánh đó** — nó sẽ vẫn xanh sau khi ai đó xoá mất `try/except`, đúng thứ nó có mặt để ngăn. Cùng họ
+với mục 18 (bộ dò tự khớp văn bản của chính nó): cái sai nằm ở *tiền đề của phép đo*, không ở kết quả.
+
+**Cách rà:** mọi test dựng điều kiện lỗi bằng **quyền truy cập** (`chmod`, chủ sở hữu file, thư mục
+chỉ-đọc) đều đáng ngờ — `id -u` bằng 0 thì phần lớn vô hiệu. Kiểm tiền đề trước bằng một dòng:
+`python3 -c "open(F).read()"` trên chính file đã `chmod` — đọc được nghĩa là test đang giả.
+Bắt buộc hơn: với MỌI test khoá một nhánh, chạy **negative test** — cố ý phá nhánh đó và xác nhận
+test chuyển đỏ. Test không đỏ khi phá thì không phải test.
+
+**Cổng chốt chặn:** `scripts/test-engine-characterization.sh` — nay kích lỗi bằng **thư mục trùng
+tên** (`IsADirectoryError`, một `OSError`), độc lập hoàn toàn với quyền của người chạy. Đo thật ở
+4 negative test trước khi commit: phá `_ci_gate_tests` → 5 failures · phá luật wrapper `.sh`→`.py`
+→ 4 failures · phá nối `--context-file` → 1 failure · phá nhánh render `hermes` → 1 error ·
+đối chứng khôi phục → OK.
+
+## 21. So bản CŨ với bản MỚI bằng cách chạy file cũ ở thư mục khác → nó quét nhầm cây
+
+**Ngày/PR:** 2026-09-14, nhánh `claude/cool-gauss-4dk9ln` (mắc HAI lần liên tiếp trong cùng một phiên).
+
+**Khuôn lỗi:** để chứng minh refactor không đổi hành vi, chép bản cũ ra thư mục tạm
+(`git show HEAD:scripts/x.py > /tmp/.../x.py`) rồi chạy hai bản và `diff` đầu ra. Cả bốn engine của
+khung đều tính `ROOT_DIR = dirname(dirname(abspath(__file__)))`, nên bản cũ ở thư mục tạm quét
+**thư mục tạm**, không phải repo. Kết quả `diff` khác nhau toé loe và *trông như* refactor đã phá
+hành vi — trong khi thật ra phép đo sai. Lần hai y hệt với `AGENTS_DIR` của `subagent-dispatch.py`.
+
+**Vì sao lọt:** phép so sánh có vẻ hiển nhiên đúng nên không ai kiểm tiền đề của nó. Nguy hiểm cả hai
+chiều: lần này nó báo động giả, nhưng cùng cơ chế đó có thể cho hai bản cùng quét một cây RỖNG rồi
+trả về "IDENTICAL" — một chứng minh vô nghĩa được đọc thành bằng chứng mạnh.
+
+**Cách rà:** đừng so bằng cách chạy file ở vị trí khác. Nạp **cả hai** bản làm module
+(`importlib.util.spec_from_file_location`), **ghi đè `ROOT_DIR`/`AGENTS_DIR` của cả hai vào CÙNG một
+cây cố định** (dựng bằng `git archive HEAD | tar -x -C <thư mục>`), rồi gọi thẳng hàm và so giá trị
+trả về. Luôn in kèm một con số nhận dạng của cây đó (số file, điểm sức khoẻ) để thấy ngay nếu nó rỗng.
+
+**Cổng chốt chặn:** không có cổng máy — đây là kỷ luật của người chứng minh, thuộc `CLAUDE.md` §4
+bước (4) "output có khớp đúng câu định nói không". Ghi lại ở đây vì khuôn này sẽ quay lại ở mọi lần
+refactor engine sau.
+
+## 22. Commit merge đặt tiêu đề `merge:` → đỏ cổng Conventional Commits
+
+**Ngày/PR:** 2026-09-14, PR #120 (đỏ ở job `metadata`, sửa bằng `--amend` ngay trên nhánh của mình).
+
+**Khuôn lỗi:** giải xong xung đột, commit merge với tiêu đề mô tả đúng việc đang làm — `merge: đưa
+main vào nhánh, giải xung đột X`. `merge` **không** nằm trong danh sách type hợp lệ của
+`.github/workflows/pr-policy.yml` (`feat|fix|refactor|docs|test|chore|style|perf|build|ci|revert`),
+nên cổng `metadata` đỏ. Dùng `chore:` — nội dung mô tả giữ nguyên, chỉ đổi type.
+
+**Vì sao lọt:** commit merge *cảm giác* như một thao tác git chứ không phải một commit "nội dung", nên
+quy ước tiêu đề không được nghĩ tới. Nhưng cổng soi **mọi** tiêu đề commit chứ không chỉ tiêu đề PR —
+đúng như comment trong `pr-policy.yml` giải thích: squash lấy tiêu đề COMMIT khi PR chỉ có một commit
+(sự cố thật ở PR #99). Mọi chuỗi CÓ THỂ thành tiêu đề trên `main` đều bị soi, commit merge không ngoại lệ.
+
+**Cách rà:** trước khi push một nhánh có commit merge, chạy đúng regex của cổng lên toàn bộ tiêu đề:
+`git log --format=%s origin/main..HEAD` rồi đối chiếu với regex ở `pr-policy.yml:21`. Sửa bằng
+`git commit --amend` trên chính commit merge — `--amend` GIỮ NGUYÊN cả hai cha (kiểm: `git log -1
+--format=%p` phải in hai SHA), nên không phải viết lại lịch sử; chỉ hợp lệ trên nhánh do mình tạo.
+
+**Cổng chốt chặn:** job `metadata` (`.github/workflows/pr-policy.yml`) — đã đỏ thật ở PR #120 commit
+`eb2ea98` với thông điệp nêu đích danh tiêu đề vi phạm, xanh lại sau khi đổi `merge:` → `chore:`.
+
+**Bẫy kèm theo — sửa tiêu đề trên PowerShell làm HỎNG tiếng Việt trong thân commit.** Bản sửa ở PR
+#120 được thực hiện trên Windows bằng
+`$msg = (git log -1 --format=%B | Out-String) -replace '^merge:', 'chore:'`. Lệnh chạy, cổng xanh,
+nhưng tiêu đề trên remote thành `chore: ─æ╞░a main …`: `git log` xuất UTF-8, PowerShell giải mã theo
+**code page của console** (CP437/850) rồi mã hoá lại thành UTF-8 — hỏng kép. Nhìn bằng mắt trên
+terminal Windows rất khó thấy vì console cũng hiển thị sai theo chiều ngược lại.
+
+*Cách rà:* so **byte**, đừng so hình. `git log -1 --format=%s <sha> | od -c` — chữ `đ` đúng là
+`304 221` (U+0111); thấy `342 224 200` (ký tự kẻ khung U+2500) là đã hỏng. Đối chiếu với một commit
+sạch kề bên để có mốc.
+
+*Cách tránh:* đặt `$OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()` TRƯỚC khi
+đọc output của git, hoặc đừng đọc-ghi lại thân commit — gõ thẳng `git commit --amend -m "..."`, hoặc
+sửa trong `git commit --amend` bằng editor. Ghi file thì dùng
+`[System.IO.File]::WriteAllText($p, $msg, (New-Object System.Text.UTF8Encoding($false)))` để không
+chèn BOM — nhưng **ghi đúng không cứu được chuỗi đã đọc sai**: hỏng xảy ra ở bước ĐỌC, không phải ghi.
+
+*Không có cổng máy:* cổng `metadata` chỉ soi tiền tố Conventional Commits nên tiêu đề hỏng vẫn qua.
+Đây là kỷ luật của người sửa. Hệ quả ở PR #120 được CHẤP NHẬN có ý thức thay vì force-push thêm một
+lượt nữa: chi phí sửa (một vòng force-push nữa) lớn hơn thiệt hại (một dòng hỏng trong thân commit
+squash, tiêu đề trên `main` lấy từ tiêu đề PR nên vẫn sạch).
+
+## 23. `awk` ở máy dev (mawk) nhận cú pháp mà `awk` ở CI (gawk) từ chối
+
+*Ngày/PR:* 2026-09-15, PR #126 (cổng CC shell) — đỏ ngay lượt CI đầu tiên.
+
+**Khuôn lỗi.** Script cổng viết một chương trình `awk` dùng biến tên `func`. Máy dev có
+`/usr/bin/awk → mawk` (Debian mặc định) nhận bình thường; runner `ubuntu-latest` có `awk → gawk`,
+mà `func` là **từ khoá của gawk** (viết tắt của `function`) → `syntax error`, cổng chết TRƯỚC khi đo
+được gì. Mọi lượt chạy tay ở máy đều xanh, CI đỏ 100%.
+
+Đây là một thể hiện khác của khuôn "cổng chết trước khi chạy tới phần cần đo" (`CLAUDE.md` §4, bẫy
+cuối): exit code khác 0 rất dễ bị đọc nhầm thành "đã đo, không có vi phạm".
+
+*Cách rà:* `ls -l /usr/bin/awk` — thấy trỏ vào `mawk` là máy đang chạy dialect KHÁC CI. Chạy lại cổng
+với `PATH` chèn một thư mục có `awk → gawk` (`ln -sf /usr/bin/gawk $d/awk`) để tái hiện đúng môi
+trường runner trước khi push. Từ khoá chỉ có ở gawk hay quên: `func`, `include`, `switch`, `case`,
+`delete` (dạng mảng), `BEGINFILE`, `ENDFILE`.
+
+*Cổng chốt chặn:* ca 6 của `scripts/test-check-shell-complexity.sh` — khi máy CÓ `gawk`, chạy lại
+chính cổng đó dưới gawk và bắt buộc phải xanh. Máy không có gawk thì ca này in ghi chú "bỏ qua" chứ
+không giả vờ xanh; CI luôn có gawk nên nơi đó không bao giờ bỏ qua.
+
+## 24. Script Python in tiếng Việt/emoji → chết trên console Windows (cp1252)
 
 **Ngày/PR:** 2026-09-15, phát hiện khi người dùng hỏi "template này hoàn hảo chưa" và chạy thử toàn
 bộ self-test trên máy Windows thật.
@@ -180,16 +564,15 @@ Việt đều mang sẵn lỗi này, chỉ chưa chạy trên máy Windows nào.
 trên Windows thật (không chỉ WSL/Linux), hoặc ép thử: `PYTHONIOENCODING=cp1252 python scripts/x.py`.
 
 **Cổng chốt chặn:** khối `_stream.reconfigure(encoding="utf-8")` ở đầu cả 4 file `.py` +
-`scripts/test-next-gen-engines.sh` và `scripts/test-telemetry-and-dispatch.sh` giờ đã được
-`ci.yml` (job `framework-lint`) gọi thật — xem bẫy 10.
+`scripts/test-next-gen-engines.sh` và `scripts/test-telemetry-and-dispatch.sh` chạy trong `ci.yml` — xem bẫy 25.
 
-## 10. Test có trong repo nhưng KHÔNG job nào gọi → đỏ nằm im qua nhiều PR "sạch"
+## 25. Test có trong repo nhưng KHÔNG job nào gọi → đỏ nằm im qua nhiều PR "sạch"
 
-**Ngày/PR:** 2026-09-15, cùng lượt phát hiện bẫy 9.
+**Ngày/PR:** 2026-09-15, cùng lượt phát hiện bẫy 24.
 
 **Khuôn lỗi:** `scripts/test-next-gen-engines.sh` và `scripts/test-telemetry-and-dispatch.sh` được
 thêm cùng các engine mới (PR #89, #91) nhưng **không job nào trong `ci.yml` gọi chúng**. Repo nhìn
-như có test bao phủ; thực tế 3 ca đỏ (bẫy 9) đi qua nhiều PR merge sạch mà không ai thấy. Đây đúng
+như có test bao phủ; thực tế 3 ca đỏ (bẫy 24) đi qua nhiều PR merge sạch mà không ai thấy. Đây đúng
 khuôn hỏng-im-lặng của F-002 (hook tồn tại nhưng chưa ai chứng minh nó chặn), chỉ khác tầng.
 
 Tổng quát: **một test không có cổng nào chạy thì về thực chất là không tồn tại** — nó còn tệ hơn
@@ -197,12 +580,12 @@ không có test, vì tạo cảm giác an toàn giả.
 
 **Cách rà:** thêm bất kỳ `scripts/test-*.sh` nào → `grep "$(basename "$t")" .github/workflows/ci.yml`.
 
-**Cổng chốt chặn:** CP-5 trong `scripts/check-ci-policy.sh` (mọi `scripts/test-*.sh` phải được
-`ci.yml` gọi) + negative test cho CP-5 trong `scripts/test-check-scripts.sh`.
+**Cổng chốt chặn:** CP-6 trong `scripts/check-ci-policy.sh` (mọi `scripts/test-*.sh` phải được
+`ci.yml` gọi) + negative test cho CP-6 trong `scripts/test-check-scripts.sh`. (PR #113 đã nối tay 2 suite vào `ci.yml` sau khi audit 2026-09-13 phát hiện — CP-6 là cổng máy chống tái phát, thay vì trông vào việc ai đó nhớ.)
 
-## 11. Hàng rào hook phụ thuộc `jq` nhưng `jq` chưa từng được khai là yêu cầu môi trường
+## 26. Hàng rào hook phụ thuộc `jq` nhưng `jq` chưa từng được khai là yêu cầu môi trường
 
-**Ngày/PR:** 2026-09-15, cùng lượt phát hiện bẫy 9.
+**Ngày/PR:** 2026-09-15, cùng lượt phát hiện bẫy 24.
 
 **Khuôn lỗi:** `pre-commit-gate.sh` và `block-dangerous-git.sh` đọc lệnh từ payload JSON bằng `jq`,
 và **cố ý fail-open** khi thiếu `jq` (fail-closed sẽ chặn oan vì không đọc nổi lệnh). Nhưng không

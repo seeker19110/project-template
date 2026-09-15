@@ -2,13 +2,18 @@
 
 > Mô hình vận hành tự động của khung: tách bạch **NGHĨ** (lập kế hoạch) — **CHẠY** (điều phối) —
 > **LÀM** (thực thi), định tuyến worker theo 2 trục *độ phức tạp × độ kín đặc tả*.
-> Đây là bản mở rộng của `models-and-automation.md`: opusplan vẫn là nền, 3 tầng là cách tổ chức
-> khi một thay đổi đủ lớn để cần điều phối nhiều worker song song.
+> Đây là bản mở rộng của `models-and-automation.md`: nền vẫn là hai pha lập kế hoạch/thực thi (chuyển
+> `/model` bằng tay — ADR-0007, `opusplan` đã ngừng hỗ trợ), 3 tầng là cách tổ chức khi một thay đổi
+> đủ lớn để cần điều phối nhiều worker song song.
+> **Đa model, đa nhà cung cấp (ADR-0006, 2026-09-15):** cả 3 tầng đều có thể chạy trên nhà cung
+> cấp AI khác Claude khi CLI cục bộ đã có nhánh xử lý thật (`scripts/subagent-dispatch.py`,
+> `scripts/maintain-run.sh`). `route:` là **cấp năng lực** (capability tier), không phải tên một
+> model Claude cụ thể — xem PHẦN "Chọn đa nhà cung cấp" bên dưới.
 
 ## Sơ đồ tổng thể
 
 ```
-TẦNG 1 — NGƯỜI LẬP KẾ HOẠCH  (phiên chính · opusplan/Fable 5) — phần "NGHĨ"
+TẦNG 1 — NGƯỜI LẬP KẾ HOẠCH  (phiên chính · model cao cấp nhất sẵn có/Fable 5.1) — phần "NGHĨ"
    Hiểu yêu cầu → thiếu đặc tả thì HỎI (AskUserQuestion) → viết đặc tả chi tiết
    (schema DDL, API, điểm chạm code, tiêu chí chấp nhận) → gắn nhãn `route:` từng việc
    → NHÓM việc thành các ĐƠN VỊ PR (1 PR/đơn vị) + khai phụ thuộc giữa đơn vị
@@ -59,6 +64,39 @@ Hai trục quyết định nhãn:
 không worker nào được tự nâng `/effort` quá `medium` để tiết kiệm token — việc thật sự cần effort
 cao hơn (`xhigh`/`ultrathink`) không giao worker, giữ lại ở Tầng 1 (đúng CLAUDE.md §9 "nhiều đánh đổi
 lớn/quyết định kiến trúc" — Tầng 1 tự làm, không route xuống).
+
+## Chọn đa nhà cung cấp (ADR-0006)
+
+Bảng trên là **mặc định trong Claude Code** (subagent `.claude/agents/*.md`). Khi phiên chính cần
+chọn động theo độ phức tạp/độ khả dụng, hoặc chạy ngoài Claude Code (qua `maintain-run.sh`-style
+CLI cục bộ), tra ứng viên đa nhà cung cấp trước khi dispatch:
+
+```bash
+scripts/subagent-dispatch.sh --tier planning     # Tầng 1: model cao cấp nhất đang sẵn có
+scripts/subagent-dispatch.sh --tier complex       # ~ route:complex
+scripts/subagent-dispatch.sh --tier spec          # ~ route:spec
+scripts/subagent-dispatch.sh --tier standard      # ~ route:standard
+scripts/subagent-dispatch.sh --tier mechanical    # ~ route:mechanical
+```
+
+Nguồn dữ liệu: `scripts/model-capability-tiers.json` (khuôn giống `model-rates.json` — có
+`_verified_on`/`_source`, sửa số phải sửa cả hai). Mỗi ứng viên gắn `harness` (giá trị hợp lệ cho
+`--harness` của `subagent-dispatch.sh`/`maintain-run.sh`: `claude`, `hermes [--provider P]`,
+`codex`, `opencode`, `generic`) và cờ `verify_before_use` — **`true` thì bắt buộc** tra lại bằng
+subagent `version-check` hoặc nguồn sống trước khi dùng thật (CLAUDE.md §4, không bịa phiên bản).
+
+**Luật cứng khi dùng nhà cung cấp khác Claude ở Tầng 1/2/3:**
+- Tầng 1 (planner) vẫn phải xuất `PLAN.md` đúng định dạng bên dưới, dù chạy trên model/hãng nào —
+  định dạng là hợp đồng giữa các tầng, không đổi theo nhà cung cấp.
+- Tầng 2 (coordinator) dispatch việc Tầng 3 trên nhà cung cấp khác Claude vẫn theo đúng luật cứng
+  ở mục dưới (không đổi kế hoạch, không tự code, không merge) — nhà cung cấp thực thi không nới
+  ranh giới vai trò.
+- CLI của nhà cung cấp khác cần đã cài + đăng nhập subscription cục bộ trên máy đang chạy (như
+  `maintain-run.sh` yêu cầu); không có CLI đó → dùng `--harness generic` in prompt ra dán tay,
+  hoặc quay lại Claude.
+- Không tự ý đổi model Routine/CI đang chạy dựa trên gợi ý trong `model-capability-tiers.json` —
+  đổi model của một Routine/session cụ thể là quyết định của người dùng (xem ràng buộc
+  `update_trigger`/`create_trigger` nếu đang chạy trong môi trường Claude Code Remote).
 
 ## Luật cứng theo tầng
 
@@ -114,5 +152,7 @@ lớn/quyết định kiến trúc" — Tầng 1 tự làm, không route xuống
 
 ## Ranh giới với phần còn lại của khung
 - **Không thay** `PROJECT.md` (cái-gì), các cổng `/gate` (commit/merge), hay ADR (`/adr`). 3 tầng chỉ là **cách điều phối thực thi**.
-- **opusplan** vẫn là model nền của phiên chính; 3 tầng dùng khi thay đổi đủ lớn để cần nhiều worker. Thay đổi nhỏ gọn trong một PR vẫn có thể làm thẳng ở pha-code opusplan + subagent như trước.
+- **Hai pha lập kế hoạch/thực thi** (chuyển `/model` bằng tay — ADR-0007) vẫn là nền của phiên chính; 3 tầng dùng khi thay đổi đủ lớn để cần nhiều worker. Thay đổi nhỏ gọn trong một PR vẫn có thể làm thẳng ở pha-code (Sonnet) + subagent như trước, không cần đổi model.
+- **Đa nhà cung cấp là mở rộng, không phải thay thế**: mặc định không đổi gì vẫn chạy đúng như trước (Claude Sonnet 5 xuyên suốt cho thực thi); `--tier` chỉ dùng khi có lý do chọn khác (độ phức tạp, chi phí, tính khả dụng) — xem ADR-0006.
 - Subagent read-only `lookup` (Haiku) và `version-check` (Haiku) vẫn phục vụ Tầng 1 ở bước research-first; chúng không nằm trong bảng route (chỉ tra cứu, không thực thi thay đổi).
+- Subagent `maintainer` (Sonnet · medium) cũng **ngoài bảng route**: phục vụ Tầng 1 theo chu kỳ (`/maintain`) — quét bằng `scripts/maintenance-sweep.sh`, triage, viết `docs/ops/MAINTENANCE-PLAN.md` (mỗi mục một PR có nhãn `route:`) rồi dừng chờ duyệt. Sau duyệt, Tầng 1 có thể đưa các mục đó vào PLAN.md cho `coordinator` dispatch như việc thường; `maintainer` không tự commit/merge. Ngoài Claude Code chạy qua `scripts/maintain-run.sh` (CLI subscription cục bộ của mọi nhà cung cấp).

@@ -19,9 +19,7 @@ HOOK="$ROOT/.claude/hooks/pre-commit-gate.sh"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
-fails=0
-ok()   { echo "  ✅ $1"; }
-bad()  { echo "  ❌ $1"; fails=$((fails+1)); }
+source "$ROOT/scripts/_test-lib.sh"
 skips=0
 skip() { echo "  ⏭  BỎ QUA (thiếu jq): $1"; skips=$((skips+1)); }
 
@@ -136,6 +134,8 @@ for pair in \
   "git reset --hard HEAD~1|reset --hard" \
   "git merge --abort|merge --abort" \
   "git rebase --abort|rebase --abort" \
+  "echo \"a << b\"
+git reset --hard HEAD~1|lệnh nguy hiểm SAU một chuỗi chứa '<<' không phải heredoc" \
 ; do
   c="${pair%%|*}"; label="${pair##*|}"
   rc="$(run_hook "$any" "$c" "" "$DG")"
@@ -149,6 +149,11 @@ for pair in \
   "git merge main|merge bình thường" \
   "git status|lệnh đọc" \
   "echo 'git reset --hard trong tài liệu'|chuỗi mô tả, không phải lệnh git" \
+  "git commit -F - <<EOF
+quay ve main roi push
+EOF
+git push -u origin claude/abc --force-with-lease|force-push nhánh RIÊNG, chữ 'main' chỉ nằm trong thân heredoc" \
+  "git push --force-with-lease origin feat/main-menu|nhánh riêng có chuỗi 'main' trong TÊN nhánh" \
 ; do
   c="${pair%%|*}"; label="${pair##*|}"
   rc="$(run_hook "$any" "$c" "" "$DG")"

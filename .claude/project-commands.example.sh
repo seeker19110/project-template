@@ -30,3 +30,9 @@
 # typecheck=""
 # test=""
 # build=""
+
+# --- Bảo trì (scripts/maintenance-sweep.sh) — lệnh kiểm dependency nếu tự dò không đúng ---
+# Tự dò: npm/pnpm/yarn/bun outdated + audit · pip list --outdated + pip-audit · go list -m -u · cargo outdated/audit.
+# Quy ước: exit 0 = sạch; exit ≠ 0 ở deps_audit = 🔴 (lỗ hổng), ở deps_outdated = 🟡 (lỗi thời).
+# deps_outdated=""
+# deps_audit=""

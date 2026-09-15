@@ -10,10 +10,17 @@
 | `01-process-and-standards.md` | **KHUNG-1** | Quy trình 9 giai đoạn + cổng + tiêu chuẩn từng giai đoạn | Bắt đầu dự án; trước khi chuyển giai đoạn |
 | `02-ai-rules-and-project-template.md` | **KHUNG-2** | Luật AI (cổng commit/merge, chống ảo giác, báo cáo xác thực) + mẫu `PROJECT.md` | Sinh PROJECT.md/CLAUDE.md; ôn luật |
 | `03-tech-selection-and-proactive-advice.md` | **KHUNG-3** | Research-first: chọn công nghệ/phiên bản + đề xuất chủ động 19 khía cạnh + hồ sơ C1–C10 | GĐ 0–2; thêm/đổi công nghệ |
-| `new-project-runbook.md` | KHOI-TAO | Runbook dựng dự án MỚI: trình tự 0→9 + cấu hình hàng rào (Phần D) + checklist dự án thật (Phần E) | Greenfield (`/bootstrap`) |
+| `new-project-runbook.md` | KHOI-TAO | **Trang mục lục + Phần 0/A/B/C**: cấu trúc repo, trình tự triển khai, quy tắc bất biến, cổng "sẵn sàng phát triển" | Greenfield (`/bootstrap`) |
+| `new-project-runbook-part-d-guardrails.md` | KHOI-TAO · Phần D | Cấu hình chi tiết hàng rào — 14 bước sao chép được (Prettier/ESLint/TS strict/Husky/commitlint/Vitest/CI/branch protection/Dependabot) | Khi dựng nền thật |
+| `new-project-runbook-part-e-checklist.md` | KHOI-TAO · Phần E | Checklist triển khai trên DỰ ÁN THẬT (secrets, Supabase/Vercel, analytics, release) | Khi đã có dự án thật |
+| `adopt-from-outside.md` | HOC-NGOAI | Học từ repo/khung/skill BÊN NGOÀI: ba cột (sâu hơn / nông hơn / chưa có), cổng "phải ứng với sự cố thật", luật **grep cổng đang chạy đừng đọc văn xuôi**, kiểm mâu thuẫn luật | Được đưa một nguồn ngoài và bảo "lấy cái hay về" |
 | `existing-project-adoption.md` | AP-DUNG | Áp khung lên dự án CÓ SẴN: tự dò stack, hàng rào tăng dần, không big-bang (Bước 0→4) | Brownfield (`/consult`) |
 | `project-completion.md` | HOAN-THIEN | Hoàn thiện dự án: bản đồ tính năng + kế hoạch chi tiết + vòng hội tụ + Definition of Complete | Muốn hết lỗi đã biết (`/completion`) |
-| `quality-supplements.md` | BO-SUNG | Bổ sung chất lượng: Nhóm 1 (env/migration/ADR/DoR), Nhóm 2 (mobile/CWV/E2E+a11y/UI-UX/chống lỗi logic/tối ưu), theme, i18n/PWA/Sentry/SEO | Tra checklist chi tiết |
+| `quality-supplements.md` | BO-SUNG | **Trang mục lục** trỏ tới 4 phần dưới đây | Tra checklist chi tiết |
+| `quality-supplements-group1.md` | BO-SUNG · Nhóm 1 | env validation, migration, PR template, ADR, npm audit, Vercel staging, DoR, sổ tay thuật ngữ `CONTEXT.md` | Tra Nhóm 1 mục N |
+| `quality-supplements-group2.md` | BO-SUNG · Nhóm 2 | mobile-first, hiệu năng/Lighthouse, E2E + a11y + coverage, UI/UX, chống lỗi logic, observability, tối ưu mã nguồn | Tra Nhóm 2 mục N |
+| `quality-supplements-theme.md` | BO-SUNG · Theme | Dark blue mặc định + Light, design tokens, WCAG AA cả hai chế độ | Khi làm UI/theme |
+| `quality-supplements-advanced.md` | BO-SUNG · Nâng cao | i18n · PWA · Sentry · SEO · Analytics | Khi cần năng lực nâng cao |
 | `models-and-automation.md` | MODEL | Chọn model (Sonnet/Opus/Fable) + effort + kỷ luật vận hành tối ưu token + bản đồ chế độ chạy tự động | Bắt đầu/đổi quy mô; cân chi phí |
 | `spec-driven-openspec.md` | SPEC-DRIVEN | (Tùy chọn) Lớp spec cấp từng thay đổi với OpenSpec: proposal→spec→design→tasks trong Git, bản đồ khái niệm ↔ khung, khi nào dùng/không | Thay đổi vừa/lớn GĐ 4+; nhiều phiên/nhiều người |
 | `case-study-greenfield-dry-run.md` | — | Chạy thật runbook trên `create-next-app` thật: 3 lỗi tìm được + đã vá, bằng chứng chạy đầu-cuối | Kiểm chứng khung / trước khi tin runbook |

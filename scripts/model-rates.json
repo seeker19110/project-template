@@ -1,0 +1,15 @@
+{
+  "_comment": "Bảng giá API (USD / 1 triệu token) dùng để ƯỚC TÍNH chi phí trong scripts/telemetry-log.py. TÁCH RA FILE RIÊNG (không hard-code trong .py) vì giá thay đổi theo thời gian và sai số ở đây KHÔNG làm đỏ CI — nghĩa là sẽ âm thầm sai mãi nếu chôn trong code. Khi cập nhật: sửa số VÀ sửa _verified_on, rồi ghi nguồn vào _source.",
+  "_verified_on": "2026-09-13",
+  "_source": "https://claude.com/pricing (Anthropic); giá nhà cung cấp khác chỉ để so sánh thô, KHÔNG được khung bảo chứng.",
+  "_note": "Khớp theo chuỗi con của --model, ưu tiên khoá dài nhất (vd 'claude-haiku-4-5' khớp 'haiku-4-5' trước 'haiku'). Không khớp khoá nào → dùng 'default' và in cảnh báo.",
+  "rates": {
+    "opus": { "input": 15.0, "output": 75.0 },
+    "sonnet": { "input": 3.0, "output": 15.0 },
+    "haiku-4-5": { "input": 1.0, "output": 5.0 },
+    "haiku": { "input": 1.0, "output": 5.0 },
+    "gpt-4o": { "input": 2.5, "output": 10.0 },
+    "gemini-flash": { "input": 0.075, "output": 0.3 },
+    "default": { "input": 1.0, "output": 3.0 }
+  }
+}
