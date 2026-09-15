@@ -6,7 +6,21 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, PR #126 đã merge): CỔNG CC CHO SHELL** — nửa còn lại của cổng CC.
+- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, nhánh `claude/hien-trang-b89ids`, chưa merge):
+  ADR-0006 — điều phối 3 tầng đa model, đa nhà cung cấp.** Theo yêu cầu người dùng: trước tác vụ
+  tự động/lập kế hoạch lớn phải chọn model cao cấp nhất sẵn có (không giới hạn Claude) theo độ
+  phức tạp, rồi phân việc cho subagent đủ năng lực. Thêm `scripts/model-capability-tiers.json`
+  (khuôn giống `model-rates.json`, có `_verified_on`/`_source`, model chưa xác minh đánh
+  `verify_before_use`) + `scripts/subagent-dispatch.py --tier <planning|complex|spec|standard|
+  mechanical>` (tra ứng viên đa nhà cung cấp, không dispatch) + ca test trong
+  `test-telemetry-and-dispatch.sh`. Cập nhật `CLAUDE.md` §2, `orchestration-3-tier.md` (mục "Chọn
+  đa nhà cung cấp"), `models-and-automation.md` §2b, `CODEMAP.md`. Tận dụng hạ tầng đa-harness đã
+  có sẵn (`subagent-dispatch.py --harness`, `maintain-run.sh`) — không viết engine mới. 7/7 mục
+  `check-docs-consistency.sh` xanh; `test-telemetry-and-dispatch.sh`, `check-ci-policy.sh`,
+  `check-progress-freshness.sh`, `test-hooks-gate.sh`, `test-check-scripts.sh`,
+  `test-next-gen-engines.sh` đều xanh. Merge `main` (mang theo PR #126) vào nhánh — chỉ đụng
+  `PROGRESS.md` (mục "Giai đoạn hiện tại", đã hợp nhất cả hai mốc), không đụng code của #126.
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-15, PR #126 đã merge): CỔNG CC CHO SHELL** — nửa còn lại của cổng CC.
   `scripts/check-shell-complexity.sh` đo bằng `vendor/shellmetrics` (bản vendor có ghim SHA256,
   chạy offline), **hai trần**: hàm ≤ 12 như Python, thân script `<main>` ≤ 45 — trần thứ hai đặt
   ngay trên mức cao nhất đo được (41) làm **nắp chặn trượt**, vì ép thân một script cổng xuống 12
@@ -16,7 +30,7 @@
   Spec: `docs/specs/2026-09-15-cong-may-cc-shell.md`. Lượt CI đầu ĐỎ vì `func` là từ khoá của
   gawk (runner) chứ không phải mawk (máy dev) — sửa + `TRAPS.md` mục 23 + ca 6 của negative test
   chạy lại cổng dưới gawk.
-- Giai đoạn trước đó: GĐ 8. **Mốc gần nhất (2026-09-14, PR #123 đã merge): CỔNG MÁY
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-14, PR #123 đã merge): CỔNG MÁY
   cho ngưỡng CC 12** — trả lời trực tiếp phát hiện của mốc trước ("không có cổng máy nào cưỡng chế
   CC ≤ 12, ngưỡng chỉ nằm trong văn xuôi"). Thêm `scripts/check-python-complexity.sh` (radon, trần 12
   qua `PY_CC_MAX`, **không có miễn trừ theo hàm**) + `scripts/test-check-python-complexity.sh`

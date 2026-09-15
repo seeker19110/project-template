@@ -69,6 +69,11 @@ cleanup_probes
 
 # --- subagent-dispatch: list, TỪNG harness, context-file, JSON, agent không tồn tại ---
 run scripts/subagent-dispatch.py --list
+run scripts/subagent-dispatch.py --list --json
+# --tier: đa nhà cung cấp (ADR-0006) — happy path text + JSON, và cấp không tồn tại (đường lỗi)
+run scripts/subagent-dispatch.py --tier standard
+run scripts/subagent-dispatch.py --tier standard --json
+run scripts/subagent-dispatch.py --tier khong-ton-tai
 for h in claude hermes codex generic; do
   run scripts/subagent-dispatch.py --agent tester --task "Kiem tra" --harness "$h"
   run scripts/subagent-dispatch.py --agent tester --task "Kiem tra" --harness "$h" --json

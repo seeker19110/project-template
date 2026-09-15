@@ -63,6 +63,21 @@ else
   bad "subagent-dispatch --harness claude không nêu subagent_type đúng"
 fi
 
+# --- Đa model/đa nhà cung cấp (2026-09-15): --tier tra ứng viên theo cấp năng lực,
+# không gắn cứng vào Claude — xem docs/framework/orchestration-3-tier.md.
+out_tier="$(bash "$ROOT/scripts/subagent-dispatch.sh" --tier standard 2>&1)"
+if echo "$out_tier" | grep -q "harness=claude" && echo "$out_tier" | grep -qi "google\|hermes\|opencode"; then
+  ok "subagent-dispatch --tier standard liệt kê ứng viên đa nhà cung cấp"
+else
+  bad "subagent-dispatch --tier standard không liệt kê được ứng viên đa nhà cung cấp"
+fi
+
+if bash "$ROOT/scripts/subagent-dispatch.sh" --tier khong-ton-tai >/dev/null 2>&1; then
+  bad "subagent-dispatch --tier chấp nhận giá trị không hợp lệ (choices= chưa chặn)"
+else
+  ok "subagent-dispatch --tier chặn giá trị không hợp lệ"
+fi
+
 echo "== 2. Telemetry & Observability Engine =="
 
 out_rec="$(bash "$ROOT/scripts/telemetry-log.sh" --record --agent test-agent --harness test-harness --task "Self Test" --duration 1.5 --test-status PASSED 2>&1)"
