@@ -251,6 +251,7 @@ vào đó: **mỗi mục một commit nguyên tử**, gom vào một PR.
 | 5 | T-2 | ✅ Xong | `bcde247` | Sweep nay chạy **5/5** cổng `check-*`. Tách "thiếu công cụ" (🟡, chưa kiểm chứng được) khỏi "vi phạm thật" (🔴). 8 ca test gồm ca đối chứng chống regex quá rộng. |
 | 5 | F-306 | ✅ Xong | `ce4bd67` | Test ĐỎ trước (3 thư mục lồng, **rộng hơn audit báo** — có cả `.cursor/rules`) → sau khi sửa sạch. Helper `check_no_nesting` chạy cho **cả hai** bản. TRAPS mục 31. |
 | 5 | F-304 | ✅ Xong | `2ab150e` | Test ĐỎ trước (2 ca chặn oan) → sau khi sửa 3/3 xanh gồm đối chứng "commit thật sau heredoc vẫn chặn". Rút `_hook-lib.sh` dùng chung thay vì chép tay lần hai. |
+| 5 | F-207 | ✅ Xong | `fc4e9c8` | 5/8 ca ĐỎ trước → xanh. Ba ca hỏng dữ liệu nay cho ba thông điệp khác nhau; `choices` sinh từ JSON; hết KeyError trần. Độ phủ 88% → **98%** (TOTAL 93% → 96%), **không hạ sàn**. |
 
 ### Đính chính khuyến nghị của chính audit (F-101 phần c)
 
@@ -334,3 +335,17 @@ Trong lượt sửa F-304, **mục 9** của `check-docs-consistency.sh` — c�
 F-102 — chặn commit vì `_hook-lib.sh` chưa có trên `FEATURE-MAP.md`. Đã khai vào bản đồ (FT-63) +
 `CODEMAP.md` thay vì thêm miễn trừ. Đây là lần thứ hai trong phiên một cổng mới bắt đúng người vừa
 dựng nó (lần đầu: mục 1 chặn đường dẫn `.framework-new` trong TRAPS 31).
+
+### Ghi nhận khi sửa F-207
+
+- **Một ca xanh giả tự bắt được.** Ca "sai cấu trúc" ban đầu grep chữ `tiers` — mà chuỗi đó có sẵn
+  trong TÊN FILE `model-capability-tiers.json`, nên nó luôn khớp và luôn xanh dù code chưa phân biệt
+  được ca đó. Siết thành grep `thiếu khoá|khoá gốc` thì số ca đỏ từ 4 thành **5**. Bài học: một
+  assertion grep trên chuỗi cũng xuất hiện trong đường dẫn/tên file là assertion rỗng.
+- **Sàn độ phủ 95% vỡ khi thêm nhánh lỗi** (test bash chạy chúng, nhưng `coverage` chỉ đo test
+  Python). Xử lý theo đúng chữ của chính cổng — *"Thêm ca test, đừng hạ sàn"* — bằng 4 ca mới trong
+  `test-py-coverage.sh`.
+- **Còn một chỗ nhân bản chưa gỡ:** văn xuôi `CLAUDE.md` vẫn liệt kê cứng
+  `--tier <planning|complex|spec|standard|mechanical>`. Sau bản vá, nguồn sự thật là JSON và
+  `choices` đã sinh từ đó, nên chỗ này chỉ còn là **tài liệu có thể lỗi thời**, không còn làm tier
+  mới vô hiệu. Không cổng nào canh nó — ghi lại thay vì im lặng.

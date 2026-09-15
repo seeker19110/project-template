@@ -121,7 +121,7 @@
 | --- | --- | --- | --- | --- | --- |
 | FT-59 | Biên dịch `docs/specs/*.md` thành contract test | `scripts/spec-compiler.sh` → `spec-compiler.py` | `docs/specs/`, test sinh ra | ✅ | `test-next-gen-engines.sh`, `test-engine-characterization.sh`, `test-py-coverage.sh` (sàn 95%) |
 | FT-60 | Quét nợ kỹ thuật / độ phức tạp / độ phủ spec (điểm sức khoẻ) | `scripts/arch-health-radar.sh` → `arch-health-radar.py` | toàn repo, `docs/specs/` | ✅ | như trên |
-| FT-61 | Nạp vai subagent theo nhãn `route:` cho mọi harness | `scripts/subagent-dispatch.sh` → `subagent-dispatch.py` | `.claude/agents/`, `scripts/model-capability-tiers.json` | ⚠️ fail-open có che giấu + `choices` hard-code (audit F-207, **chưa sửa**) | `test-telemetry-and-dispatch.sh` — **chưa có negative test cho JSON hỏng** |
+| FT-61 | Nạp vai subagent theo nhãn `route:` cho mọi harness | `scripts/subagent-dispatch.sh` → `subagent-dispatch.py` | `.claude/agents/`, `scripts/model-capability-tiers.json` | ✅ (F-207 đã sửa 2026-09-15: ba ca hỏng dữ liệu cho ba thông điệp khác nhau; `choices` sinh từ JSON) | `test-telemetry-and-dispatch.sh` (8 ca gồm negative test cho JSON hỏng/sai cấu trúc/thiếu trường) + `test-py-coverage.sh` |
 | FT-62 | Ghi thời gian/LOC/chi phí mỗi tác vụ AI | `scripts/telemetry-log.sh` → `telemetry-log.py` | `scripts/model-rates.json`, log telemetry | ✅ | `test-telemetry-and-dispatch.sh`, `test-py-coverage.sh`; có negative test cho JSON hỏng |
 
 **Nguồn dữ liệu của hai engine trên** (`scripts/model-rates.json`, `scripts/model-capability-tiers.json`):
