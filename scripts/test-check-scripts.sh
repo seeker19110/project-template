@@ -254,6 +254,24 @@ rc="$(run_check "$d" check-progress-freshness.sh)"
 [ "$rc" != "1" ] && ok "PF-1 KHÔNG đỏ vì trễ khi 'Nhánh đang làm' KHÔNG phải main" \
                  || bad "PF-1 đỏ dù đang ở nhánh tính năng (rc=$rc)"
 
+d="$(setup_repo)"
+# F-102 mục 9: agent mới mà FEATURE-MAP không khai → phải đỏ.
+printf -- '---\nname: agent-chua-co-tren-ban-do\ndescription: >-\n  Agent giả cho test.\n---\nND.\n' \
+  > "$d/.claude/agents/agent-chua-co-tren-ban-do.md"
+# Khai vào orchestration để KHÔNG bị mục 4b bắt trước — cô lập đúng mục 9.
+printf '\n- `agent-chua-co-tren-ban-do` — agent giả cho test.\n' >> "$d/docs/framework/orchestration-3-tier.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && ok "bắt được agent KHÔNG có trong FEATURE-MAP (mục 9)" \
+                || bad "KHÔNG bắt được agent vắng mặt trên bản đồ (rc=$rc) — bản đồ sẽ mục lại"
+
+d="$(setup_repo)"
+# F-102 mục 9: ID FT-* bị cấp trùng → phải đỏ.
+dup_row="FT-01"
+printf '\n| %s | Dòng giả trùng ID | x | x | ✅ | x |\n' "$dup_row" >> "$d/docs/FEATURE-MAP.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && ok "bắt được ID FT-* cấp trùng (mục 9)" \
+                || bad "KHÔNG bắt được ID trùng (rc=$rc) — tham chiếu FT-xx sẽ mơ hồ"
+
 echo "== 2. check-ci-policy.sh =="
 
 d="$(setup_repo)"

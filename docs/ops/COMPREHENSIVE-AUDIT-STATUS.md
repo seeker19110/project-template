@@ -244,6 +244,10 @@ vào đó: **mỗi mục một commit nguyên tử**, gom vào một PR.
 | 3 | F-404 | ✅ Xong | `f5bc846` | 10 ca mới phủ cả 3 script, dùng `timeout 8` và coi rc=124 là thất bại. |
 | 3 | F-401 | ✅ Xong | `45b6492` | **22 ca mới** cho 4 hook. Đã CHỨNG MINH test bắt được hỏng: phá `usage-guard` → 3 ca đỏ; phá `session-guide` → ca "hai trạng thái khác nhau" đỏ. |
 | 3 | F-403 | ✅ Xong | `6c49055` | 5 ca mới, mỗi ca một sandbox + đúng một lỗi cài sẵn, đòi rc=1. |
+| 4 | F-201 | ✅ Xong | `f7235bd`, `3464df6` | Regex mục 1 thêm đuôi `py\|css`; gỡ 2 entry ALLOW_MISSING_PATH đã thành file thật; 3 ca test (bắt `.py` gãy, bắt `.css` gãy, đối chứng không chặn oan). |
+| 4 | F-104 | ✅ Xong | `7c11a19` | PF-1 ĐỎ ở ca hẹp (trễ ≥2 + nhánh `main` + tree sạch); 4 ca ranh giới; cập nhật dòng SHA `9351961` → `98ccd6f`. |
+| 4 | F-103 + A-3 | ✅ Xong | `ce5bf58` | Sửa số (12→13 lệnh, 8→11 agent); viết lại luật hub; **MỞ LẠI W-307** thay vì đóng; thêm `# cố ý KHÔNG -e` cho đủ 12 file. |
+| 4 | F-102 | ✅ Xong | `+ mục 9` | 8/8 engine nay có mặt (`grep -c` ≥1 cho từng cái); ID hết trùng; **thêm mục 9 vào `check-docs-consistency.sh`** đối chiếu agent+hook ↔ FEATURE-MAP + cấm ID trùng, kèm 2 negative test. |
 
 ### Đính chính khuyến nghị của chính audit (F-101 phần c)
 
@@ -270,3 +274,29 @@ lần đầu để xem test có bắt được không, test vẫn xanh. Không k
 regex phá hoại **không khớp** nên file không hề bị đổi. Phá hoại đúng cách thì test đỏ ngay. Ghi
 lại vì đây là bẫy dễ đọc ngược: một phép thử âm tính có thể do **phép thử** hỏng, không phải do thứ
 đang thử.
+
+### Đính chính thêm cho chính báo cáo audit (phát hiện khi thực thi batch 4)
+
+1. **F-208 đã được làm sẵn.** Audit đề xuất "kiểm `ALLOW_MISSING_PATH` **trước** `grep_files` để bỏ
+   ~49 lần git grep". Đọc code thì `is_in "$ref" "${ALLOW_MISSING_PATH[@]}" && continue` **đã nằm
+   trước** `grep_files` rồi. Không có gì để sửa; F-208 là báo oan.
+2. **A-3 nói quá rủi ro.** Audit cho rằng hai cổng complexity thiếu `-e` tạo lỗ "cổng kết luận xanh
+   trên dữ liệu rỗng". Cả hai **đã có tự bảo vệ tường minh** (`cổng rỗng luôn xanh là cổng hỏng` →
+   exit 1). Cái còn đúng chỉ là thiếu dòng chú thích lý do — đã bổ sung.
+3. **W-307 KHÔNG được đóng lại.** Nguyên nhân gốc (không có cổng máy bắt `set -uo pipefail` thiếu
+   dòng lý do) chưa xử lý. Đóng nó bây giờ chính là lặp lại sai lầm 2026-09-12 — lần đó cũng ghi
+   "✅ ĐÃ XỬ LÝ" rồi drift lan tiếp sang 12 file mới.
+
+### Mục ĐÃ DUYỆT nhưng CHƯA làm (nêu rõ, không im lặng bỏ)
+
+Bốn batch người dùng duyệt gồm 14 mục; 14 mục đã xong. Các mục **còn lại của audit** chưa nằm trong
+batch nào và **chưa được xử lý**:
+
+| ID | Mức | Vì sao chưa làm |
+| --- | --- | --- |
+| F-203 | Trung | Đưa `gitleaks` vào required checks — **đụng cấu hình GitHub thật**, cần người dùng quyết (CLAUDE.md §9). |
+| F-205 | Trung | Thêm `timeout-minutes` cho 12 job — việc nhỏ, chưa xếp vào batch nào. |
+| F-206 | Trung | Cổng cảnh báo `_verified_on` mục — cần chọn ngưỡng ngày, nên hỏi trước. |
+| F-207 | Trung | `subagent-dispatch.py` fail-open + `choices` hard-code + thiếu negative test (~1.5h). |
+| T-1, T-2 | Trung | Hợp nhất khuôn cổng; `maintenance-sweep` chỉ chạy 2/5 cổng. **T-2 đáng ưu tiên** vì nó là lý do đợt `/maintain` sáng nay báo sạch sai phạm vi. |
+| A-1, A-2, T-3, F-204, F-304, F-306..F-310 | Thấp/Trung | Chưa xếp batch. F-306 (copy-framework lồng thư mục lượt 3) và F-304 (pre-commit-gate không bỏ thân heredoc) đáng làm sớm nhất trong nhóm này. |
