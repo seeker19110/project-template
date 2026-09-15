@@ -18,8 +18,8 @@
 |---|------|-----------|-------------------------------------------|---------------------|
 | 1 | Kiến trúc & thiết kế | ✅ Xong | Cao 0 · **Trung 2** (A-1, A-3) · Thấp 1 (A-2). Ranh giới 3 lớp còn đúng, **0 phụ thuộc vòng** (đồ thị lời gọi là DAG), ADR-0004/0005/0006/0007 khớp code | 2026-09-15 |
 | 2 | Bảo mật | ✅ Xong | Cao 0 · Trung 0 · **Thấp 2** (F-001 eval tên biến động; F-002 ví dụ token inline trong comment crontab) | 2026-09-15 |
-| 3 | Chất lượng mã & chống lỗi logic | ⬜ | | |
-| 4 | Kiểm thử & coverage | ⬜ | | |
+| 3 | Chất lượng mã & chống lỗi logic | ✅ Xong | **Cao 1** (F-301 hàng rào `block-dangerous-git` BỊ VƯỢT) · Trung 5 · Thấp 4 | 2026-09-15 |
+| 4 | Kiểm thử & coverage | ✅ Xong | **13/13 suite XANH** khi đủ công cụ (chạy thật). Độ phủ TOTAL **95%** — **sát sàn**. **Cao 1** (F-401: 4 hook không có test nào) · Trung 3 · Thấp 3 | 2026-09-15 |
 | 5 | Hiệu năng | ✅ Xong | Cao 0 · **Trung 1** (F-205 thiếu `timeout-minutes`) · Thấp 1. Đo thật bằng `time`: mọi cổng < 1s, tổng script job `framework-lint` **45.4s**; không có quét O(n²), không có `git` trong vòng lặp nóng | 2026-09-15 |
 | 6 | Accessibility & UI/UX | ➖ Không áp dụng | Xác minh bằng lệnh (không đoán): `git ls-files | grep -iE "\.(tsx|jsx|html|css|scss|vue|svelte)$"` → **rỗng**; `styles/` không tồn tại. A11y dạng CLI **đạt**: trạng thái luôn mang bằng ký tự+chữ (🔴/🟡/✅/❌ + câu tiếng Việt), 0 escape ANSI trong engine Python ⇒ không có ca "chỉ dùng màu". 1 phát hiện phát sinh đã chuyển sang Nhóm 9 (F-201) | 2026-09-15 |
 | 7 | Dependency & chuỗi cung ứng | ✅ Xong | 0 phát hiện — **16/16** `uses:` ghim full SHA 40 ký tự (0 tag trôi); `dependabot.yml` phủ cả npm + github-actions; `vendor/shellmetrics` có README nguồn + phiên bản 0.5.0 + LICENSE MIT + SHA256SUMS; không có `curl \| bash`; `npx --no-install`; `pip install` ghim `==`. KHÔNG chạy `npm audit` (không có package.json — chạy sẽ vô nghĩa) | 2026-09-15 |
@@ -170,3 +170,57 @@ hẳn mức nó tự quảng cáo**, và đó là kênh duy nhất hoạt độn
 6. **Hiện tượng môi trường, KHÔNG phải phát hiện:** một lượt `check-python-complexity.sh` đầu phiên
    đỏ vì thiếu `radon`, các lượt sau xanh — `radon` được cài **giữa phiên** bởi tiến trình ngoài.
    Cổng ứng xử **đúng** (cố ý đỏ khi thiếu công cụ, có comment giải thích + negative test).
+
+## Phát hiện chi tiết — Nhóm 3 / 4 (quét 2026-09-15)
+
+| ID | Nhóm | Mức | Vị trí | Phát hiện (Tầng 1 đã chạy lại lệnh xác minh) | Rủi ro nếu để nguyên | Công sức |
+| --- | --- | --- | --- | --- | --- | --- |
+| **F-301** | 3 | **Cao** | `.claude/hooks/block-dangerous-git.sh:66` | **Hàng rào an toàn bị vượt.** Heredoc mở bằng `<<-` (POSIX cho phép đóng bằng dòng có TAB đầu): dòng đóng thật là `\tEOF`, không bằng `EOF`, nên `delim` không bao giờ được xoá → awk **nuốt toàn bộ phần còn lại của lệnh** → lệnh nguy hiểm đứng sau heredoc không bị quét. **Tầng 1 chạy lại và xác nhận:** payload có heredoc → `rc=0` (CHO QUA); cùng lệnh đứng một mình → `rc=2` (chặn đúng). Phần "GIỚI HẠN CÒN LẠI" của file (`:52-58`) có nêu ca `<< EOF` có khoảng trắng (chiều **an toàn**) nhưng **không** nêu ca này ⇒ không phải thứ cố ý | `git reset --hard` / force-push nhánh chính đi lọt trong bất kỳ lệnh có heredoc thụt TAB — **mất dữ liệu chưa commit, không dấu vết**. Đúng chiều hỏng nguy hiểm mà chính file cảnh báo: *"bỏ thiếu thì chặn oan (thấy ngay), bỏ thừa thì để lọt (không ai biết)"* | ~1h (gồm 2 ca test: chặn-bắt-buộc + không-chặn-oan) |
+| **F-401** | 4 | **Cao** | `.claude/hooks/auto-format.sh`, `session-guide.sh`, `session-resume.sh`, `usage-guard.sh` | **4 hook không có bất kỳ test nào** (`grep -ln` trong mọi `test-*.sh` → NONE cho cả 4). `test-hooks-gate.sh` chỉ phủ `pre-commit-gate.sh` + `block-dangerous-git.sh`. Cả 4 đều có nhánh điều kiện thật ⇒ ADR-0005 bắt buộc phải có test | Sửa sai một ngưỡng/marker → hành vi hỏng, không cổng nào đỏ, và `copy-framework.sh` vẫn **phát hook hỏng đó sang mọi dự án đích** | ~3–4h |
+| F-302 | 3 | Trung | `maintenance-sweep.sh:34`; `maintain-cron.sh:54,56,58,59,61`; `maintain-run.sh:44-49` | **Cờ thiếu giá trị → treo vô hạn.** `$#`=1, `case` khớp `--out`, `OUT="${2:-}"` không lỗi, rồi `shift 2` **thất bại và KHÔNG shift** → `while [ $# -gt 0 ]` lặp mãi; không có `set -e` nên không ai dừng. **Tầng 1 xác nhận:** `timeout 6 … --out` → **rc=124**; `… --harness` → **rc=124** | `maintain-cron.sh` chạy **không giám sát trên VPS/cron** — một dòng crontab gõ sót giá trị tạo tiến trình treo tích luỹ mỗi tuần. Treo **trước** bước lấy khoá nên khoá tiến trình không cứu được | ~1h |
+| F-303 | 3 | Trung | `scripts/check-ci-policy.sh:259` (xung đột `cd` ở `:33`) | **Cổng xanh giả.** Mục 7 đọc chính mình qua `$0` **sau** khi đã `cd` về gốc repo. Gọi bằng đường dẫn tương đối từ thư mục khác → `grep` chết → `while` đọc rỗng → **không CP-* nào được đối chiếu**, nhưng script vẫn in câu khẳng định "bảng kiểm khớp hai bản". **Tầng 1 chạy từ `scripts/`:** in `grep: check-ci-policy.sh: No such file or directory` rồi ngay dưới là `OK — CP-1..CP-6 đạt; bảng kiểm khớp hai bản`, **rc=0** | W-302 (ràng hai bản shell/vitest) mất hiệu lực âm thầm. CI hiện gọi từ gốc nên chưa nổ — nhưng **cổng không được phép phụ thuộc thư mục gọi** | ~30 phút |
+| F-304 | 3 | Trung | `.claude/hooks/pre-commit-gate.sh:26` | Không bỏ thân heredoc (bản vá TRAPS 18 **chỉ áp cho hook anh em** `block-dangerous-git.sh:62-76`). Một lệnh có heredoc nhắc `git commit` làm **dữ liệu** (viết tài liệu, sinh fixture) → hook tưởng là commit thật → chạy toàn bộ `dev-task.sh gate`; ở dự án đích đang đỏ thì **chặn oan một lệnh `cat`** | Chặn oan dạy người dùng gõ `--no-verify` phản xạ → **mất luôn cổng thật** | ~1.5h (rút helper dùng chung) |
+| F-305 | 3 | Trung | `check-ci-policy.sh:213`; `check-progress-freshness.sh:44`, `:70` | Nhánh báo lỗi **chết trước khi in**. Cả ba là gán `X="$(… \| grep …)"` dưới `set -euo pipefail`; `grep` không khớp → pipeline trả 1 → thoát **ngay tại dòng gán** ⇒ cổng đỏ **không in một dòng chẩn đoán nào**, và các mục sau (CP-6/CP-7, PF-2/PF-3) **không chạy**. Chính `check-progress-freshness.sh:101-102` đã ghi khuôn này *"đã mắc thật"* và vá bằng `\|\| true` ở `:103` — **nhưng chỉ vá 1 trong 3 chỗ** | Đỏ CI không nói được nguyên nhân; một mục hỏng che mọi mục sau | ~30 phút |
+| F-306 | 3 | Trung | `copy-framework.sh:57` | **Lồng thư mục ở lượt chạy thứ BA** (tái hiện TRAPS mục 3). Lượt 2 tạo `.claude/hooks.framework-new/` (đúng); lượt 3 đích đã có thư mục đó nên `cp -R src dir` **copy VÀO TRONG** → `.claude/hooks.framework-new/hooks/`. Người dùng cập nhật khung lần 3 mở file so sánh → **không có file nào ở đó** → kết luận "không có gì mới" và giữ hook cũ | Người dùng âm thầm bỏ lỡ mọi cập nhật hook/agent từ lượt 3 trở đi | ~1h |
+| F-307 | 3 | Thấp | `scripts/dev-task.sh:137`, `:155` | Đường dẫn file đi thẳng vào `bash -c` → tên file chứa `$(...)` **thực thi được**. Nháy kép không bảo vệ khi chuỗi được `bash -c` diễn giải lại. Hook `auto-format` chạy **tự động, không hỏi**, trên mọi Edit/Write. Mẫu đúng đã có sẵn trong repo: `maintain-run.sh:105` dùng **mảng**, không ghép chuỗi | Cần tên file bất thường nên mức Thấp, nhưng đường đi là tự động và có ở mọi dự án đích | ~1.5h |
+| F-308 | 3 | Thấp | `maintain-cron.sh:133`, `:140` | `git add` một file đang bị `.gitignore:37` chặn (`MAINTENANCE-REPORT.md`) → lỗi git + `hint:` **mỗi lượt cron**. Mâu thuẫn với chính `CODEMAP.md` ("ảnh chụp thô, KHÔNG commit") và `CLAUDE.md` §1 | Nhiễu log làm người vận hành ngừng đọc log cron | ~30 phút |
+| F-309 | 3 | Thấp | `scripts/telemetry-log.py:83` | `KeyError` thô nếu một mục giá thiếu khoá `input`/`output`; `load_rates()` chỉ kiểm có `rates`/`default`, không kiểm hình dạng từng mục. Gõ nhầm `"in"`/`"out"` vẫn qua `jq empty` | Chết bằng traceback thay vì thông điệp cố ý mà `load_rates` được viết ra để cho | ~30 phút |
+| F-310 | 3 | Thấp | `maintenance-sweep.sh:208` vs `:216` | Bộ đếm TODO loại trừ **chỉ** `maintenance-sweep.sh`; bộ đếm DEBT loại trừ **cả** file test của nó. Bất đối xứng ⇒ thêm fixture `TODO` vào `test-maintenance-sweep.sh` (việc rất tự nhiên) làm số TODO tăng giả. **Chưa nổ** (grep → 0 dòng) — rủi ro treo | Lại một ca của khuôn "bộ dò tự khớp thứ nó đang soi" | ~15 phút |
+| F-402 | 4 | Trung | `scripts/test-check-python-complexity.sh` | Không nhận ra thiếu `radon` → **báo cáo SAI nguyên nhân**: in `❌ PY_CC_MAX=13 vẫn đỏ — cổng không đọc ngưỡng` (một khẳng định sai sự thật về code) trong khi nguyên nhân thật là `::error::Thiếu radon`. Hai suite anh em **đã làm đúng** (`test-check-shell-complexity.sh` in `⏭️ bỏ qua: máy này không có gawk`; `test-py-coverage.sh` in `::error::Thiếu coverage.py`) | Dev/AI chạy trên máy chưa cài radon → kết luận cổng hỏng, đi sửa một script đang đúng | ~30 phút |
+| F-403 | 4 | Trung | `check-docs-consistency.sh:92-108`, `:116-123`, `:128-136`, `:157-160`; `check-ci-policy.sh:250-263` | **5 nhánh phát hiện của cổng không có negative test.** Hệ quả đo được: mục 7 của `check-ci-policy.sh` **đã hỏng thật** (F-303) mà không suite nào thấy | Xoá `OLD_NAMES` hoặc làm sai regex mục 3B → cổng xanh vĩnh viễn | ~2h |
+| F-404 | 4 | Trung | `test-maintenance-sweep.sh` mục 6 | Không suite nào kiểm "cờ thiếu giá trị" ⇒ F-302 (treo vô hạn ở 3 script) không ai biết | Cùng gốc với F-302 | ~1h |
+| F-405 | 4 | Thấp | `test-maintain-cron.sh:21-27` | Sandbox dựng bằng danh sách `cp` viết tay, **không có `.gitignore`** ⇒ che hành vi thật F-308 | Test không bao giờ thấy lỗi đang xảy ra hằng tuần | ~30 phút |
+| F-406 | 4 | Thấp | `test-copy-framework.sh` | Chỉ chạy **2 lượt** (`== chạy lại lần hai ==`, không có lượt ba) ⇒ bỏ lọt F-306 | Cùng gốc với F-306 | ~30 phút |
+| F-407 | 4 | Thấp | `maintain-cron.sh:117` + `test-maintain-cron.sh` mục 4 | Cửa sổ xanh-giả khi lượt test **vắt qua nửa đêm UTC**: hai lượt rơi vào hai ngày → hai nhánh khác tên → ca "chạy lại cùng ngày không cộng dồn" xanh mà **không kiểm gì** | Test không chạm nhánh nó định khoá | ~30 phút |
+
+### Kết quả chạy thật 13 suite (Nhóm 4)
+
+**13/13 XANH** khi môi trường đủ công cụ. Tổng ca: `test-check-scripts` 25✅ · `test-maintain-cron` 29✅ ·
+`test-maintain-run` 27✅ · `test-maintenance-sweep` 27✅ · `test-hooks-gate` 22✅ · `test-telemetry-and-dispatch` 11✅ ·
+`test-check-shell-complexity` 10✅ · `test-next-gen-engines` 9✅ · `test-check-python-complexity` 6✅ ·
+`test-copy-framework` 5✅ · `test-usage-estimate` 4✅ · `test-engine-characterization` 35 unittest OK ·
+`test-py-coverage` báo cáo phủ.
+
+**Độ phủ dòng thật:** `arch-health-radar.py` 93% · `spec-compiler.py` 95% · `subagent-dispatch.py` 97% ·
+`telemetry-log.py` 97% — **TOTAL đúng 95%, tức SÁT SÀN**: thêm một nhánh không test là đỏ.
+
+### Đã kiểm và KHÔNG có phát hiện (Nhóm 3 — ghi để lượt sau không kiểm trùng)
+
+Đã đối chiếu **toàn bộ 38 file `.sh`** cho `set -euo pipefail`: mọi chỗ thiếu `-e` đều có comment cố ý
+trỏ `CONVENTIONS.md` §A. Mọi `cd` quan trọng đều có `|| exit`/`|| die`. **Không có** `rm -rf` trên biến
+nào trong toàn repo (chỉ `rm -f` trên file từ `mktemp`). So sánh sai kiểu: rà từng chỗ, đều là số hoặc
+có chặn trước. Python: **tất cả** `open()` trong 4 engine đều có `encoding="utf-8"` (TRAPS 24 đã áp đủ);
+`relpath` khác ổ đĩa có `try/except` (TRAPS 28); chia cho 0 chặn tường minh. **Bộ dò tự khớp chính nó**:
+rà cả 8 mục của `check-docs-consistency.sh` — mục 2 tự loại, mục 5 loại qua `STALE_EFFORT_EXCLUDE`,
+mục 8 dựng mẫu bằng `printf` lúc chạy — **đúng và có ghi lý do**, không còn ca chưa xử lý trong nhóm
+`check-*.sh` (ca còn sót nằm ở `maintenance-sweep.sh`, xem F-310). CP-6 khớp thật cả 13 `test-*.sh`.
+
+### Giới hạn (Nhóm 3/4)
+
+1. **`copy-framework.ps1` chưa kiểm** (không có `pwsh`) ⇒ **chưa biết** F-306 có tồn tại ở bản `.ps1`
+   không — TRAPS mục 3 ghi hai bản **từng lệch nhau đúng ở điểm này**, nên phải kiểm riêng.
+2. **Nhóm lỗi chỉ-có-trên-Windows chưa kiểm được** (BOM `.ps1`, CRLF, `cp1252`, `relpath` khác ổ đĩa) —
+   chỉ xác nhận bản vá **có mặt trong source**, không xác nhận hiệu lực.
+3. **Ca `gawk` bị bỏ qua** (máy chỉ có mawk) ⇒ chưa chứng minh cổng CC shell chạy được dưới gawk.
+4. Subagent **đã cài `radon` + `coverage`** vào môi trường Python của phiên để đo được F-402 và độ phủ
+   thật. Không đụng file nào trong repo — đây là thay đổi môi trường duy nhất.
