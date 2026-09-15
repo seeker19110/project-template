@@ -141,7 +141,8 @@ W-308 (xoá nhánh remote — cần người dùng xác nhận, `CLAUDE.md` §9)
 ## 11. Architecture và code touchpoints
 
 `.claude/hooks/{block-dangerous-git,auto-format,pre-commit-gate}.sh` · `.claude/settings.json` +
-`settings-shared-opusplan.json` · `scripts/{test-hooks-gate,check-ci-policy,check-docs-consistency,
+`settings-shared-default.json` (đổi tên từ settings-shared-opusplan.json, ADR-0007) ·
+`scripts/{test-hooks-gate,check-ci-policy,check-docs-consistency,
 test-copy-framework,ci-workflow-policy.test}.ts|sh` · `.github/workflows/{ci,pr-policy,
 stale-pr-alert}.yml` · `.husky/pre-commit` · `copy-framework.sh|.ps1` · `docs/adr/0003-*` ·
 `docs/{FEATURE-MAP,CONVENTIONS}.md` · `CODEMAP.md` · `TRAPS.md`.
