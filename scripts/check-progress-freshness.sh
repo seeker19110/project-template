@@ -58,7 +58,27 @@ else
   else
     behind="$(git rev-list --count "${recorded_sha}..HEAD" 2>/dev/null || echo "?")"
     if [ "$behind" != "0" ] && [ "$behind" != "?" ]; then
-      echo "::warning file=$PROGRESS_FILE::HEAD hiện đã đi trước SHA đã đối chiếu ('$recorded_sha') $behind commit — bình thường nếu đang làm dở; cập nhật lại dòng này khi đóng phiên/mốc."
+      # Siết ca HẸP thành ĐỎ (audit F-104). Trước đây mọi mức trễ đều chỉ `::warning` + exit 0, nên
+      # hàng rào mà `CLAUDE.md` §8 bước (5) viện dẫn thực tế KHÔNG chặn gì: PROGRESS.md đã trễ 4
+      # commit qua hai PR mà CI vẫn xanh.
+      #
+      # VÌ SAO NGƯỠNG LÀ 2, KHÔNG PHẢI 1: ngay sau khi một PR squash-merge vào nhánh chính, HEAD
+      # luôn đi trước đúng 1 commit so với SHA mà PROGRESS.md trong PR đó ghi (chính commit squash).
+      # Đỏ ở mức 1 sẽ làm MỌI lần merge đỏ oan cho tới khi PR đồng bộ kế tiếp lên — biến cổng thành
+      # thứ người ta học cách bỏ qua. Mức >= 2 nghĩa là đã có ÍT NHẤT một mốc nữa trôi qua mà bước
+      # (5) chưa được làm; đó mới là thứ bước (5) sinh ra để bắt.
+      #
+      # Ba điều kiện phải cùng đúng thì mới đỏ — thiếu một là "đang làm dở", vẫn chỉ cảnh báo:
+      #   (a) trễ >= 2 commit · (b) "Nhánh đang làm" là `main` · (c) working tree sạch.
+      working_branch="$(grep -m1 -E '^- Nhánh đang làm:' "$PROGRESS_FILE" 2>/dev/null \
+                        | grep -oE '`[A-Za-z0-9._/-]+`' | head -1 | tr -d '\`' || true)"
+      tree_dirty="$(git status --porcelain 2>/dev/null | head -1 || true)"
+      if [ "$behind" -ge 2 ] && [ "$working_branch" = "main" ] && [ -z "$tree_dirty" ]; then
+        echo "::error file=$PROGRESS_FILE::PROGRESS.md trễ $behind commit so với HEAD, trong khi 'Nhánh đang làm' là main và working tree sạch — tức KHÔNG phải đang làm dở. CLAUDE.md §8 bước (5) buộc cập nhật dòng 'Default-branch SHA đã đối chiếu' ngay sau khi quay về main."
+        fail=1
+      else
+        echo "::warning file=$PROGRESS_FILE::HEAD hiện đã đi trước SHA đã đối chiếu ('$recorded_sha') $behind commit — bình thường nếu đang làm dở; cập nhật lại dòng này khi đóng phiên/mốc."
+      fi
     else
       echo "OK: SHA đã đối chiếu khớp HEAD hiện tại."
     fi
