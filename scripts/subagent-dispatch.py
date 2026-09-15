@@ -20,6 +20,24 @@ import re
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 AGENTS_DIR = os.path.join(ROOT_DIR, ".claude", "agents")
+CAPABILITY_MAP_FILE = os.path.join(ROOT_DIR, "scripts", "model-capability-tiers.json")
+
+# Nhãn route: -> cấp năng lực trong CAPABILITY_MAP_FILE (đa nhà cung cấp, xem
+# docs/framework/orchestration-3-tier.md). "planning" không gắn với agent nào (là Tầng 1).
+AGENT_TIER = {
+    "complex-implementer": "complex",
+    "spec-executor": "spec",
+    "standard-worker": "standard",
+    "mechanical-worker": "mechanical",
+}
+
+
+def load_capability_tiers():
+    if not os.path.exists(CAPABILITY_MAP_FILE):
+        return {}
+    with open(CAPABILITY_MAP_FILE, "r", encoding="utf-8", errors="ignore") as f:
+        return json.load(f).get("tiers", {})
+
 
 def parse_agent_md(file_path):
     if not os.path.exists(file_path):
@@ -29,7 +47,7 @@ def parse_agent_md(file_path):
 
     frontmatter = {}
     body = content
-    
+
     if content.startswith("---"):
         parts = content.split("---", 2)
         if len(parts) >= 3:
@@ -50,8 +68,9 @@ def parse_agent_md(file_path):
         "tools": frontmatter.get("tools", ""),
         "model": frontmatter.get("model", "sonnet"),
         "path": file_path,
-        "system_prompt": body
+        "system_prompt": body,
     }
+
 
 def list_agents():
     agents = []
@@ -64,28 +83,28 @@ def list_agents():
                 agents.append(info)
     return agents
 
+
 def build_dispatch_payload(agent_info, task_text, harness_type):
     name = agent_info["name"]
     model = agent_info["model"]
     sys_prompt = agent_info["system_prompt"]
-    
-    full_prompt = f"=== SUBAGENT ROLE: {name.upper()} ({model}) ===\n" \
-                  f"{sys_prompt}\n\n" \
-                  f"=== TASK CONTEXT ===\n" \
-                  f"{task_text}\n"
+
+    full_prompt = (
+        f"=== SUBAGENT ROLE: {name.upper()} ({model}) ===\n"
+        f"{sys_prompt}\n\n"
+        f"=== TASK CONTEXT ===\n"
+        f"{task_text}\n"
+    )
 
     if harness_type == "hermes":
         return {
             "harness": "hermes",
             "delegate_task_call": {
                 "tasks": [
-                    {
-                        "goal": f"[{name}] {task_text[:200]}...",
-                        "context": full_prompt
-                    }
+                    {"goal": f"[{name}] {task_text[:200]}...", "context": full_prompt}
                 ]
             },
-            "agent": agent_info
+            "agent": agent_info,
         }
     elif harness_type == "claude":
         # Claude Code KHÔNG có lệnh `/subagent` (audit 2026-09-13, A-03: bản cũ sinh ra chuỗi
@@ -99,36 +118,84 @@ def build_dispatch_payload(agent_info, task_text, harness_type):
                 "description": task_text[:60],
                 "prompt": full_prompt,
             },
-            "agent": agent_info
+            "agent": agent_info,
         }
     elif harness_type == "codex":
-        return {
-            "harness": "codex",
-            "prompt": full_prompt,
-            "agent": agent_info
-        }
+        return {"harness": "codex", "prompt": full_prompt, "agent": agent_info}
     else:
-        return {
-            "harness": "generic",
-            "prompt": full_prompt,
-            "agent": agent_info
-        }
+        return {"harness": "generic", "prompt": full_prompt, "agent": agent_info}
+
 
 def _build_parser():
     parser = argparse.ArgumentParser(description="Universal Subagent Dispatcher Engine")
-    parser.add_argument("--list", action="store_true", help="List all available subagents")
-    parser.add_argument("--agent", type=str, help="Target agent name (e.g. security-reviewer, complex-implementer)")
-    parser.add_argument("--task", type=str, default="", help="Task text/description for the agent")
-    parser.add_argument("--context-file", type=str, help="File path containing context/diff/spec")
-    parser.add_argument("--harness", type=str, choices=["hermes", "claude", "codex", "generic"], default="generic", help="Target AI Harness")
+    parser.add_argument(
+        "--list", action="store_true", help="List all available subagents"
+    )
+    parser.add_argument(
+        "--agent",
+        type=str,
+        help="Target agent name (e.g. security-reviewer, complex-implementer)",
+    )
+    parser.add_argument(
+        "--task", type=str, default="", help="Task text/description for the agent"
+    )
+    parser.add_argument(
+        "--context-file", type=str, help="File path containing context/diff/spec"
+    )
+    parser.add_argument(
+        "--harness",
+        type=str,
+        choices=["hermes", "claude", "codex", "generic"],
+        default="generic",
+        help="Target AI Harness",
+    )
     parser.add_argument("--json", action="store_true", help="Output result as JSON")
+    parser.add_argument(
+        "--tier",
+        type=str,
+        choices=["planning", "complex", "spec", "standard", "mechanical"],
+        help="In ứng viên đa nhà cung cấp cho một cấp năng lực (scripts/model-capability-tiers.json), không dispatch agent nào",
+    )
     return parser
+
+
+def _print_tier_candidates(tier, as_json):
+    tiers = load_capability_tiers()
+    info = tiers.get(tier)
+    if not info:
+        print(
+            f"Error: tier '{tier}' không có trong {CAPABILITY_MAP_FILE}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    if as_json:
+        print(json.dumps({"tier": tier, **info}, indent=2, ensure_ascii=False))
+        return
+    print(f"Cấp năng lực '{tier}': {info.get('desc', '')}")
+    for c in info.get("candidates", []):
+        flag = " (CẦN xác minh trước khi dùng)" if c.get("verify_before_use") else ""
+        print(
+            f"  - [{c['provider']}] harness={c['harness']} :: {c['model_hint']}{flag}"
+        )
 
 
 def _print_agent_list(as_json):
     agents = list_agents()
     if as_json:
-        print(json.dumps([{"name": a["name"], "description": a["description"], "model": a["model"]} for a in agents], indent=2, ensure_ascii=False))
+        print(
+            json.dumps(
+                [
+                    {
+                        "name": a["name"],
+                        "description": a["description"],
+                        "model": a["model"],
+                    }
+                    for a in agents
+                ],
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
         return
     print(f"Available Subagents ({len(agents)}):")
     for a in agents:
@@ -151,7 +218,9 @@ def _print_payload(payload, harness, as_json):
         # In chỉ dẫn NGƯỜI/AI đọc được mô tả đúng cơ chế thật của Claude Code
         # (tool Task với subagent_type), thay vì một slash command không tồn tại.
         tc = payload["tool_call"]
-        print(f"Claude Code — gọi tool {tc['tool']} với subagent_type=\"{tc['subagent_type']}\":")
+        print(
+            f'Claude Code — gọi tool {tc["tool"]} với subagent_type="{tc["subagent_type"]}":'
+        )
         print()
         print(tc["prompt"])
     else:
@@ -161,12 +230,19 @@ def _print_payload(payload, harness, as_json):
 def main():
     args = _build_parser().parse_args()
 
+    if args.tier:
+        _print_tier_candidates(args.tier, args.json)
+        sys.exit(0)
+
     if args.list:
         _print_agent_list(args.json)
         sys.exit(0)
 
     if not args.agent:
-        print("Error: --agent is required when not listing. Use --list to see available agents.", file=sys.stderr)
+        print(
+            "Error: --agent is required when not listing. Use --list to see available agents.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     agent_file = os.path.join(AGENTS_DIR, f"{args.agent}.md")
@@ -175,8 +251,11 @@ def main():
         print(f"Error: Agent '{args.agent}' not found at {agent_file}", file=sys.stderr)
         sys.exit(1)
 
-    payload = build_dispatch_payload(agent_info, _load_task_text(args.task, args.context_file), args.harness)
+    payload = build_dispatch_payload(
+        agent_info, _load_task_text(args.task, args.context_file), args.harness
+    )
     _print_payload(payload, args.harness, args.json)
+
 
 if __name__ == "__main__":
     main()

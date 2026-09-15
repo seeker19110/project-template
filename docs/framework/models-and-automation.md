@@ -85,6 +85,29 @@ opusplan đã tự làm phần lớn việc này. Khi cần kiểm soát tay t�
 ### Bước 5 — Ghi quyết định
 Ghi model đã chọn + lý do vào **PROGRESS.md** (hoặc ADR nếu coi là quyết định vận hành đáng lưu), kèm **quy tắc nâng cấp** để nhất quán qua các phiên.
 
+## 2b. Chọn planner đa nhà cung cấp (ADR-0006)
+
+**Trước khi chạy tác vụ tự động/lập kế hoạch lớn**, đừng mặc định "luôn Opus thuần" — chọn model
+cao cấp nhất **thực sự sẵn có** (CLI cục bộ đã cài + đăng nhập) cho việc đó, dựa trên 4 yếu tố rủi
+ro ở Bước 2 trên:
+
+1. Tra ứng viên: `scripts/subagent-dispatch.sh --tier planning`. Kết quả liệt kê ứng viên đa nhà
+   cung cấp (Claude, và các hãng khác nếu đã có nhánh CLI thật) kèm cờ `verify_before_use`.
+2. **Mặc định vẫn là `opusplan`** khi không có lý do đổi — đây là *mở thêm lựa chọn*, không phải
+   quy tắc bắt buộc đổi hãng mỗi lần.
+3. Đổi sang hãng khác chỉ khi: Claude không khả dụng lúc đó (hết quota, CLI lỗi), hoặc việc rơi
+   đúng thế mạnh đã ghi nhận của hãng khác (vd Gemini qua Hermes cho việc cần ngữ cảnh cực dài, đã
+   dùng thật ở `/maintain` — xem `maintain-run.sh`).
+4. Model đánh dấu `verify_before_use: true` → **bắt buộc** xác minh bằng subagent `version-check`
+   hoặc nguồn sống trước khi dùng thật; không tự suy đoán phiên bản (CLAUDE.md §4).
+5. Ghi lại lựa chọn + lý do vào PROGRESS.md (giống Bước 5 ở §2), kèm hãng/CLI đã dùng nếu khác
+   Claude — để phiên sau biết vì sao lệch mặc định.
+
+Sau khi planner đã lên kế hoạch (dù trên hãng nào), việc phân công Tầng 3 tra tiếp theo cấp năng
+lực tương ứng (`--tier complex|spec|standard|mechanical`) — không suy luận "route X luôn là model
+Y". Chi tiết luật cứng theo tầng + ví dụ dispatch: `docs/framework/orchestration-3-tier.md` mục
+"Chọn đa nhà cung cấp".
+
 ### Ba kịch bản mẫu
 - **A. Tầm trung, không nhạy cảm** (blog/CMS, dashboard CRUD) → **Sonnet 5**/opusplan xuyên suốt.
 - **B. Tầm trung có 1–2 điểm nhạy cảm** (SaaS nhỏ có thanh toán) → **opusplan** + **Opus 4.8** cho luồng thanh toán, migration, rà bảo mật, sự cố.
@@ -94,6 +117,8 @@ Ghi model đã chọn + lý do vào **PROGRESS.md** (hoặc ADR nếu coi là qu
 
 ## 3. Năng lực model theo từng khung/kỹ năng
 
+Bảng dưới xếp hạng **model Claude** (dùng trong Claude Code). Cần so sánh xuyên nhà cung cấp
+(ADR-0006, §2b) → dùng `scripts/subagent-dispatch.sh --tier <cấp>` thay vì suy diễn từ bảng này.
 Dùng để chọn model **đúng đầu việc**, không phải một model cho cả dự án.
 **Thang:** ✅✅ xuất sắc · ✅ đủ tốt · 🟡 làm được nhưng nên soát kỹ / cân nhắc nâng · ❌ không nên giao.
 
