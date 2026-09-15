@@ -6,20 +6,25 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, nhánh `claude/hien-trang-b89ids`, chưa merge):
-  ADR-0006 — điều phối 3 tầng đa model, đa nhà cung cấp.** Theo yêu cầu người dùng: trước tác vụ
-  tự động/lập kế hoạch lớn phải chọn model cao cấp nhất sẵn có (không giới hạn Claude) theo độ
-  phức tạp, rồi phân việc cho subagent đủ năng lực. Thêm `scripts/model-capability-tiers.json`
-  (khuôn giống `model-rates.json`, có `_verified_on`/`_source`, model chưa xác minh đánh
-  `verify_before_use`) + `scripts/subagent-dispatch.py --tier <planning|complex|spec|standard|
-  mechanical>` (tra ứng viên đa nhà cung cấp, không dispatch) + ca test trong
-  `test-telemetry-and-dispatch.sh`. Cập nhật `CLAUDE.md` §2, `orchestration-3-tier.md` (mục "Chọn
-  đa nhà cung cấp"), `models-and-automation.md` §2b, `CODEMAP.md`. Tận dụng hạ tầng đa-harness đã
-  có sẵn (`subagent-dispatch.py --harness`, `maintain-run.sh`) — không viết engine mới. 7/7 mục
-  `check-docs-consistency.sh` xanh; `test-telemetry-and-dispatch.sh`, `check-ci-policy.sh`,
-  `check-progress-freshness.sh`, `test-hooks-gate.sh`, `test-check-scripts.sh`,
-  `test-next-gen-engines.sh` đều xanh. Merge `main` (mang theo PR #126) vào nhánh — chỉ đụng
-  `PROGRESS.md` (mục "Giai đoạn hiện tại", đã hợp nhất cả hai mốc), không đụng code của #126.
+- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, PR #128 đã merge): ADR-0006 — điều phối 3 tầng đa
+  model, đa nhà cung cấp.** Theo yêu cầu người dùng: trước tác vụ tự động/lập kế hoạch lớn phải
+  chọn model cao cấp nhất sẵn có (không giới hạn Claude) theo độ phức tạp, rồi phân việc cho
+  subagent đủ năng lực. Thêm `scripts/model-capability-tiers.json` (khuôn giống `model-rates.json`,
+  có `_verified_on`/`_source`, model chưa xác minh đánh `verify_before_use`) +
+  `scripts/subagent-dispatch.py --tier <planning|complex|spec|standard|mechanical>` (tra ứng viên
+  đa nhà cung cấp, không dispatch) + ca test trong `test-telemetry-and-dispatch.sh` +
+  `test-py-coverage.sh`. Cập nhật `CLAUDE.md` §2, `orchestration-3-tier.md` (mục "Chọn đa nhà cung
+  cấp"), `models-and-automation.md` §2b, `CODEMAP.md`, `copy-framework.sh`/`.ps1`. Tận dụng hạ tầng
+  đa-harness đã có sẵn (`subagent-dispatch.py --harness`, `maintain-run.sh`) — không viết engine
+  mới. Spec: `docs/specs/2026-09-15-da-model-da-nha-cung-cap.md` (Approved for implementation).
+  **PR #125 (nhánh `claude/hien-trang-b89ids`) bị đóng không merge**: một commit merge trên nhánh
+  đó có tiêu đề không theo Conventional Commits ("Merge remote-tracking branch...") làm cổng
+  `metadata` đỏ vĩnh viễn; sửa cần `git push --force-with-lease`, nhưng thao tác này bị deny-list
+  tường minh trong `.claude/settings.json`/`.claude/settings-shared-opusplan.json`
+  (`Bash(git push --force*)`) nên phiên không có quyền chạy dù trên nhánh tự tạo. Xử lý: dựng lại
+  nhánh sạch `claude/da-model-da-nha-cung-cap` từ `main` (một commit, cùng nội dung), mở PR #128,
+  merge bằng đó. Bài học: **không hard-code giả định "trên nhánh mình tạo thì amend/force-push
+  luôn được phép"** — luôn kiểm `.claude/settings.json` (deny thắng allow) trước khi thử.
 - Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-15, PR #126 đã merge): CỔNG CC CHO SHELL** — nửa còn lại của cổng CC.
   `scripts/check-shell-complexity.sh` đo bằng `vendor/shellmetrics` (bản vendor có ghim SHA256,
   chạy offline), **hai trần**: hàm ≤ 12 như Python, thân script `<main>` ≤ 45 — trần thứ hai đặt
@@ -131,7 +136,7 @@
   báo oan) nên nó KHÔNG chặn được PR quên bước 0, chỉ cảnh báo sau khi đã merge. Cân nhắc một cổng ở
   `pr-policy.yml` soi diff của PR thay đổi tài liệu khung mà không chạm `PROGRESS.md` — chưa làm, cần bàn
   vì dễ báo oan cho PR nhỏ.
-- Default-branch SHA đã đối chiếu: `e69f70f` (`origin/main`, PR #126)
+- Default-branch SHA đã đối chiếu: `8436128` (`origin/main`, PR #128)
 - Nhánh đang làm: `main` (không có việc dở)
 - Ngày cập nhật: 2026-09-14
 
