@@ -55,7 +55,20 @@ copy_if_absent() {      # chỉ copy nếu đích chưa có; nếu có thì đ�
   [ -e "$SRC/$rel" ] || return 0
   mkdir -p "$TARGET/$(dirname "$rel")"
   if [ -e "$TARGET/$rel" ]; then
-    cp -R "$SRC/$rel" "$TARGET/$rel.framework-new"
+    # `cp -R src dst` có hai nghĩa khác nhau tuỳ dst ĐÃ TỒN TẠI hay chưa: chưa có → tạo dst là bản
+    # sao của src; ĐÃ CÓ và là thư mục → copy src VÀO TRONG dst. Lượt 2 tạo `<rel>.framework-new`,
+    # nên từ lượt 3 trở đi bản cũ sinh ra `<rel>.framework-new/<tên cuối>` — người dùng mở
+    # `.framework-new/` để so thì không thấy file nào và tưởng "không có gì mới" (audit F-306,
+    # tái hiện TRAPS mục 3).
+    # Dùng `src/.` + `mkdir -p` để ngữ nghĩa ỔN ĐỊNH qua mọi lượt chạy, và khớp đúng bản
+    # `copy-framework.ps1` (Copy-Tree: tạo thư mục đích rồi copy các CON vào trong) — bản .ps1
+    # không có lỗi này, hai bản đang lệch nhau.
+    if [ -d "$SRC/$rel" ]; then
+      mkdir -p "$TARGET/$rel.framework-new"
+      cp -R "$SRC/$rel/." "$TARGET/$rel.framework-new/"
+    else
+      cp -R "$SRC/$rel" "$TARGET/$rel.framework-new"
+    fi
     echo "  ~ $rel đã tồn tại → bản khung để ở $rel.framework-new (tự so/merge)"
   else
     cp -R "$SRC/$rel" "$TARGET/$rel"

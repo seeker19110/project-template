@@ -735,3 +735,42 @@ không-chặn-oan**, vì sửa theo chiều này rất dễ làm hỏng chiều 
 `TAB`+`EOF`, rồi `git reset --hard` ⇒ phải exit 2) và mục 8 có ca đối chứng không-chặn-oan
 (`git commit -F - <<-EOF` thân thụt TAB chứa chữ `main`, rồi force-push nhánh riêng ⇒ phải exit 0).
 Ca thứ hai tồn tại vì bản vá này bỏ TAB đầu dòng: nếu bỏ nhầm cho cả `<<` thường thì sẽ chặn oan.
+
+## 31. `cp -R src dst` đổi nghĩa khi dst ĐÃ TỒN TẠI — lỗi chỉ lộ từ lượt chạy THỨ BA
+
+**Ngày/PR:** 2026-09-15 · audit toàn diện F-306. **Tái phát của mục 3** (cùng khuôn lồng thư mục,
+khác đường vào).
+
+**Khuôn lỗi:** `copy_if_absent()` trong `copy-framework.sh` để bản khung ở `<rel>.framework-new`
+khi đích đã có file. Nó dùng `cp -R "$SRC/$rel" "$TARGET/$rel.framework-new"`. Nhưng `cp -R src dst`
+có **hai nghĩa khác nhau** tuỳ `dst` đã tồn tại hay chưa:
+
+- `dst` CHƯA có → tạo `dst` là bản sao của `src`. ✅
+- `dst` ĐÃ có và là thư mục → copy `src` **VÀO TRONG** `dst`. ❌
+
+Lượt 1 đích chưa có gì nên đi nhánh `else`. Lượt 2 tạo `<rel>.framework-new` (đúng). **Lượt 3** đích
+đã có thư mục đó nên sinh ra `<rel>.framework-new/<tên cuối>`.
+
+Đo được (3 lượt vào cùng một đích): `.claude/hooks.framework-new/hooks`,
+`.claude/agents.framework-new/agents`, `.cursor/rules.framework-new/rules`.
+
+**Vì sao nguy hiểm hơn vẻ ngoài:** không có lỗi, không có cảnh báo, exit 0. Người dùng cập nhật
+khung lần thứ ba mở thư mục `.framework-new` của `.claude/hooks` để so với bản của mình — **không có
+file nào ở đó** — nên kết luận "không có gì mới" và giữ hook cũ. Hỏng theo chiều **im lặng mất cập
+nhật**, không phải chiều báo lỗi.
+
+**Bài học tổng quát:** một lệnh có ngữ nghĩa phụ thuộc **trạng thái sẵn có của đích** thì test hai
+lượt KHÔNG đủ — phải có lượt thứ ba. Lượt 1 đi nhánh khác, lượt 2 mới tạo ra điều kiện, lượt 3 mới
+kích hoạt. Cùng họ với mục 20 (test không chạm nhánh nó định khoá).
+
+**Hai bản LỆCH nhau:** bản `copy-framework.ps1` **không có lỗi này** — `Copy-Tree` tạo thư mục đích
+rồi copy các **con** vào trong (tương đương `cp -R src/. dst/`). Bản vá làm `.sh` khớp ngữ nghĩa đó.
+Đúng điều mục 3 cảnh báo: hai bản dễ lệch đúng ở điểm này.
+
+**Cách rà:** với mọi `cp -R`/`mv` mà đích có thể đã tồn tại, hỏi *"chạy lần thứ ba thì sao?"*. Dùng
+`src/.` + `mkdir -p` để ngữ nghĩa ổn định qua mọi lượt.
+
+**Cổng chốt chặn:** `scripts/test-copy-framework.sh` — helper `check_no_nesting` chạy sau **lượt
+thứ ba** cho **cả hai bản** (`bash` và `pwsh`), quét mọi thư mục `*.framework-new` và đòi không có
+`<tên cuối>` lồng bên trong. Ca `pwsh` để chứng minh bản `.ps1` đúng thay vì tin vào việc đọc code,
+và để bắt nếu ai đó sửa `.ps1` theo hướng của bản `.sh` cũ.

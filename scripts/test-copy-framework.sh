@@ -22,6 +22,26 @@ new_target() {
   printf '%s' "$t"
 }
 
+# Bản khung để ở `<rel>.framework-new` KHÔNG được lồng thêm một tầng (`<rel>.framework-new/<tên cuối>`).
+# Chỉ lộ ra từ lượt chạy THỨ BA: lượt 2 tạo thư mục `.framework-new`, lượt 3 `cp -R src dst` với dst
+# đã tồn tại sẽ copy VÀO TRONG. Người dùng mở `.framework-new/` để so thì không thấy file nào và
+# tưởng "không có gì mới" (audit F-306, tái hiện TRAPS mục 3).
+check_no_nesting() {   # $1 = nhãn, $2 = thư mục đích
+  local label="$1" target="$2" nested=0 d base stem
+  while IFS= read -r d; do
+    base="$(basename "$d")"; stem="${base%.framework-new}"
+    if [ -e "$d/$stem" ]; then
+      echo "  FAIL [$label / lồng thư mục]: $d/$stem — bản khung nằm sâu một tầng, người dùng sẽ không thấy"
+      nested=1
+    fi
+  done < <(find "$target" -type d -name '*.framework-new' 2>/dev/null)
+  if [ "$nested" -eq 0 ]; then
+    echo "  ok [$label]: không có *.framework-new nào bị lồng thêm một tầng"
+  else
+    fail=$((fail+1))
+  fi
+}
+
 run_logged() {          # run_logged <mô tả> <lệnh...>
   local desc="$1"; shift
   if "$@" >/tmp/copy-framework-test.log 2>&1; then
@@ -125,6 +145,15 @@ echo "== bash / chạy lại lần hai trên cùng đích =="
 run_logged "bash / chạy lại lần 2" bash "$REPO_ROOT/copy-framework.sh" "$targetA" \
   && echo "  ok [bash / chạy lại lần 2]: không lỗi"
 
+echo "== bash / chạy lại lần BA — không được lồng thư mục (audit F-306) =="
+# Lượt 2 tạo `.claude/hooks.framework-new/` (đúng). Lượt 3 đích ĐÃ CÓ thư mục đó, nên
+# `cp -R src dir` của bản cũ copy VÀO TRONG → `.claude/hooks.framework-new/hooks/`. Người dùng cập
+# nhật khung lần thứ ba mở thư mục `.framework-new` của `.claude/hooks` để so thì KHÔNG có file nào
+# ở đó, kết luận "không có gì mới" và giữ hook cũ. Tái hiện TRAPS mục 3.
+run_logged "bash / chạy lại lần 3" bash "$REPO_ROOT/copy-framework.sh" "$targetA" \
+  && echo "  ok [bash / chạy lại lần 3]: không lỗi"
+check_no_nesting "bash / lần 3" "$targetA"
+
 if command -v pwsh >/dev/null 2>&1; then
   echo ""
   echo "== pwsh / đích trống =="
@@ -142,6 +171,15 @@ if command -v pwsh >/dev/null 2>&1; then
   run_logged "pwsh / đích có sẵn" pwsh -NoProfile -File "$REPO_ROOT/copy-framework.ps1" "$targetE"
   check_no_overwrite "pwsh / đích có sẵn" "$targetE"
   check_claude_config_not_overwritten "pwsh / đích có sẵn" "$targetE"
+
+  echo ""
+  echo "== pwsh / chạy lại lần BA — không được lồng thư mục (audit F-306) =="
+  # Đọc code thì `Copy-Tree` của bản .ps1 KHÔNG có lỗi này (nó tạo thư mục đích rồi copy các CON
+  # vào trong). Ca này để CHỨNG MINH điều đó thay vì tin vào việc đọc — và để bắt nếu ai đó sửa
+  # .ps1 theo hướng của bản .sh cũ. TRAPS mục 3: hai bản TỪNG lệch nhau đúng ở điểm này.
+  run_logged "pwsh / chạy lại lần 2" pwsh -NoProfile -File "$REPO_ROOT/copy-framework.ps1" "$targetE"
+  run_logged "pwsh / chạy lại lần 3" pwsh -NoProfile -File "$REPO_ROOT/copy-framework.ps1" "$targetE"
+  check_no_nesting "pwsh / lần 3" "$targetE"
 else
   echo ""
   echo "⚠️  ⚠️  BỎ QUA toàn bộ kiểm thử copy-framework.ps1 — máy này KHÔNG có pwsh."
