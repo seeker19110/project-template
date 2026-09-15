@@ -6,7 +6,26 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, PR #139 đã merge): cổng
+- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, PR #141 đã merge): cổng chặn ký tự điều khiển vô
+  hình trong `*.md` (mục 8 của `check-docs-consistency.sh`).** Gặp thật cùng ngày: một chuỗi Python
+  thường chứa ký hiệu thoát `\` + `b` là BACKSPACE (0x08) chứ không phải hai ký tự literal, nên
+  `PROGRESS.md` nhận một ký tự điều khiển vô hình giữa hai backtick — trình soạn thảo, trình xem
+  Markdown và `git diff` đều không hiển thị, không cổng nào bắt; phát hiện chỉ vì tình cờ đọc lại
+  bằng `cat -A`. Mục 8 quét mọi `*.md` do `git ls-files` liệt kê, **giữ TAB/LF/CR** (chặn chúng là
+  chặn oan bảng Markdown và file checkout trên Windows) và **không soi NUL** (file có NUL đã là nhị
+  phân). Mẫu dựng LÚC CHẠY bằng `printf`: bản đầu của chính commit đó viết ký tự thật vào source và
+  tự khớp mình — lần thứ tư trong phiên của khuôn "bộ dò tự khớp văn bản của thứ nó đang soi".
+  Negative test + đối chứng TAB/CR trong `test-check-scripts.sh`. **TRAPS mục 29.**
+  **Cổng tự chứng minh ngay lần dùng đầu:** chính lượt viết mốc này lại sinh ra một backspace nữa
+  (cùng nguyên nhân), và mục 8 chặn commit — sửa xong mới ghi được. Không có nó thì ký tự đó đã
+  nằm trong `PROGRESS.md` như lần trước.
+  **Giới hạn đã ghi:** cổng bắt HẬU QUẢ, không bắt NGUYÊN NHÂN (chuỗi không-raw trong script sinh
+  tài liệu) — phần đó chỉ có TRAPS 29 + một dòng `CODEMAP.md`, không có cổng máy.
+  **Bài học về ngưỡng dựng cổng:** tôi đề nghị chờ tái phát lần hai rồi mới làm; người dùng quyết
+  làm luôn, và đúng — lúc viết trap mới thấy cùng khuôn đã xảy ra hai lần trong CÙNG phiên (ký hiệu thoát chữ `b`
+  thành backspace, và một backreference `sed` thành 0x01 làm biểu thức thay bằng chuỗi rỗng mà
+  không báo lỗi). Đếm theo "lỗi giống hệt" thì ngưỡng quá cao; phải đếm theo **cùng khuôn**.
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-15, PR #139 đã merge): cổng
   `framework-lint-windows`.** Trước đó mọi job cổng chạy `ubuntu-latest`, nên cổng của khung chỉ
   chứng minh được điều gì đó TRÊN LINUX — trong khi khung nhắm tới người dùng Windows. Job mới chạy
   4 suite engine Python · `test-hooks-gate` · cổng CC shell + Python · `test-copy-framework`
@@ -214,7 +233,7 @@
   báo oan) nên nó KHÔNG chặn được PR quên bước 0, chỉ cảnh báo sau khi đã merge. Cân nhắc một cổng ở
   `pr-policy.yml` soi diff của PR thay đổi tài liệu khung mà không chạm `PROGRESS.md` — chưa làm, cần bàn
   vì dễ báo oan cho PR nhỏ.
-- Default-branch SHA đã đối chiếu: `5d38a12` (`origin/main`, PR #139)
+- Default-branch SHA đã đối chiếu: `9351961` (`origin/main`, PR #141)
 - Nhánh đang làm: `main` (không có việc dở)
 - Ngày cập nhật: 2026-09-15
 
