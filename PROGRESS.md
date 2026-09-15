@@ -6,7 +6,20 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-14, PR #123 đã merge): CỔNG MÁY
+- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, nhánh `claude/hien-trang-b89ids`, chưa merge):
+  ADR-0006 — điều phối 3 tầng đa model, đa nhà cung cấp.** Theo yêu cầu người dùng: trước tác vụ
+  tự động/lập kế hoạch lớn phải chọn model cao cấp nhất sẵn có (không giới hạn Claude) theo độ
+  phức tạp, rồi phân việc cho subagent đủ năng lực. Thêm `scripts/model-capability-tiers.json`
+  (khuôn giống `model-rates.json`, có `_verified_on`/`_source`, model chưa xác minh đánh
+  `verify_before_use`) + `scripts/subagent-dispatch.py --tier <planning|complex|spec|standard|
+  mechanical>` (tra ứng viên đa nhà cung cấp, không dispatch) + ca test trong
+  `test-telemetry-and-dispatch.sh`. Cập nhật `CLAUDE.md` §2, `orchestration-3-tier.md` (mục "Chọn
+  đa nhà cung cấp"), `models-and-automation.md` §2b, `CODEMAP.md`. Tận dụng hạ tầng đa-harness đã
+  có sẵn (`subagent-dispatch.py --harness`, `maintain-run.sh`) — không viết engine mới. 7/7 mục
+  `check-docs-consistency.sh` xanh; `test-telemetry-and-dispatch.sh`, `check-ci-policy.sh`,
+  `check-progress-freshness.sh`, `test-hooks-gate.sh`, `test-check-scripts.sh`,
+  `test-next-gen-engines.sh` đều xanh.
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-14, PR #123 đã merge): CỔNG MÁY
   cho ngưỡng CC 12** — trả lời trực tiếp phát hiện của mốc trước ("không có cổng máy nào cưỡng chế
   CC ≤ 12, ngưỡng chỉ nằm trong văn xuôi"). Thêm `scripts/check-python-complexity.sh` (radon, trần 12
   qua `PY_CC_MAX`, **không có miễn trừ theo hàm**) + `scripts/test-check-python-complexity.sh`
