@@ -6,14 +6,16 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc đang làm (2026-09-15): CỔNG CC CHO SHELL** — nửa còn lại của cổng CC.
+- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, PR #126 đã merge): CỔNG CC CHO SHELL** — nửa còn lại của cổng CC.
   `scripts/check-shell-complexity.sh` đo bằng `vendor/shellmetrics` (bản vendor có ghim SHA256,
   chạy offline), **hai trần**: hàm ≤ 12 như Python, thân script `<main>` ≤ 45 — trần thứ hai đặt
   ngay trên mức cao nhất đo được (41) làm **nắp chặn trượt**, vì ép thân một script cổng xuống 12
   chỉ đẩy nhánh vào hàm một-lần-gọi chứ không dễ đọc hơn (người dùng chốt phương án này). Hạ CC
   2 hàm vượt trần, hành vi giữ nguyên có đối chiếu fixture: `dev-task.sh::detected_cmd` 18 → tách
   5 hàm theo hệ sinh thái, `maintenance-sweep.sh::detect_deps_cmd` 13 → tách 4.
-  Spec: `docs/specs/2026-09-15-cong-may-cc-shell.md`.
+  Spec: `docs/specs/2026-09-15-cong-may-cc-shell.md`. Lượt CI đầu ĐỎ vì `func` là từ khoá của
+  gawk (runner) chứ không phải mawk (máy dev) — sửa + `TRAPS.md` mục 23 + ca 6 của negative test
+  chạy lại cổng dưới gawk.
 - Giai đoạn trước đó: GĐ 8. **Mốc gần nhất (2026-09-14, PR #123 đã merge): CỔNG MÁY
   cho ngưỡng CC 12** — trả lời trực tiếp phát hiện của mốc trước ("không có cổng máy nào cưỡng chế
   CC ≤ 12, ngưỡng chỉ nằm trong văn xuôi"). Thêm `scripts/check-python-complexity.sh` (radon, trần 12
@@ -115,7 +117,7 @@
   báo oan) nên nó KHÔNG chặn được PR quên bước 0, chỉ cảnh báo sau khi đã merge. Cân nhắc một cổng ở
   `pr-policy.yml` soi diff của PR thay đổi tài liệu khung mà không chạm `PROGRESS.md` — chưa làm, cần bàn
   vì dễ báo oan cho PR nhỏ.
-- Default-branch SHA đã đối chiếu: `fb9c461` (`origin/main`, PR #123)
+- Default-branch SHA đã đối chiếu: `e69f70f` (`origin/main`, PR #126)
 - Nhánh đang làm: `main` (không có việc dở)
 - Ngày cập nhật: 2026-09-14
 
