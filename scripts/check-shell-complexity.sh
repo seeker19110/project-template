@@ -15,7 +15,7 @@
 # CHECKSUM trước khi chạy — mã bên thứ ba bị sửa mà không ai biết thì mọi con số dưới đây vô nghĩa.
 #
 # Chạy: bash scripts/check-shell-complexity.sh
-set -uo pipefail
+set -uo pipefail   # cố ý KHÔNG -e: cổng gom MỌI vi phạm trong một lượt rồi mới thoát; có tự bảo vệ chống dữ liệu rỗng ở ngay dưới (xem docs/CONVENTIONS.md §A)
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 if command -v cygpath >/dev/null 2>&1; then ROOT="$(cygpath -m "$ROOT")"; fi

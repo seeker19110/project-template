@@ -14,7 +14,7 @@
 # ngoại lệ im lặng là cổng xanh giả.
 #
 # Chạy: bash scripts/check-python-complexity.sh        (cần: python3 -m pip install radon)
-set -uo pipefail
+set -uo pipefail   # cố ý KHÔNG -e: cổng gom MỌI vi phạm trong một lượt rồi mới thoát; cố ý ĐỎ khi thiếu radon (xem docs/CONVENTIONS.md §A)
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 if command -v cygpath >/dev/null 2>&1; then ROOT="$(cygpath -m "$ROOT")"; fi

@@ -40,7 +40,7 @@
 #     --gh-token <tok>   token GitHub thay cho biến môi trường GITHUB_TOKEN/GH_TOKEN
 #     --repo <owner/repo> ghi đè owner/repo (mặc định: tự tách từ `git remote get-url origin`;
 #                        bắt buộc khai nếu origin không phải github.com hoặc là SSH alias lạ)
-set -uo pipefail
+set -uo pipefail   # cố ý KHÔNG -e: chạy không giám sát trên cron — một lệnh phụ lỗi không được giết cả lượt, mọi lỗi thật đi qua die() (xem docs/CONVENTIONS.md §A)
 
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 BASE=""; NO_PUSH=0; LOCK_DIR=""; NO_OPEN_PR=0; GH_TOKEN_FLAG=""; REPO_FLAG=""

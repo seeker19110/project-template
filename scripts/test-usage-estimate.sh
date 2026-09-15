@@ -8,7 +8,7 @@
 # Nguyên tắc F-002/G-001 áp cho chính mình: mỗi hành vi kiểm CẢ ca đúng lẫn ca sai; không
 # ca nào được xanh vì "script chạy không crash".
 
-set -uo pipefail
+set -uo pipefail   # cố ý KHÔNG -e: script test gom kết quả nhiều ca; -e sẽ dừng ở ca đỏ ĐẦU TIÊN và giấu các ca còn lại (xem docs/CONVENTIONS.md §A)
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 if command -v cygpath >/dev/null 2>&1; then ROOT="$(cygpath -m "$ROOT")"; fi

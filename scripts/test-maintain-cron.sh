@@ -8,7 +8,7 @@
 # lần hai trong cùng ngày ghi đè nhánh đó chứ không cộng dồn, (4) --no-push không đụng remote.
 #
 # Chạy: bash scripts/test-maintain-cron.sh
-set -uo pipefail
+set -uo pipefail   # cố ý KHÔNG -e: script test gom kết quả nhiều ca; -e sẽ dừng ở ca đỏ ĐẦU TIÊN và giấu các ca còn lại (xem docs/CONVENTIONS.md §A)
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 source "$ROOT/scripts/_test-lib.sh"

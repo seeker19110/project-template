@@ -6,7 +6,7 @@
 # `framework-lint` VÀ được copy sang dự án đích để smoke (test-copy-framework.sh).
 #
 # Chạy: bash scripts/test-maintenance-sweep.sh
-set -uo pipefail
+set -uo pipefail   # cố ý KHÔNG -e: script test gom kết quả nhiều ca; -e sẽ dừng ở ca đỏ ĐẦU TIÊN và giấu các ca còn lại (xem docs/CONVENTIONS.md §A)
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SWEEP="$ROOT/scripts/maintenance-sweep.sh"

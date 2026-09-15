@@ -30,7 +30,7 @@
 #   --dry-run   in lệnh sẽ chạy + đường dẫn prompt, KHÔNG gọi CLI, KHÔNG ghi telemetry
 #   Biến môi trường: MAINT_HARNESS, MAINT_MODEL, MAINT_PROVIDER (tương đương cờ);
 #   MAINT_BIN_<HARNESS> = đường dẫn CLI thay cho PATH (vd MAINT_BIN_CLAUDE=/opt/claude).
-set -uo pipefail
+set -uo pipefail   # cố ý KHÔNG -e: script điều phối — lỗi của CLI bên ngoài phải được diễn giải, không nuốt bằng cách chết ngang (xem docs/CONVENTIONS.md §A)
 
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 HARNESS="${MAINT_HARNESS:-auto}"; MODEL="${MAINT_MODEL:-}"; PROVIDER="${MAINT_PROVIDER:-}"

@@ -27,7 +27,7 @@
 |---------|--------------------|------------------|---------|
 | Tên file | **tiếng Anh, kebab-case**; nội dung **tiếng Việt** | `docs/framework/*.md` | Bản đồ tên cũ→mới ở `docs/framework/README.md` |
 | Đường dẫn trong tài liệu | luôn trong backtick, phải **tồn tại thật** | mọi file | Cưỡng chế bằng `check-docs-consistency.sh` §1 |
-| Mục lục tài liệu | Một nguồn duy nhất: `CLAUDE.md` §1 | `CLAUDE.md` | Mỗi file `docs/framework/` phải được §1 trỏ tới |
+| Mục lục tài liệu | Một nguồn duy nhất: `CLAUDE.md` §1 | `CLAUDE.md` | Mỗi file `docs/framework/` phải được §1 trỏ tới **trực tiếp, hoặc qua đúng một file hub đã nêu ở §1** (vd `quality-supplements.md`, `new-project-runbook.md` gom các phần của chúng). Sửa 2026-09-15: luật cũ nói "trực tiếp" nên sai với 7 file đang đi qua hub — mà đi qua hub là thiết kế đúng, không phải lỗi |
 | Khai báo kích hoạt lệnh | Mỗi lệnh có dòng **`TRIGGER:`** trong `CLAUDE.md` §1 | `CLAUDE.md` §1 | Cưỡng chế 2 chiều bằng `check-docs-consistency.sh` §3 |
 | Giới hạn độ dài | `CLAUDE.md` < 200 dòng; chi tiết đẩy xuống `docs/framework/` | `CLAUDE.md` dòng 5 | |
 | Nguồn sự thật trạng thái | `PROGRESS.md` (giai đoạn), `COMPLETION-PLAN.md` (kế hoạch), `COMPREHENSIVE-AUDIT-STATUS.md` (quét) — **không chép lẫn nhau** | `CLAUDE.md` §10 | Chống lệch giữa 2 chỗ |
@@ -37,8 +37,8 @@
 
 | Pattern | Cách đúng duy nhất | File ví dụ chuẩn | Ghi chú |
 |---------|--------------------|------------------|---------|
-| Frontmatter lệnh | `---` + chỉ `description:` (một dòng, tiếng Việt) | `.claude/commands/gate.md` | 12/12 lệnh đều có |
-| Frontmatter subagent | `name:` + `description:` dạng `>-`, nêu **TẦNG**, model, GIAO khi nào, **KHÔNG làm gì** | `.claude/agents/lookup.md` | 8/8 agent đều có |
+| Frontmatter lệnh | `---` + chỉ `description:` (một dòng, tiếng Việt) | `.claude/commands/gate.md` | 13/13 lệnh đều có (2026-09-15) |
+| Frontmatter subagent | `name:` + `description:` dạng `>-`, nêu **TẦNG**, model, GIAO khi nào, **KHÔNG làm gì** | `.claude/agents/lookup.md` | 11/11 agent đều có (2026-09-15) |
 | Thân lệnh | Trỏ sang tài liệu chi tiết, **không nhân bản** nội dung tài liệu | `.claude/commands/gate.md` | Một nguồn sự thật |
 | Ranh giới quyền | Worker không commit/merge; coordinator không code; chỉ phiên chính quyết kiến trúc | `.claude/agents/coordinator.md` | Kiến trúc 3 tầng |
 
@@ -54,11 +54,25 @@
 
 ## Đang có NHIỀU KIỂU / quy ước NGẦM — cần hợp nhất (đầu vào cho kế hoạch hoàn thiện)
 
-1. ✅ **ĐÃ XỬ LÝ (W-307, 2026-09-12)** — **`set -euo` vs `set -uo`.** Hiện 4 file dùng `-euo` (script cổng), 8 file dùng `-uo`
-   (3 script tiện ích + 5 hook). Lựa chọn là **đúng và có chủ đích** (hook không được làm chết phiên),
-   nhưng **không tài liệu nào nói ra** — người/AI sau rất dễ "chuẩn hoá" bằng cách thêm `-e` vào hook
-   và biến một formatter thiếu thành cổng chặn phiên. Đã ghi vào file này + comment `# cố ý KHÔNG -e`
-   tại cả 9 file dùng `set -uo pipefail`.
+1. ⚠️ **MỞ LẠI 2026-09-15 (W-307)** — **`set -euo` vs `set -uo`.** Lựa chọn vẫn **đúng và có chủ
+   đích** (hook/test không được làm chết phiên hoặc giấu các ca đỏ còn lại), nhưng **biện pháp đã
+   không lan theo các script mới**.
+
+   Mục này từng ghi "✅ ĐÃ XỬ LÝ … comment `# cố ý KHÔNG -e` tại cả 9 file dùng `set -uo pipefail`"
+   với số liệu "4 file `-euo`, 8 file `-uo`". Audit toàn diện 2026-09-15 (F-103) đo lại: **5 file
+   `-euo`, 26 file `-uo`**, trong đó **12 file KHÔNG có chú thích lý do** — tức tuyên bố "đã xử lý"
+   sai sự thật suốt một thời gian, và không ai biết vì sổ quy ước không có cổng máy nào canh.
+
+   Đã bổ sung chú thích cho đủ 12 file (2026-09-15). Giữ mục này ở trạng thái **MỞ**, không đóng
+   lại, vì nguyên nhân gốc chưa được xử lý: **không có cổng máy nào** bắt một script `.sh` mới dùng
+   `set -uo pipefail` mà thiếu dòng lý do. Chừng nào chưa có cổng đó, drift sẽ lặp lại đúng như lần
+   này. (Đề xuất cổng: một mục trong `check-docs-consistency.sh` — `set -uo pipefail` không kèm `#`
+   trên cùng dòng → đỏ, kèm negative test.)
+
+   **Ngoại lệ đã khai cho hai cổng complexity:** `check-shell-complexity.sh` và
+   `check-python-complexity.sh` là **script cổng** nhưng cố ý dùng `-uo`, vì chúng gom MỌI vi phạm
+   trong một lượt rồi mới thoát. Cả hai **đã có tự bảo vệ chống dữ liệu rỗng** (`cổng rỗng luôn xanh
+   là cổng hỏng` → exit 1), nên việc thiếu `-e` ở đây không tạo lỗ "xanh trên dữ liệu rỗng".
 2. **Hai bản kiểm CI song song** (`scripts/check-ci-policy.sh` shell cho repo khung ·
    `scripts/ci-workflow-policy.test.ts` vitest cho dropins) — **cố ý không gộp** (repo khung không có
    `package.json`), đã ghi rõ trong header script. Không phải nợ, nhưng là điểm phân kỳ cần canh:

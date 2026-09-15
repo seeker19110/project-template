@@ -8,7 +8,7 @@
 # Ngưỡng là SÀN, không phải mục tiêu: hạ ngưỡng để CI xanh là tự bịt mắt mình.
 # Nâng ngưỡng khi thêm ca test; muốn hạ thì phải nêu lý do trong PR.
 
-set -uo pipefail
+set -uo pipefail   # cố ý KHÔNG -e: script test gom kết quả nhiều ca; -e sẽ dừng ở ca đỏ ĐẦU TIÊN và giấu các ca còn lại (xem docs/CONVENTIONS.md §A)
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 if command -v cygpath >/dev/null 2>&1; then ROOT="$(cygpath -m "$ROOT")"; fi

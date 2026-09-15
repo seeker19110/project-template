@@ -6,7 +6,7 @@
 # (TRAPS.md mục 11/15: chạy thật mới tin; F-002: phải chứng minh bắt được lỗi).
 #
 # Chạy: bash scripts/test-maintain-run.sh
-set -uo pipefail
+set -uo pipefail   # cố ý KHÔNG -e: script test gom kết quả nhiều ca; -e sẽ dừng ở ca đỏ ĐẦU TIÊN và giấu các ca còn lại (xem docs/CONVENTIONS.md §A)
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 RUN="$ROOT/scripts/maintain-run.sh"

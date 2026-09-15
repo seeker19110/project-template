@@ -16,7 +16,7 @@
 # test-py-coverage.sh gọi sẽ bị tính 0% và kéo tụt sàn 95%.
 #
 # Chạy: bash scripts/test-engine-characterization.sh
-set -uo pipefail
+set -uo pipefail   # cố ý KHÔNG -e: script test gom kết quả nhiều ca; -e sẽ dừng ở ca đỏ ĐẦU TIÊN và giấu các ca còn lại (xem docs/CONVENTIONS.md §A)
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT" || exit 1
