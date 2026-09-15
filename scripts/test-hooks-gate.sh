@@ -173,6 +173,144 @@ rc="$(run_hook "$any" 'git reset --hard' "" "$broken")"
 fi
 
 echo ""
+
+# ==============================================================================
+# 10b–13. BỐN HOOK TRƯỚC ĐÂY KHÔNG CÓ TEST NÀO (audit F-401)
+# ==============================================================================
+# auto-format.sh, session-guide.sh, session-resume.sh, usage-guard.sh đều có nhánh điều kiện thật
+# (ADR-0005 bắt buộc test), nhưng `grep -ln <tên hook> scripts/test-*.sh` trước đây ra NONE cho cả
+# bốn. Sửa sai một ngưỡng/marker → hành vi hỏng, không cổng nào đỏ, và copy-framework.sh vẫn phát
+# hook hỏng đó sang MỌI dự án đích.
+
+# Dựng một "dự án khung" giả đủ để các hook nhận ra và chạy.
+mk_fw_project() {  # $1 = nội dung dòng "Giai đoạn hiện tại" (rỗng = không có PROGRESS.md)
+  local dir="$WORK/fw-$RANDOM"
+  mkdir -p "$dir/docs/framework" "$dir/.claude/commands" "$dir/scripts"
+  if [ -n "${1:-}" ]; then
+    printf '# PROGRESS\n\n## Giai đoạn hiện tại\n\n- %s\n' "$1" > "$dir/PROGRESS.md"
+  fi
+  printf '%s\n' "$dir"
+}
+
+echo "== 10b. auto-format.sh =="
+AF="$ROOT/.claude/hooks/auto-format.sh"
+if [ "$HAS_JQ" = "1" ]; then
+  fw="$(mk_fw_project 'GĐ 4')"
+  # (a) Có dev-task.sh thực thi được → hook gọi nó và luôn exit 0.
+  printf '#!/usr/bin/env bash\necho "[dev-task] format-file $*"\n' > "$fw/scripts/dev-task.sh"
+  chmod +x "$fw/scripts/dev-task.sh"
+  out="$(printf '{"tool_input":{"file_path":"a.md"}}' | CLAUDE_PROJECT_DIR="$fw" bash "$AF" 2>&1)"; rc=$?
+  [ "$rc" = "0" ] && ok "có dev-task.sh: exit 0 (không cản luồng)" \
+                  || bad "có dev-task.sh: exit $rc (phải luôn 0)"
+  # (b) THIẾU dev-task.sh → fail-open nhưng PHẢI NÓI RA (luật: bỏ qua thì phải nói).
+  fw2="$(mk_fw_project 'GĐ 4')"
+  out="$(printf '{"tool_input":{"file_path":"a.md"}}' | CLAUDE_PROJECT_DIR="$fw2" bash "$AF" 2>&1)"; rc=$?
+  [ "$rc" = "0" ] && ok "thiếu dev-task.sh: exit 0" || bad "thiếu dev-task.sh: exit $rc"
+  printf '%s' "$out" | grep -q 'auto-format' \
+    && ok "thiếu dev-task.sh: CÓ cảnh báo ra stderr (không no-op im lặng)" \
+    || bad "thiếu dev-task.sh: im lặng — người dùng tưởng auto-format đang chạy"
+  # (c) Payload không có file_path → no-op, exit 0.
+  printf '{"tool_input":{}}' | CLAUDE_PROJECT_DIR="$fw2" bash "$AF" >/dev/null 2>&1
+  [ $? = "0" ] && ok "không có file_path: no-op exit 0" || bad "không có file_path: exit khác 0"
+else
+  skip "auto-format.sh (cần jq)"
+fi
+
+echo "== 11. session-guide.sh: hai nhánh thông điệp theo trạng thái =="
+SG="$ROOT/.claude/hooks/session-guide.sh"
+if [ "$HAS_JQ" = "1" ]; then
+  # (a) KHÔNG phải dự án khung → phải no-op im lặng (không quấy dự án lạ).
+  plain="$WORK/plain-$RANDOM"; mkdir -p "$plain"
+  out="$(printf '{}' | CLAUDE_PROJECT_DIR="$plain" bash "$SG" 2>/dev/null)"
+  [ -z "$out" ] && ok "dự án KHÔNG dùng khung: no-op im lặng" \
+                || bad "dự án không dùng khung vẫn in thông điệp (quấy dự án lạ)"
+  # (b) Dự án khung, CHƯA có tiến độ → gợi ý bắt đầu.
+  fwA="$(mk_fw_project '')"
+  outA="$(printf '{}' | CLAUDE_PROJECT_DIR="$fwA" bash "$SG" 2>/dev/null)"
+  [ -n "$outA" ] && ok "chưa có tiến độ: CÓ sinh thông điệp" || bad "chưa có tiến độ: không sinh gì"
+  # (c) Dự án khung, ĐANG làm dở → thông điệp phải KHÁC nhánh (b).
+  fwB="$(mk_fw_project 'GĐ 4. Đang làm tính năng X')"
+  outB="$(printf '{}' | CLAUDE_PROJECT_DIR="$fwB" bash "$SG" 2>/dev/null)"
+  [ -n "$outB" ] && ok "đang làm dở: CÓ sinh thông điệp" || bad "đang làm dở: không sinh gì"
+  [ "$outA" != "$outB" ] && ok "hai trạng thái cho thông điệp KHÁC nhau (nhánh thật sự rẽ)" \
+                         || bad "hai trạng thái cho CÙNG thông điệp — nhánh theo phase không hoạt động"
+  # (d) Output phải là JSON hợp lệ (Claude Code parse nó).
+  printf '%s' "$outB" | jq empty 2>/dev/null \
+    && ok "output là JSON hợp lệ" || bad "output KHÔNG phải JSON hợp lệ — harness sẽ bỏ qua"
+else
+  skip "session-guide.sh (cần jq)"
+fi
+
+echo "== 12. session-resume.sh: nạp ngữ cảnh + xoá marker wind-down =="
+SR="$ROOT/.claude/hooks/session-resume.sh"
+if [ "$HAS_JQ" = "1" ]; then
+  fwC="$(mk_fw_project 'GĐ 7. Mốc gần nhất: abc')"
+  mkdir -p "$fwC/.claude"; touch "$fwC/.claude/.winddown-nudged"
+  out="$(printf '{}' | CLAUDE_PROJECT_DIR="$fwC" bash "$SR" 2>/dev/null)"
+  [ ! -f "$fwC/.claude/.winddown-nudged" ] \
+    && ok "xoá marker .winddown-nudged (phiên mới được nhắc lại)" \
+    || bad "KHÔNG xoá marker — usage-guard sẽ im lặng mãi ở mọi phiên sau"
+  printf '%s' "$out" | grep -q 'GĐ 7' \
+    && ok "nạp nội dung PROGRESS.md vào ngữ cảnh" || bad "không nạp được PROGRESS.md"
+  printf '%s' "$out" | jq empty 2>/dev/null \
+    && ok "output là JSON hợp lệ" || bad "output KHÔNG phải JSON hợp lệ"
+  # Không có PROGRESS.md → vẫn không được chết.
+  fwD="$(mk_fw_project '')"
+  printf '{}' | CLAUDE_PROJECT_DIR="$fwD" bash "$SR" >/dev/null 2>&1
+  [ $? = "0" ] && ok "không có PROGRESS.md: exit 0" || bad "không có PROGRESS.md: exit khác 0"
+else
+  skip "session-resume.sh (cần jq)"
+fi
+
+echo "== 13. usage-guard.sh: ngưỡng + nhắc MỘT lần/phiên =="
+UG="$ROOT/.claude/hooks/usage-guard.sh"
+if [ "$HAS_JQ" = "1" ]; then
+  # Stub usage-estimate.sh trả OVERALL cố định → kiểm nhánh ngưỡng mà không cần transcript thật.
+  mk_ug() {  # $1 = OVERALL, $2 = THRESHOLD
+    local dir="$WORK/ug-$RANDOM"; mkdir -p "$dir/scripts" "$dir/.claude"
+    printf '#!/usr/bin/env bash\necho "OVERALL=%s"\necho "THRESHOLD=%s"\necho "opus=10"\n' "$1" "$2" \
+      > "$dir/scripts/usage-estimate.sh"
+    chmod +x "$dir/scripts/usage-estimate.sh"
+    printf 'x\n' > "$dir/transcript.jsonl"
+    printf '%s\n' "$dir"
+  }
+  pay() { printf '{"transcript_path":"%s/transcript.jsonl"}' "$1"; }
+
+  # (a) DƯỚI ngưỡng → im lặng.
+  d1="$(mk_ug 10 70)"
+  out="$(pay "$d1" | CLAUDE_PROJECT_DIR="$d1" bash "$UG" 2>/dev/null)"
+  [ -z "$out" ] && ok "dưới ngưỡng (10 < 70): im lặng" || bad "dưới ngưỡng vẫn nhắc — sẽ nhắc mỗi lượt"
+  [ ! -f "$d1/.claude/.winddown-nudged" ] && ok "dưới ngưỡng: KHÔNG tạo marker" \
+                                          || bad "dưới ngưỡng vẫn tạo marker — nhắc thật sau này bị nuốt"
+  # (b) TRÊN ngưỡng → nhắc, và tạo marker.
+  d2="$(mk_ug 85 70)"
+  out="$(pay "$d2" | CLAUDE_PROJECT_DIR="$d2" bash "$UG" 2>/dev/null)"
+  [ -n "$out" ] && ok "trên ngưỡng (85 >= 70): CÓ nhắc" || bad "trên ngưỡng nhưng KHÔNG nhắc"
+  [ -f "$d2/.claude/.winddown-nudged" ] && ok "trên ngưỡng: tạo marker" || bad "không tạo marker"
+  # (c) Lần hai trong CÙNG phiên → im lặng (marker còn đó).
+  out2="$(pay "$d2" | CLAUDE_PROJECT_DIR="$d2" bash "$UG" 2>/dev/null)"
+  [ -z "$out2" ] && ok "lần hai cùng phiên: im lặng (nhắc đúng MỘT lần)" \
+                 || bad "nhắc lặp lại mỗi lượt — đúng thứ marker sinh ra để chặn"
+  # (d) OVERALL=NA (chưa khai budget) → tự tắt.
+  d3="$(mk_ug NA 70)"
+  out="$(pay "$d3" | CLAUDE_PROJECT_DIR="$d3" bash "$UG" 2>/dev/null)"
+  [ -z "$out" ] && ok "OVERALL=NA: tự tắt" || bad "OVERALL=NA vẫn nhắc"
+  # (e) Ngưỡng tuỳ biến: 85 >= 90 là SAI → phải im lặng.
+  d4="$(mk_ug 85 90)"
+  out="$(pay "$d4" | CLAUDE_PROJECT_DIR="$d4" bash "$UG" 2>/dev/null)"
+  [ -z "$out" ] && ok "tôn trọng THRESHOLD tuỳ biến (85 < 90 → im lặng)" \
+                || bad "bỏ qua THRESHOLD — dùng số cứng"
+
+  # (f) NEGATIVE TEST: hook hỏng (luôn im lặng) PHẢI làm ca (b) đỏ.
+  broken="$WORK/ug-broken.sh"; printf '#!/usr/bin/env bash\nexit 0\n' > "$broken"; chmod +x "$broken"
+  d5="$(mk_ug 85 70)"
+  out="$(pay "$d5" | CLAUDE_PROJECT_DIR="$d5" bash "$broken" 2>/dev/null)"
+  [ -z "$out" ] && ok "negative test: hook hỏng thì ca 'trên ngưỡng phải nhắc' sẽ đỏ" \
+                || bad "negative test sai: hook hỏng vẫn sinh output"
+else
+  skip "usage-guard.sh (cần jq)"
+fi
+
 if [ "$fails" -eq 0 ] && [ "$skips" -gt 0 ]; then
   echo "⚠️  $skips nhóm ca BỊ BỎ QUA vì máy thiếu jq — chưa chứng minh được cổng chặn."
   echo "OK (không có ca nào ĐỎ) — cài jq rồi chạy lại để có bằng chứng đầy đủ."
