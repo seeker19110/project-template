@@ -57,7 +57,7 @@ import subpath trực tiếp. Kiểm chứng lại: `npx eslint . --max-warnings
 commit đầu dù không có lỗi thật. **Đã vá:** thêm ghi chú bắt buộc vào cuối Bước 3.
 
 ### Lỗi #3 (nghiêm trọng, brownfield) — `copy-framework.sh`/`.ps1` ghi đè `.claude/` đang có
-Bước "[2/3] Cấu hình Claude Code" copy `settings-shared-opusplan.json` → `.claude/settings.json` và
+Bước "[2/3] Cấu hình Claude Code" copy `settings-shared-default.json` → `.claude/settings.json` và
 `.claude/hooks`, `.claude/agents` **không điều kiện** — trái với chính lời cam kết đầu script
 ("An toàn cho dự án đã có sẵn... KHÔNG đè"). Một dự án brownfield đã dùng Claude Code từ trước (rất có thể,
 vì Claude Code ngày càng phổ biến) sẽ **mất `.claude/settings.json` của họ không cảnh báo**.

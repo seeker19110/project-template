@@ -21,7 +21,7 @@ dự-án/
 ├─ CLAUDE.md                          ← luật AI (Claude Code tự đọc)
 ├─ PROJECT.md                         ← đặc tả dự án
 ├─ PROGRESS.md                        ← trạng thái dự án (cập nhật liên tục)
-├─ .claude/                           ← cấu hình Claude Code: settings (opusplan) + commands + hooks + agents
+├─ .claude/                           ← cấu hình Claude Code: settings (model tiêu chuẩn Sonnet 5) + commands + hooks + agents
 ├─ scripts/                           ← dev-task.sh (điểm vào format/lint/test/build/gate cho hook) + usage-estimate.sh
 ├─ docs/
 │  ├─ framework/                      ← khung chung + hướng dẫn (tham khảo)

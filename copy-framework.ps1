@@ -174,18 +174,18 @@ Copy-IfAbsent ".claude/settings.local.json.example"  # mẫu permission cá nhâ
 
 # ── Cấu hình Claude Code + script tự động: copy thẳng (KHÔNG đè cấu hình đã có) ──
 Write-Host ""
-Write-Host "[2/4] Cấu hình Claude Code (opusplan — tối ưu token) + script tự động (hook gọi qua dev-task.sh):"
+Write-Host "[2/4] Cấu hình Claude Code (model tiêu chuẩn Sonnet 5 — tối ưu token) + script tự động (hook gọi qua dev-task.sh):"
 $claudeDir = Join-Path $Target '.claude'
 New-Item -ItemType Directory -Force -Path $claudeDir | Out-Null
 
 $settingsDest = Join-Path $claudeDir 'settings.json'
 if (Test-Path -LiteralPath $settingsDest) {
-  Copy-Tree -SrcFull (Join-Path $Src '.claude/settings-shared-opusplan.json') -DestFull ($settingsDest + '.framework-new')
+  Copy-Tree -SrcFull (Join-Path $Src '.claude/settings-shared-default.json') -DestFull ($settingsDest + '.framework-new')
   Write-Host "  ~ .claude/settings.json đã tồn tại → bản khung để ở settings.json.framework-new (tự so/merge)"
 }
 else {
-  Copy-Tree -SrcFull (Join-Path $Src '.claude/settings-shared-opusplan.json') -DestFull $settingsDest
-  Write-Host "  + .claude/settings.json (opusplan; fallback Sonnet 5 → Haiku 4.5)"
+  Copy-Tree -SrcFull (Join-Path $Src '.claude/settings-shared-default.json') -DestFull $settingsDest
+  Write-Host "  + .claude/settings.json (Sonnet 5; fallback Sonnet 5 → Haiku 4.5)"
 }
 
 Copy-IfAbsent ".claude/hooks"
@@ -239,16 +239,16 @@ Write-Host ""
 Write-Host "[4/4] Xong. Tiếp theo trong dự án đích:"
 Write-Host @'
 
-  1) Cấu hình Claude Code đã sẵn sàng: .claude/settings.json dùng opusplan (tối ưu token).
-     → Opus lập kế hoạch, Sonnet code, Haiku (subagent) việc phụ — chỉ trả giá Opus khi thực sự cần.
+  1) Cấu hình Claude Code đã sẵn sàng: .claude/settings.json dùng model tiêu chuẩn Sonnet 5.
+     → Việc lập kế hoạch lớn: chủ động /model sang model cao cấp nhất đang sẵn có, xong tự /model
+       claude-sonnet-5 quay lại — không còn chế độ opusplan tự chuyển (ADR-0007, CLI đã ngừng hỗ trợ).
      → Hook tự động (auto-format + chặn commit đỏ + nhắc quota) chạy qua scripts/dev-task.sh
        (tự dò stack). Dự án có lệnh riêng → copy .claude/project-commands.example.sh
        thành .claude/project-commands.sh rồi điền.
-     ✅ Dự án nhỏ muốn rẻ hơn nữa: đổi "model" thành "claude-sonnet-5".
-     ✅ Dự án rất phức tạp: nâng riêng lúc cần bằng /model claude-opus-4-8 (hoặc claude-fable-5).
+     ✅ Dự án rất phức tạp: nâng riêng lúc cần bằng /model claude-opus-5 (hoặc claude-fable-5-1).
 
   2) Mở phiên Claude Code NGAY TRONG dự án đích.
-     → AI tự đọc CLAUDE.md + .claude/settings.json (opusplan sẵn sàng).
+     → AI tự đọc CLAUDE.md + .claude/settings.json (model tiêu chuẩn sẵn sàng).
      → Chạy Bước 0 của docs/framework/existing-project-adoption.md
        (tự dò stack bằng cách đọc package.json/config — không cần bạn khai stack).
 

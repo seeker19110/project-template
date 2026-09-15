@@ -1,8 +1,12 @@
-# MODEL & TỰ ĐỘNG — chọn model, cấu hình opusplan, chế độ chạy tự động
+# MODEL & TỰ ĐỘNG — chọn model, hai pha lập kế hoạch/thực thi, chế độ chạy tự động
 
-> **Một file duy nhất** cho bốn việc liên quan chặt: (1) **chọn model** Claude chạy khung theo quy mô & rủi ro; (2) **cấu hình opusplan** tối ưu token; (3) **kỷ luật vận hành** phiên (plan một lần, ngữ cảnh gọn); (4) **chế độ chạy tự động** (sơ đồ + thành phần đã bake).
+> **Một file duy nhất** cho bốn việc liên quan chặt: (1) **chọn model** Claude chạy khung theo quy mô & rủi ro; (2) **hai pha lập kế hoạch/thực thi** tối ưu token (ADR-0006, ADR-0007); (3) **kỷ luật vận hành** phiên (plan một lần, ngữ cảnh gọn); (4) **chế độ chạy tự động** (sơ đồ + thành phần đã bake).
 > Nói về model **chạy Claude Code để làm dự án theo khung này** — KHÔNG phải chọn model *bên trong* sản phẩm bạn xây (cái đó xem kỹ năng `claude-api`).
 > Đọc khi: bắt đầu/đổi quy mô dự án, cân nhắc chi phí–chất lượng, hoặc muốn hiểu nhanh hệ thống tự động.
+>
+> **`/model opusplan` đã ngừng được CLI hỗ trợ (2026-09-15, ADR-0007).** File này không còn giả định
+> có một alias/chế độ tự-chuyển-model-theo-pha nào — chọn model cho từng pha là thao tác **thủ công**
+> (`/model <model-id>`), mô tả ở mục 1 dưới đây.
 
 ---
 
@@ -12,36 +16,37 @@
 # Từ repo khung, copy cấu hình sang dự án của bạn:
 bash copy-framework.sh /đường-dẫn/tới/dự-án
 ```
-Script copy `.claude/settings.json` (opusplan) + hooks + agents + `scripts/` (dev-task, usage-estimate — hook cần 2 file này) + 2 file `.example.sh` **thẳng** vào dự án; file cấu hình stack khác vào `_framework-dropins/` để tự merge. Mở phiên Claude Code → chạy khung ở chế độ **opusplan**.
+Script copy `.claude/settings.json` (model tiêu chuẩn: Sonnet 5) + hooks + agents + `scripts/` (dev-task, usage-estimate — hook cần 2 file này) + 2 file `.example.sh` **thẳng** vào dự án; file cấu hình stack khác vào `_framework-dropins/` để tự merge. Mở phiên Claude Code → khi cần lập kế hoạch việc lớn, chủ động `/model` sang model cao cấp nhất đang sẵn có trước (mục 1).
 
 **Chọn nhanh theo quy mô:**
 
 | Quy mô dự án | Nên dùng | Cách đặt |
 |---|---|---|
-| **Nhỏ** (script, landing, prototype <5k LOC) | **Sonnet 5** | `"model": "claude-sonnet-5"` |
-| **Tầm trung → lớn** (10–50k+ LOC) | **opusplan** (mặc định) | *(không đổi gì)* |
-| **Rất phức tạp / rủi ro cực cao** | opusplan + nâng riêng lúc cần | `/model claude-fable-5` ở ca khó nhất |
+| **Nhỏ** (script, landing, prototype <5k LOC) | **Sonnet 5** xuyên suốt | `"model": "claude-sonnet-5"` |
+| **Tầm trung → lớn** (10–50k+ LOC) | **Sonnet 5** thực thi + **chuyển tay sang model cao cấp nhất sẵn có** cho pha lập kế hoạch | `/model claude-opus-5` (hoặc tương đương) lúc plan, quay lại Sonnet 5 lúc code |
+| **Rất phức tạp / rủi ro cực cao** | như trên + nâng riêng lúc cần | `/model claude-fable-5-1` ở ca khó nhất |
 
 > **Nguyên tắc vàng:** dùng model **rẻ nhất vẫn đạt chất lượng** cho phần lớn công việc; **nâng cấp có chọn lọc** đúng các mốc rủi ro cao mà khung bắt "dừng và hỏi" (CLAUDE.md §9).
 
 ---
 
-## 1. opusplan là gì & vì sao tối ưu token
+## 1. Hai pha lập kế hoạch/thực thi — vì sao tối ưu token (ADR-0006, ADR-0007)
 
-**opusplan không phải một model** — nó là **chế độ** để Claude Code tự phân vai model theo từng đầu việc:
+Khung **không còn dựa vào một chế độ CLI tự-chuyển-model** (`opusplan` đã ngừng hỗ trợ). Thay vào
+đó là một **chính sách hai pha làm bằng tay**, cùng ý tưởng nhưng không phụ thuộc tên lệnh cụ thể:
 
-| Đầu việc | Model | Giá /1M input | Tần suất |
+| Pha | Việc | Model | Cách vào |
 |---|---|---|---|
-| **Lập kế hoạch / quyết định kiến trúc** (plan mode) | Opus 4.8 | $5 | ~20–30% |
-| **Code, sửa file hằng ngày** (execution) | Sonnet 5 | $3 | phần lớn |
-| **Tìm kiếm, đọc file, xác minh phiên bản** (subagent) | Haiku 4.5 | $1 | việc cơ học |
+| **Lập kế hoạch** (trước tác vụ tự động/lập kế hoạch lớn) | Quyết định kiến trúc, research-first, chia việc | **Model cao cấp nhất đang sẵn có** (không giới hạn một hãng — ADR-0006) | `/model <model-id>` thủ công trước khi vào plan mode |
+| **Thực thi** | Code, sửa file hằng ngày | **Model tiêu chuẩn của dự án** (mặc định repo: Sonnet 5) | Quay lại bằng `/model claude-sonnet-5` (hoặc để nguyên nếu chưa đổi) |
+| **Việc cơ học** (tìm kiếm, đọc file, xác minh phiên bản) | subagent | Haiku 4.5 | Giao subagent (`lookup`, `version-check`) |
 
-→ Opus **chỉ** tốn tiền lúc thực sự cần suy nghĩ; còn lại chạy Sonnet/Haiku.
+→ Chỉ trả giá model cao khi thực sự cần suy nghĩ ở pha lập kế hoạch; phần còn lại chạy Sonnet/Haiku.
 
 **So với dùng một model mạnh cho tất cả:**
-- **Fable 5 thuần** ($10/1M): mọi token — kể cả đọc file, format, tìm kiếm — tính giá cao nhất → **lãng phí ~60–70%** ("dao mổ trâu thịt gà").
-- **Opus 4.8 thuần** ($5/1M): tốt hơn Fable thuần, nhưng vẫn trả giá Opus cho cả việc cơ học Haiku làm được.
-- **opusplan**: chỉ trả giá cao ở pha lập kế hoạch → **rẻ hơn Opus thuần, rẻ hơn nhiều so với Fable thuần**, mà vẫn giữ chất lượng đúng chỗ cần.
+- **Fable 5.1 thuần** ($10/1M): mọi token — kể cả đọc file, format, tìm kiếm — tính giá cao nhất → **lãng phí ~60–70%** ("dao mổ trâu thịt gà").
+- **Opus 5 thuần** ($5/1M): tốt hơn Fable thuần, nhưng vẫn trả giá Opus cho cả việc cơ học Haiku làm được.
+- **Hai pha thủ công**: chỉ trả giá cao ở pha lập kế hoạch → **rẻ hơn Opus thuần, rẻ hơn nhiều so với Fable thuần**, mà vẫn giữ chất lượng đúng chỗ cần — đánh đổi duy nhất so với `opusplan` cũ là phải tự gõ `/model` để chuyển pha, không tự động trong một phiên.
 
 **Bảng giá tham khảo (2026-07 — xác minh lại trước khi chốt ngân sách):**
 
@@ -49,10 +54,10 @@ Script copy `.claude/settings.json` (opusplan) + hooks + agents + `scripts/` (de
 |---|---|---|---|
 | Haiku 4.5 | 200K | $1 / $5 | 0.33× (rẻ) |
 | Sonnet 5 | 1M | $3 / $15 (GT $2/$10 tới 31/08/2026) | 1× (baseline) |
-| Opus 4.8 | 1M | $5 / $25 | 1.67× |
-| Fable 5 | 1M (out 128K) | $10 / $50 | 3.3× |
+| Opus 5 | 1M | $5 / $25 | 1.67× |
+| Fable 5.1 | 1M (out 128K) | $10 / $50 | 3.3× |
 
-> **Lưu ý bản chất:** `opusplan` đổi model theo **chế độ (plan ⇄ execution)**, KHÔNG "đoán độ khó từng câu". Việc phân tách main (đắt) ↔ subagent (rẻ) mới là cơ chế tự động thực sự. Kết hợp `opusplan` + subagent là cách "tự động tối ưu chi phí" sát nhất hiện có.
+> **Lưu ý bản chất:** hai pha đổi model theo **thao tác tay** (plan ⇄ execution), KHÔNG "đoán độ khó từng câu" và KHÔNG tự chuyển lại khi hết plan mode — người dùng phải tự `/model` quay về. Việc phân tách main (đắt) ↔ subagent (rẻ) mới là cơ chế tự động thực sự và không đổi.
 
 ---
 
@@ -68,24 +73,24 @@ Loại: web / mobile / backend-API / desktop / CLI-thư viện / data-ML / game 
 4. **Yêu cầu mơ hồ, nhiều cách hiểu, phạm vi dễ phình?**
 
 ### Bước 3 — Suy ra model mặc định
-- **0–1 điểm** → **Sonnet 5** (hoặc opusplan) cho toàn dự án.
-- **2 điểm** → **opusplan** (Sonnet code) + **nâng Opus 4.8** đúng các mốc dính rủi ro.
-- **3–4 điểm** → **opusplan** + cân nhắc **Fable 5** cho quyết định kiến trúc khó nhất / GĐ 0–2.
+- **0–1 điểm** → **Sonnet 5** xuyên suốt cho toàn dự án.
+- **2 điểm** → **Sonnet 5** thực thi + **chuyển tay sang Opus 5** đúng các mốc dính rủi ro (pha lập kế hoạch).
+- **3–4 điểm** → như trên + cân nhắc **Fable 5.1** cho quyết định kiến trúc khó nhất / GĐ 0–2.
 
 ### Bước 4 — Áp chiến lược lai (tầm trung trở lên)
-opusplan đã tự làm phần lớn việc này. Khi cần kiểm soát tay tại mốc:
+Không còn tự động theo chế độ — tự chuyển tay tại mốc:
 
 | Giai đoạn / công việc | Model |
 |---|---|
-| GĐ 0–2: ý tưởng, chọn công nghệ, thiết kế kiến trúc, viết ADR | **Opus 4.8** (Fable 5 nếu rất phức tạp) |
-| GĐ 3–7: code tính năng, UI/UX, test, refactor, docs | **Sonnet 5** |
-| Cổng trước MERGE: rà bảo mật, migration, breaking change | **Opus 4.8** |
-| GĐ 8: xử lý sự cố production, post-mortem; audit lớn | **Opus 4.8** |
+| GĐ 0–2: ý tưởng, chọn công nghệ, thiết kế kiến trúc, viết ADR | **Opus 5** (Fable 5.1 nếu rất phức tạp) — `/model` trước khi vào pha này |
+| GĐ 3–7: code tính năng, UI/UX, test, refactor, docs | **Sonnet 5** — `/model claude-sonnet-5` khi quay lại |
+| Cổng trước MERGE: rà bảo mật, migration, breaking change | **Opus 5** |
+| GĐ 8: xử lý sự cố production, post-mortem; audit lớn | **Opus 5** |
 
 ### Bước 5 — Ghi quyết định
 Ghi model đã chọn + lý do vào **PROGRESS.md** (hoặc ADR nếu coi là quyết định vận hành đáng lưu), kèm **quy tắc nâng cấp** để nhất quán qua các phiên.
 
-## 2b. Chọn planner đa nhà cung cấp (ADR-0006)
+## 2b. Chọn planner đa nhà cung cấp (ADR-0006, ADR-0007)
 
 **Trước khi chạy tác vụ tự động/lập kế hoạch lớn**, đừng mặc định "luôn Opus thuần" — chọn model
 cao cấp nhất **thực sự sẵn có** (CLI cục bộ đã cài + đăng nhập) cho việc đó, dựa trên 4 yếu tố rủi
@@ -93,8 +98,9 @@ ro ở Bước 2 trên:
 
 1. Tra ứng viên: `scripts/subagent-dispatch.sh --tier planning`. Kết quả liệt kê ứng viên đa nhà
    cung cấp (Claude, và các hãng khác nếu đã có nhánh CLI thật) kèm cờ `verify_before_use`.
-2. **Mặc định vẫn là `opusplan`** khi không có lý do đổi — đây là *mở thêm lựa chọn*, không phải
-   quy tắc bắt buộc đổi hãng mỗi lần.
+2. **Không còn một alias mặc định cố định** (`opusplan` đã ngừng hỗ trợ — ADR-0007): tự `/model`
+   sang model cao cấp nhất sẵn có trước khi vào việc lập kế hoạch, và tự `/model` quay lại model
+   tiêu chuẩn (Sonnet 5) khi xong.
 3. Đổi sang hãng khác chỉ khi: Claude không khả dụng lúc đó (hết quota, CLI lỗi), hoặc việc rơi
    đúng thế mạnh đã ghi nhận của hãng khác (vd Gemini qua Hermes cho việc cần ngữ cảnh cực dài, đã
    dùng thật ở `/maintain` — xem `maintain-run.sh`).
@@ -109,9 +115,9 @@ Y". Chi tiết luật cứng theo tầng + ví dụ dispatch: `docs/framework/or
 "Chọn đa nhà cung cấp".
 
 ### Ba kịch bản mẫu
-- **A. Tầm trung, không nhạy cảm** (blog/CMS, dashboard CRUD) → **Sonnet 5**/opusplan xuyên suốt.
-- **B. Tầm trung có 1–2 điểm nhạy cảm** (SaaS nhỏ có thanh toán) → **opusplan** + **Opus 4.8** cho luồng thanh toán, migration, rà bảo mật, sự cố.
-- **C. Lớn/phức tạp** (nhiều dịch vụ, realtime, dữ liệu nhạy cảm) → **opusplan** + **Fable 5** cho quyết định kiến trúc khó nhất (GĐ 0–2) và phân tích breaking change diện rộng.
+- **A. Tầm trung, không nhạy cảm** (blog/CMS, dashboard CRUD) → **Sonnet 5** xuyên suốt, không cần chuyển pha.
+- **B. Tầm trung có 1–2 điểm nhạy cảm** (SaaS nhỏ có thanh toán) → **Sonnet 5** thực thi + chuyển tay **Opus 5** cho luồng thanh toán, migration, rà bảo mật, sự cố.
+- **C. Lớn/phức tạp** (nhiều dịch vụ, realtime, dữ liệu nhạy cảm) → **Sonnet 5** thực thi + chuyển tay **Fable 5.1** cho quyết định kiến trúc khó nhất (GĐ 0–2) và phân tích breaking change diện rộng.
 
 ---
 
@@ -122,7 +128,7 @@ Bảng dưới xếp hạng **model Claude** (dùng trong Claude Code). Cần so
 Dùng để chọn model **đúng đầu việc**, không phải một model cho cả dự án.
 **Thang:** ✅✅ xuất sắc · ✅ đủ tốt · 🟡 làm được nhưng nên soát kỹ / cân nhắc nâng · ❌ không nên giao.
 
-| Khung / Kỹ năng | Trọng tâm | Haiku 4.5 | Sonnet 5 | Opus 4.8 | Fable 5 |
+| Khung / Kỹ năng | Trọng tâm | Haiku 4.5 | Sonnet 5 | Opus 5 | Fable 5.1 |
 |---|---|:--:|:--:|:--:|:--:|
 | **KHUNG-1** — 9 giai đoạn + tiêu chuẩn | Kỷ luật giai đoạn, cổng, DoD | 🟡 | ✅ | ✅✅ | ✅✅ |
 | **KHUNG-2** — luật AI + chống ảo giác | Tuân luật, không bịa API, đọc file thật | 🟡 | ✅ | ✅✅ | ✅✅ |
@@ -141,9 +147,9 @@ Dùng để chọn model **đúng đầu việc**, không phải một model cho
 
 **Đọc theo nhóm:**
 - **Việc code/UI/cổng thường ngày** → **Sonnet 5 đủ tốt → xuất sắc**, chi phí thấp — ngựa thồ.
-- **Việc lý luận sâu / rủi ro cao** (KHUNG-3, `/adr`, `/incident`, chống lỗi logic, audit lớn) → **Opus 4.8 xuất sắc; Sonnet chỉ 🟡** → nâng Opus, hoặc Fable ở ca khó nhất.
+- **Việc lý luận sâu / rủi ro cao** (KHUNG-3, `/adr`, `/incident`, chống lỗi logic, audit lớn) → **Opus 5 xuất sắc; Sonnet chỉ 🟡** → chuyển tay sang Opus, hoặc Fable ở ca khó nhất.
 - **Việc đơn giản, đơn lẻ** → Haiku gánh phần cổng/kiểm tra máy móc; **không** giao phần lý luận.
-- **Fable 5** hầu như luôn ✅✅ nhưng **chênh lệch đáng tiền** chỉ ở nhóm lý luận sâu; việc thường ngày không hơn Sonnet/Opus đủ để bù chi phí gấp 2–3 lần.
+- **Fable 5.1** hầu như luôn ✅✅ nhưng **chênh lệch đáng tiền** chỉ ở nhóm lý luận sâu; việc thường ngày không hơn Sonnet/Opus đủ để bù chi phí gấp 2–3 lần.
 
 ---
 
@@ -172,9 +178,9 @@ Model là cần thứ nhất; **effort + thinking** là cần thứ hai. Nguyên
 /effort low     # việc cơ học hàng loạt (đổi tên, format cả loạt)
 ```
 
-Tắt hẳn thinking cho việc siêu nhẹ (tùy chọn) — thêm `{ "env": { "MAX_THINKING_TOKENS": "0" } }` vào `settings.json`, bỏ khi quay lại việc cần nghĩ (Fable 5 không tắt được thinking).
+Tắt hẳn thinking cho việc siêu nhẹ (tùy chọn) — thêm `{ "env": { "MAX_THINKING_TOKENS": "0" } }` vào `settings.json`, bỏ khi quay lại việc cần nghĩ (Fable 5.1 không tắt được thinking).
 
-Các skill nặng suy nghĩ (`/adr`, `/incident`, `/consult`, `/auto` plan mode) đã có **dòng nhắc 💡** ở đầu: gợi ý nâng `/model claude-fable-5` + `/effort xhigh` đúng pha, rồi hạ lại. Đây là **nhắc**, không tự đổi — Claude Code không có cơ chế tự nâng Fable/effort theo độ khó.
+Các skill nặng suy nghĩ (`/adr`, `/incident`, `/consult`, `/auto` plan mode) đã có **dòng nhắc 💡** ở đầu: gợi ý chuyển tay sang `/model claude-fable-5-1` (hoặc model cao cấp nhất sẵn có) + `/effort xhigh` đúng pha, rồi hạ lại. Đây là **nhắc**, không tự đổi — Claude Code không tự nâng model/effort theo độ khó.
 
 > **Độ ưu tiên:** CLI `--effort` / env `CLAUDE_CODE_EFFORT_LEVEL` **>** `settings.json`. Môi trường chạy (vd Claude Code trên web) có thể set sẵn env → **ghi đè** `settings.json` cho phiên đó. `/effort` lúc chạy luôn thắng.
 
@@ -185,14 +191,14 @@ Các skill nặng suy nghĩ (`/adr`, `/incident`, `/consult`, `/auto` plan mode)
 Model (§2) là cần thứ nhất, effort (§4) là cần thứ hai; **cách vận hành phiên** là cần thứ ba — và tiết kiệm nhiều nhất, vì nó quyết định *bao nhiêu token phải nạp*, không chỉ *giá mỗi token*.
 
 ### 5.1 Plan MỘT LẦN cho cả khối việc — đừng re-plan lắt nhắt
-- **Gom việc lớn vào một phiên plan mode duy nhất** (đúng luồng `/auto`: Opus lập kế hoạch toàn bộ → duyệt 1 cổng → Sonnet chạy dài). Vào/ra plan mode nhiều lần cho từng việc nhỏ là cách đốt Opus token nhanh nhất — mỗi lần vào, Opus đọc lại toàn bộ ngữ cảnh với giá cao.
-- **Ghi kết quả suy nghĩ ra file** (PROGRESS.md, ADR, kế hoạch trong `docs/ops/`): phiên sau đọc lại bằng Sonnet, **không trả tiền Opus suy lại từ đầu**. Đây là "cache chất lượng" rẻ nhất của khung.
+- **Gom việc lớn vào một phiên plan mode duy nhất** (đúng luồng `/auto`: chuyển tay sang model cao cấp nhất sẵn có để lập kế hoạch toàn bộ → duyệt 1 cổng → quay lại Sonnet 5 chạy dài). Vào/ra plan mode nhiều lần cho từng việc nhỏ là cách đốt token model cao cấp nhanh nhất — mỗi lần vào, model đó đọc lại toàn bộ ngữ cảnh với giá cao.
+- **Ghi kết quả suy nghĩ ra file** (PROGRESS.md, ADR, kế hoạch trong `docs/ops/`): phiên sau đọc lại bằng Sonnet, **không trả tiền model cao cấp suy lại từ đầu**. Đây là "cache chất lượng" rẻ nhất của khung.
 - Hai lỗi ngược nhau, cùng phải tránh:
 
 | Lỗi | Hệ quả | Cách đúng |
 |---|---|---|
-| Vào plan mode cho việc vặt (sửa 1 dòng, đổi tên, format) | Trả giá Opus cho việc không cần suy nghĩ | Làm thẳng ở execution (Sonnet) hoặc giao subagent |
-| Né plan mode khi đụng kiến trúc / nhiều đánh đổi | Phần cần lý luận sâu nhất chạy model yếu hơn → chất lượng tụt, sửa lại còn đắt hơn tiền "tiết kiệm" | Vào plan mode (Shift+Tab hoặc `/auto`) cho Opus nghĩ trước |
+| Vào plan mode cho việc vặt (sửa 1 dòng, đổi tên, format) | Trả giá model cao cấp cho việc không cần suy nghĩ | Làm thẳng ở execution (Sonnet) hoặc giao subagent |
+| Né plan mode khi đụng kiến trúc / nhiều đánh đổi | Phần cần lý luận sâu nhất chạy model yếu hơn → chất lượng tụt, sửa lại còn đắt hơn tiền "tiết kiệm" | Vào plan mode (Shift+Tab hoặc `/auto`) sau khi đã `/model` sang model cao cấp nhất sẵn có |
 
 ### 5.2 Ngữ cảnh gọn — token rẻ nhất là token KHÔNG nạp
 - **Chỉ nạp phần cần:** CLAUDE.md giữ < 200 dòng; tài liệu dài nằm ở `docs/framework/`, đọc đúng mục đang cần (ghi chú cuối mục 1 CLAUDE.md).
@@ -200,31 +206,32 @@ Model (§2) là cần thứ nhất, effort (§4) là cần thứ hai; **cách v�
 - **Đừng kéo một phiên lê thê:** phiên càng dài, mỗi lượt càng đắt (trả tiền cho cả lịch sử phía trước) và lý luận càng loãng. Hết một mảng việc → `/gate` → commit → cập nhật PROGRESS.md → **mở phiên mới** ("tiếp tục" nối lại tự động nhờ `session-resume.sh`).
 
 ### 5.3 Một phiên chuẩn trông thế nào (checklist)
-1. **Mở phiên:** hook tự nạp PROGRESS.md; xác nhận dòng trạng thái là `opusplan` (`session-guide.sh` cảnh báo nếu bị chọn đè).
-2. **Việc lớn/mơ hồ** → plan mode một lần (Opus); **việc rõ phạm vi** → làm thẳng (Sonnet).
-3. **Trong lúc chạy:** việc cơ học giao subagent; `/effort` chỉnh theo loại việc (§4); nâng `/model` chỉ đúng mốc rủi ro CLAUDE.md §9 rồi quay về opusplan.
+1. **Mở phiên:** hook tự nạp PROGRESS.md; `session-guide.sh` hiện model phiên hiện tại (chỉ để tham khảo, không còn so khớp đúng/sai với một alias cố định).
+2. **Việc lớn/mơ hồ** → `/model` sang model cao cấp nhất sẵn có rồi vào plan mode một lần; **việc rõ phạm vi** → làm thẳng (Sonnet).
+3. **Trong lúc chạy:** việc cơ học giao subagent; `/effort` chỉnh theo loại việc (§4); nâng `/model` chỉ đúng mốc rủi ro CLAUDE.md §9 rồi tự `/model claude-sonnet-5` quay về.
 4. **Đóng mảng việc:** `/gate` → commit → cập nhật PROGRESS.md → phiên mới cho mảng kế tiếp.
 
-**Tóm một dòng:** plan một lần bằng Opus → thực thi dài bằng Sonnet → việc cơ học ra subagent → effort theo việc → nâng model đúng mốc rồi quay về. **Token tiết kiệm nhất nằm ở kỷ luật vận hành, không nằm trong file config.**
+**Tóm một dòng:** plan một lần bằng model cao cấp nhất sẵn có (tự `/model` chuyển) → thực thi dài bằng Sonnet → việc cơ học ra subagent → effort theo việc → nâng model đúng mốc rồi tự quay về. **Token tiết kiệm nhất nằm ở kỷ luật vận hành, không nằm trong file config.**
 
 ---
 
 ## 6. Chế độ chạy tự động (sơ đồ + thành phần đã bake)
 
-**Một câu:** Tư vấn + Opus lập kế hoạch toàn bộ → bạn duyệt 1 lần → tự động điều phối tới hoàn thành (Sonnet code, Haiku việc phụ, `standard-worker` việc rõ phạm vi), với auto-format + cổng chặn commit đỏ, quyền an toàn, tự nhắc dừng khi gần hết quota 5h, phiên sau "tiếp tục". Kích hoạt: gõ **`/auto`**.
+**Một câu:** Tư vấn + chuyển tay sang model cao cấp nhất sẵn có để lập kế hoạch toàn bộ → bạn duyệt 1 lần → tự động điều phối tới hoàn thành (Sonnet code, Haiku việc phụ, `standard-worker` việc rõ phạm vi), với auto-format + cổng chặn commit đỏ, quyền an toàn, tự nhắc dừng khi gần hết quota 5h, phiên sau "tiếp tục". Kích hoạt: gõ **`/auto`** (nhắc bạn `/model` sang model cao cấp nhất sẵn có trước khi vào plan mode).
 
 ```
                        /auto  (dự án mới hoặc có sẵn)
                                   │
                  ┌────────────────▼──────────────────┐
-   PLAN MODE  →  │  OPUS lên kế hoạch TOÀN BỘ          │  research-first; giao Haiku:
-   (opusplan)    │  (9 giai đoạn / nâng cấp brownfield)│   • lookup (tìm/đọc)
-                 └────────────────┬──────────────────┘   • version-check (xác minh version)
+   PLAN MODE  →  │  Model cao cấp nhất sẵn có lên      │  research-first; giao Haiku:
+   (/model tay)  │  kế hoạch TOÀN BỘ (9 giai đoạn /    │   • lookup (tìm/đọc)
+                 │  nâng cấp brownfield)                │   • version-check (xác minh version)
+                 └────────────────┬──────────────────┘
                                   │
                         ┌─────────▼─────────┐
                         │  1 CỔNG PHÊ DUYỆT  │  ← người dùng xác nhận (ExitPlanMode)
                         └─────────┬─────────┘
-                                  │  (đã duyệt)
+                                  │  (đã duyệt, tự /model quay lại Sonnet 5)
               EXECUTION  →  SONNET 5 viết code, chạy tự động theo kế hoạch
                                   │  (việc rõ phạm vi → subagent standard-worker: cô lập + song song)
    Trong khi chạy, các hook tự động (không cần hỏi):
@@ -243,7 +250,7 @@ Model (§2) là cần thứ nhất, effort (§4) là cần thứ hai; **cách v�
 
 | Khóa | Giá trị | Ý nghĩa |
 |---|---|---|
-| `model` | `opusplan` | Opus khi plan → tự chuyển Sonnet 5 khi thực thi |
+| `model` | `claude-sonnet-5` | Model tiêu chuẩn cho pha thực thi; pha lập kế hoạch chuyển tay bằng `/model` (mục 1) |
 | `fallbackModel` | `[sonnet-5, haiku-4-5]` | Dự phòng khi model chính bận |
 | `permissions.allow` | Edit/Write/Read, git an toàn, dev-task.sh, test/format/build | Auto-mode chạy không hỏi |
 | `permissions.deny` | rm -rf, force push, reset --hard, sudo, chmod 777, đọc .env/secrets | **Deny thắng allow** |
@@ -270,7 +277,7 @@ Model (§2) là cần thứ nhất, effort (§4) là cần thứ hai; **cách v�
 | Hook | Sự kiện | Làm gì |
 |---|---|---|
 | `session-resume.sh` | SessionStart | Nạp PROGRESS.md + git → "tiếp tục" nối lại; xóa marker wind-down |
-| `session-guide.sh` | SessionStart | Hiện gợi ý "làm gì tiếp theo"; cảnh báo nếu model không phải opusplan |
+| `session-guide.sh` | SessionStart | Hiện gợi ý "làm gì tiếp theo"; hiện model phiên hiện tại + nhắc chính sách hai pha (không so khớp đúng/sai với một alias cố định — ADR-0007) |
 | `pre-commit-gate.sh` | PreToolUse(Bash) | `git commit` → chạy cổng; **đỏ = chặn** (bỏ qua: `--no-verify`); diff staged lớn (≥80 dòng hoặc ≥5 file) → nudge chạy `/code-review`/`/simplify` (không chặn — cổng máy móc không bắt lỗi logic/trùng lặp) |
 | `auto-format.sh` | PostToolUse(Edit\|Write) | Tự format đúng file vừa sửa |
 | `usage-guard.sh` | Stop | Ước tính % quota 5h; ≥ ngưỡng → nhắc wind-down (1 lần/phiên) |
@@ -308,31 +315,31 @@ Nhờ vậy hook GATE-trước-commit + auto-format bake sẵn mà vẫn đa-lo�
 **Áp dụng (mới hoặc có sẵn):**
 1. `bash copy-framework.sh /đường-dẫn/tới/dự-án` — copy `.claude/settings.json` + hooks + agents + `scripts/` + 2 file `.example.sh` thẳng; file lớp 2 vào `_framework-dropins/`.
 2. (tùy chọn) soát `_framework-dropins/`: merge config khớp stack (eslint, prettier, playwright…), hoặc `rm -rf _framework-dropins/` nếu không cần.
-3. `git add .claude/ && git commit -m "chore: apply framework config (opusplan)"`.
-4. Mở phiên Claude Code → AI nạp `.claude/settings.json`, chạy khung ở chế độ opusplan.
+3. `git add .claude/ && git commit -m "chore: apply framework config"`.
+4. Mở phiên Claude Code → AI nạp `.claude/settings.json`, chạy model tiêu chuẩn (Sonnet 5); tự `/model` sang model cao cấp nhất sẵn có khi cần lập kế hoạch việc lớn (mục 1).
 
 **Đổi model:**
 - Dự án nhỏ (tiết kiệm nhất): `{ "model": "claude-sonnet-5", "fallbackModel": ["claude-haiku-4-5"] }`.
-- Nâng riêng lúc cần (không đổi file): `/model claude-opus-4-8` hoặc `/model claude-fable-5` cho ca kiến trúc khó nhất — xong quay lại opusplan.
+- Nâng riêng lúc cần (không đổi file): `/model claude-opus-5` hoặc `/model claude-fable-5-1` cho ca kiến trúc khó nhất — xong tự `/model claude-sonnet-5` quay lại.
 
 **Tùy chỉnh:**
 - Thêm permission: `{ "permissions": { "allow": ["Bash(make *)", "Bash(docker *)", "Bash(kubectl *)"] } }`.
 - Bỏ hook không cần: xóa khối `PreToolUse`/`PostToolUse` trong `settings.json`. Xem skill `update-config`.
 
 **Kiểm tra đã áp đúng** (mở phiên lần đầu):
-- ✅ Dòng trạng thái hiển thị **"opusplan"** (hoặc Sonnet/Haiku nếu fallback).
-- ✅ `session-resume.sh` chạy (đọc PROGRESS.md); `session-guide.sh` in thông báo chế độ.
+- ✅ Dòng trạng thái hiển thị model tiêu chuẩn (**Sonnet 5**, hoặc Haiku nếu fallback).
+- ✅ `session-resume.sh` chạy (đọc PROGRESS.md); `session-guide.sh` in thông báo + model phiên hiện tại.
 - ✅ Mỗi lần Edit/Write, file tự format.
 - ❌ Nếu sai: `ls -la .claude/settings.json`, `grep '"model"' .claude/settings.json`, đóng/mở lại phiên.
 
-> **Chọn model lúc mở phiên:** picker thường **không** có `opusplan` (là alias chế độ). Chọn **"Default"** để repo tự áp `opusplan`, hoặc gõ **`/model opusplan`**. **Tránh chọn Opus thuần** — chạy Opus cho mọi thứ đốt hết quota 5h (Pro ~1h). `session-guide.sh` tự đọc model phiên và cảnh báo nếu bị chọn đè.
+> **Chọn model lúc mở phiên:** picker hiển thị model thật (Sonnet 5/Opus 5/Fable 5.1/Haiku 4.5) — không còn alias chế độ nào (`opusplan` đã ngừng hỗ trợ). Chọn **"Default"** để repo tự áp model tiêu chuẩn (Sonnet 5), hoặc gõ **`/model <model-id>`** để chuyển tay theo pha (mục 1). **Tránh chọn Opus/Fable cho mọi việc** — chạy model cao cấp cho mọi thứ đốt hết quota 5h nhanh hơn nhiều (Pro ~1h nếu dùng Opus thuần).
 
 ---
 
 ## 8. Ranh giới & sự thật kỹ thuật (trung thực)
 
-- **opusplan** đổi model theo **chế độ** (plan⇄execution), không "đoán độ khó từng câu". Phân tách main (đắt) ↔ subagent (rẻ) mới là cơ chế tự động thực sự.
-- **`standard-worker` cùng Sonnet** với pha-code opusplan — lợi ích là **cô lập ngữ cảnh + song song**, không phải model rẻ hơn.
+- **Hai pha lập kế hoạch/thực thi** đổi model theo **thao tác tay** (plan⇄execution) — không tự động trong một phiên, không "đoán độ khó từng câu". Phân tách main (đắt) ↔ subagent (rẻ) mới là cơ chế tự động thực sự, không đổi.
+- **`standard-worker` cùng Sonnet** với pha-code thực thi — lợi ích là **cô lập ngữ cảnh + song song**, không phải model rẻ hơn.
 - Claude Code **không** cấp % quota 5h cho hook/agent → % là **ước tính tự hiệu chỉnh** (token thật ÷ budget khai báo), chỉ tính **phiên hiện tại**.
 - "Dừng ở ~70%" = **ngừng khởi động chu kỳ mới** rồi wind-down (commit phần xong + ghi PROGRESS), **không** chặn lệnh commit — near-limit càng phải lưu việc.
 - **Quyền:** allow-list an toàn; thao tác nguy hiểm vẫn hỏi. Muốn bỏ mọi xác nhận → tự chạy chế độ bypass (cân nhắc rủi ro), không bake vào template.
@@ -346,13 +353,13 @@ Nhờ vậy hook GATE-trước-commit + auto-format bake sẵn mà vẫn đa-lo�
 
 ## 9. Q&A nhanh
 
-- **opusplan có phải model không?** Không — là **chế độ** phân vai Opus (plan) / Sonnet (code) / Haiku (subagent). Đó là lý do nó tối ưu token.
-- **Sao không để Fable 5 mặc định cho chắc?** "Dao mổ trâu thịt gà": Fable tính $10/1M mọi token (kể cả việc Haiku $1 làm được) → lãng phí ~60–70%. Nâng Fable **có chọn lọc** đúng ca kiến trúc khó nhất mới đáng.
-- **Dự án nhỏ có nên opusplan?** Không bắt buộc. <5k LOC → Sonnet 5 đủ tốt và rẻ hơn.
+- **Còn `opusplan` không?** Không — CLI đã ngừng hỗ trợ (2026-09-15, ADR-0007). Thay bằng hai pha chuyển **tay**: `/model` sang model cao cấp nhất sẵn có lúc lập kế hoạch, `/model claude-sonnet-5` lúc thực thi.
+- **Sao không để Fable 5.1 mặc định cho chắc?** "Dao mổ trâu thịt gà": Fable tính $10/1M mọi token (kể cả việc Haiku $1 làm được) → lãng phí ~60–70%. Nâng Fable **có chọn lọc** đúng ca kiến trúc khó nhất mới đáng.
+- **Dự án nhỏ có cần chuyển pha không?** Không bắt buộc. <5k LOC → Sonnet 5 xuyên suốt đủ tốt và rẻ hơn.
 - **Tương thích mọi loại dự án?** Có. Permissions phủ Node/Python/Go/Rust/Makefile; hooks không phụ thuộc stack (thiếu `dev-task.sh` thì no-op).
-- **Nhiều dự án nhiều cấu hình?** Để nhiều file cạnh nhau trong `.claude/` (vd tự tạo `settings-sonnet.json` cạnh `settings-shared-opusplan.json`) → `cp … .claude/settings.json` khi đổi.
-- **Vận hành thế nào để rẻ nhất mà chất lượng cao nhất?** Plan một lần bằng Opus cho cả khối việc → Sonnet chạy dài → việc cơ học ra subagent → effort theo việc (§4) → ngữ cảnh gọn + phiên mới sau mỗi mảng (§5). Kỷ luật vận hành tiết kiệm hơn mọi tinh chỉnh config.
+- **Nhiều dự án nhiều cấu hình?** Để nhiều file cạnh nhau trong `.claude/` (vd tự tạo `settings-sonnet.json` cạnh `settings-shared-default.json`) → `cp … .claude/settings.json` khi đổi.
+- **Vận hành thế nào để rẻ nhất mà chất lượng cao nhất?** Plan một lần bằng model cao cấp nhất sẵn có (tự `/model` chuyển) cho cả khối việc → Sonnet chạy dài → việc cơ học ra subagent → effort theo việc (§4) → ngữ cảnh gọn + phiên mới sau mỗi mảng (§5). Kỷ luật vận hành tiết kiệm hơn mọi tinh chỉnh config.
 
 ---
 
-> **Kết luận cho dự án tầm trung:** **opusplan là điểm ngọt** — Opus lập kế hoạch, Sonnet code, Haiku/subagent việc phụ; đủ năng lực cho gần như toàn bộ khung với chi phí thấp. **Nâng Opus/Fable có chọn lọc** ở các mốc kiến trúc / bảo mật / migration. Nếu cần chọn model **cho tính năng AI bên trong sản phẩm** → đó là việc khác, dùng kỹ năng `claude-api`.
+> **Kết luận cho dự án tầm trung:** **hai pha lập kế hoạch/thực thi là điểm ngọt** — model cao cấp nhất sẵn có lập kế hoạch (chuyển tay), Sonnet code, Haiku/subagent việc phụ; đủ năng lực cho gần như toàn bộ khung với chi phí thấp. **Nâng Opus/Fable có chọn lọc** ở các mốc kiến trúc / bảo mật / migration, rồi tự `/model` quay về. Nếu cần chọn model **cho tính năng AI bên trong sản phẩm** → đó là việc khác, dùng kỹ năng `claude-api`.
