@@ -249,6 +249,7 @@ vào đó: **mỗi mục một commit nguyên tử**, gom vào một PR.
 | 4 | F-103 + A-3 | ✅ Xong | `ce5bf58` | Sửa số (12→13 lệnh, 8→11 agent); viết lại luật hub; **MỞ LẠI W-307** thay vì đóng; thêm `# cố ý KHÔNG -e` cho đủ 12 file. |
 | 4 | F-102 | ✅ Xong | `+ mục 9` | 8/8 engine nay có mặt (`grep -c` ≥1 cho từng cái); ID hết trùng; **thêm mục 9 vào `check-docs-consistency.sh`** đối chiếu agent+hook ↔ FEATURE-MAP + cấm ID trùng, kèm 2 negative test. |
 | 5 | T-2 | ✅ Xong | `bcde247` | Sweep nay chạy **5/5** cổng `check-*`. Tách "thiếu công cụ" (🟡, chưa kiểm chứng được) khỏi "vi phạm thật" (🔴). 8 ca test gồm ca đối chứng chống regex quá rộng. |
+| 5 | F-306 | ✅ Xong | `ce4bd67` | Test ĐỎ trước (3 thư mục lồng, **rộng hơn audit báo** — có cả `.cursor/rules`) → sau khi sửa sạch. Helper `check_no_nesting` chạy cho **cả hai** bản. TRAPS mục 31. |
 
 ### Đính chính khuyến nghị của chính audit (F-101 phần c)
 
@@ -313,3 +314,15 @@ batch nào và **chưa được xử lý**:
 rộng hơn hẳn phạm vi "sửa phát hiện audit", nên không tự ý mở rộng. Ghép chung với **A-2** (file
 `test-engine-characterization.sh` 450 dòng, cùng khuôn) thành một việc tách test riêng thì hợp lý
 hơn. Radar chỉ cảnh báo khi < 80 nên 99 không chặn gì.
+
+### Đính chính thêm (phát hiện khi sửa F-306)
+
+- **Audit báo thiếu một ca.** Nó nêu `.claude/hooks` và `.claude/agents` bị lồng; chạy thật ra
+  **ba** — còn `.cursor/rules.framework-new/rules`. Đọc code suy ra được hai, chạy mới ra đủ.
+- **Giới hạn số 1 của Nhóm 3/4 đã được giải quyết.** Audit ghi "chưa biết F-306 có tồn tại ở bản
+  `.ps1` không" (không có `pwsh`). Đọc `Copy-Tree` trong `copy-framework.ps1`: nó **tạo thư mục đích
+  rồi copy các CON vào trong**, tức không có lỗi này. Hai bản **đang lệch nhau** — bản vá làm `.sh`
+  khớp `.ps1`, không phải ngược lại. Đã thêm ca `pwsh` để CI chứng minh thay vì tin vào việc đọc.
+- **Cổng bắt đúng chính tôi:** mục 1 của `check-docs-consistency.sh` chặn commit vì mục TRAPS mới và
+  một comment trong test dùng backtick quanh đường dẫn **sinh lúc chạy** (`.framework-new/...`).
+  Đã diễn đạt lại thay vì thêm miễn trừ để né cổng.
