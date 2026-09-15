@@ -76,6 +76,20 @@ cp "$BACKUP" "$ROOT/vendor/shellmetrics/shellmetrics"; rm -f "$BACKUP"
 rc="$(run_gate _=_)"
 [ "$rc" = "0" ] && ok "khôi phục bản vendor → xanh trở lại" || bad "khôi phục xong vẫn đỏ (rc=$rc)"
 
+echo "== 6. Chạy lại cổng dưới gawk (dialect của runner CI, khác mawk ở máy dev) =="
+# TRAPS.md mục 23: `func` là từ khoá của gawk nhưng không phải của mawk — cổng chạy xanh ở máy,
+# chết TRƯỚC khi đo được gì trên CI. Ca này bắt đúng lớp lỗi đó.
+if command -v gawk >/dev/null 2>&1; then
+  GAWKBIN="$(mktemp -d)"
+  ln -sf "$(command -v gawk)" "$GAWKBIN/awk"
+  rc="$( cd "$ROOT" && PATH="$GAWKBIN:$PATH" bash "$GATE" >/dev/null 2>&1; echo $? )"
+  rm -rf "$GAWKBIN"
+  [ "$rc" = "0" ] && ok "cổng chạy đúng dưới gawk" \
+                  || bad "cổng ĐỎ dưới gawk (rc=$rc) — cú pháp awk không chạy được trên runner CI"
+else
+  echo "  ⏭️  bỏ qua: máy này không có gawk (CI luôn có — ở đó ca này không bao giờ bị bỏ qua)"
+fi
+
 echo
 if [ "$fails" -eq 0 ]; then
   echo "OK — cổng CC shell chứng minh được là bắt đúng vi phạm."

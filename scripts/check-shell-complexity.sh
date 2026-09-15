@@ -51,20 +51,22 @@ if ! "$TOOL" --csv "${SH_FILES[@]}" > "$RAW" 2>/dev/null || [ ! -s "$RAW" ]; the
 fi
 
 # CSV: file,func,lineno,lloc,ccn,lines,comment,blank — ccn là cột 5.
+# Biến tên `blk` chứ KHÔNG phải `func`: `func` là TỪ KHOÁ của gawk (viết tắt của `function`) —
+# mawk nhận, gawk báo syntax error. Máy dev dùng mawk, runner CI dùng gawk (TRAPS.md mục 23).
 # `<begin>` là phần đầu file trước hàm đầu tiên (ccn luôn 0), bỏ qua.
 awk -F, -v max="$MAX" -v mainmax="$MAIN_MAX" '
   NR == 1 { next }
-  { gsub(/"/, ""); file = $1; sub(/^\.\//, "", file); func = $2; cc = $5 + 0 }
-  func == "<begin>" { next }
+  { gsub(/"/, ""); file = $1; sub(/^\.\//, "", file); blk = $2; cc = $5 + 0 }
+  blk == "<begin>" { next }
   {
     measured++
-    limit = (func == "<main>") ? mainmax : max
-    label = (func == "<main>") ? "thân script" : "hàm"
-    if (cc > worst_cc) { worst_cc = cc; worst = file "::" func }
+    limit = (blk == "<main>") ? mainmax : max
+    label = (blk == "<main>") ? "thân script" : "hàm"
+    if (cc > worst_cc) { worst_cc = cc; worst = file "::" blk }
     if (cc > limit) {
       bad++
       printf("::error file=%s,line=%d::%s `%s` có CC %d > trần %d — tách bớt nhánh trước khi commit.\n",
-             file, $3 + 0, label, func, cc, limit)
+             file, $3 + 0, label, blk, cc, limit)
     }
   }
   END {
