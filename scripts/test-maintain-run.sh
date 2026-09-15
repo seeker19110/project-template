@@ -86,6 +86,17 @@ rm -f "$TMP"/*.argv
 out="$(bash "$RUN" --harness claude --mode quick --dry-run 2>/dev/null)"
 printf '%s' "$out" | grep -q "DRY-RUN harness=claude" && [ ! -f "$TMP/claude.argv" ] && ok "dry-run in lệnh, stub không bị gọi" || bad "dry-run vẫn gọi CLI hoặc không in lệnh"
 
+
+echo "== Cờ THIẾU GIÁ TRỊ → báo lỗi, KHÔNG treo vô hạn =="
+# Khuôn `--x) VAR="${2:-}"; shift 2` treo mãi khi cờ là tham số CUỐI: `shift 2` thất bại,
+# không shift, `while [ $# -gt 0 ]` lặp vô hạn (audit F-302, đo được rc=124 dưới timeout).
+rc=0; timeout 8 bash "$RUN" --harness >/dev/null 2>&1 || rc=$?
+[ "$rc" != "124" ] && ok "--harness thiếu giá trị: dừng (rc=$rc)" || bad "--harness thiếu giá trị: TREO VÔ HẠN"
+rc=0; timeout 8 bash "$RUN" --mode >/dev/null 2>&1 || rc=$?
+[ "$rc" != "124" ] && ok "--mode thiếu giá trị: dừng (rc=$rc)" || bad "--mode thiếu giá trị: TREO VÔ HẠN"
+rc=0; timeout 8 bash "$RUN" --prompt-out >/dev/null 2>&1 || rc=$?
+[ "$rc" != "124" ] && ok "--prompt-out thiếu giá trị: dừng (rc=$rc)" || bad "--prompt-out thiếu giá trị: TREO VÔ HẠN"
+
 echo
 if [ "$fails" -eq 0 ]; then echo "OK — maintain-run.sh gọi đúng cú pháp từng harness bằng CLI cục bộ, tự chọn/thoát rõ ràng, không cần API key."; else echo "FAIL — $fails kiểm hỏng."; fi
 exit "$fails"

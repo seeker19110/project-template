@@ -29,9 +29,18 @@ DEPS_TIMEOUT="${MAINT_DEPS_TIMEOUT:-180}"   # giây cho mỗi lệnh dependency 
 STALE_DOC_DAYS="${MAINT_STALE_DOC_DAYS:-30}"
 TODO_WARN="${MAINT_TODO_WARN:-20}"
 
+NEED_VAL_PREFIX="[maintenance-sweep] tham số thiếu giá trị"
+# Cờ nhận GIÁ TRỊ: `--x) VAR="${2:-}"; shift 2` treo vô hạn khi cờ là tham số CUỐI — `${2:-}` không
+# lỗi (nhờ `:-`) nhưng `shift 2` THẤT BẠI và không shift, nên vòng `while [ $# -gt 0 ]` lặp mãi.
+# Không có `set -e` nên không ai dừng. Đo được ở audit F-302 (rc=124 dưới `timeout`).
+# `need_val` biến ca đó thành lỗi nói rõ, dừng ngay.
+need_val() { # $1=tên cờ, $2=số tham số còn lại ($#)
+  [ "$2" -ge 2 ] || { printf '%s\n' "$NEED_VAL_PREFIX: cờ '$1' cần một giá trị đi kèm" >&2; exit 2; }
+}
+
 while [ $# -gt 0 ]; do
   case "$1" in
-    --out)     OUT="${2:-}"; shift 2 ;;
+    --out)     need_val --out $#; OUT="$2"; shift 2 ;;
     --strict)  STRICT=1; shift ;;
     --gate)    RUN_GATE=1; shift ;;
     --no-deps) DO_DEPS=0; shift ;;

@@ -39,14 +39,23 @@ REPORT="docs/ops/MAINTENANCE-REPORT.md"
 
 log() { printf '[maintain-run] %s\n' "$*" >&2; }
 
+NEED_VAL_PREFIX="[maintain-run] tham số thiếu giá trị"
+# Cờ nhận GIÁ TRỊ: `--x) VAR="${2:-}"; shift 2` treo vô hạn khi cờ là tham số CUỐI — `${2:-}` không
+# lỗi (nhờ `:-`) nhưng `shift 2` THẤT BẠI và không shift, nên vòng `while [ $# -gt 0 ]` lặp mãi.
+# Không có `set -e` nên không ai dừng. Đo được ở audit F-302 (rc=124 dưới `timeout`).
+# `need_val` biến ca đó thành lỗi nói rõ, dừng ngay.
+need_val() { # $1=tên cờ, $2=số tham số còn lại ($#)
+  [ "$2" -ge 2 ] || { printf '%s\n' "$NEED_VAL_PREFIX: cờ '$1' cần một giá trị đi kèm" >&2; exit 2; }
+}
+
 while [ $# -gt 0 ]; do
   case "$1" in
-    --harness)    HARNESS="${2:-}"; shift 2 ;;
-    --model)      MODEL="${2:-}"; shift 2 ;;
-    --provider)   PROVIDER="${2:-}"; shift 2 ;;
-    --mode)       MODE="${2:-}"; shift 2 ;;
+    --harness)    need_val --harness $#;    HARNESS="$2";    shift 2 ;;
+    --model)      need_val --model $#;      MODEL="$2";      shift 2 ;;
+    --provider)   need_val --provider $#;   PROVIDER="$2";   shift 2 ;;
+    --mode)       need_val --mode $#;       MODE="$2";       shift 2 ;;
     --dry-run)    DRY=1; shift ;;
-    --prompt-out) PROMPT_OUT="${2:-}"; shift 2 ;;
+    --prompt-out) need_val --prompt-out $#; PROMPT_OUT="$2"; shift 2 ;;
     -h|--help)    sed -n '2,32p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) log "tham số lạ: $1"; exit 2 ;;
   esac

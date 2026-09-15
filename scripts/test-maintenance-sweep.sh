@@ -95,6 +95,15 @@ printf '%s' "$gout" | grep -q "không có dấu $MARK" && ok "repo không có d�
 echo "== 6. Tham số lạ → thoát 2 =="
 bash "$SWEEP" --bogus >/dev/null 2>&1; [ $? -eq 2 ] && ok "thoát 2" || bad "tham số lạ không thoát 2"
 
+echo "== 6b. Cờ THIẾU GIÁ TRỊ → báo lỗi, KHÔNG treo vô hạn =="
+# Khuôn hỏng: `--out) OUT="${2:-}"; shift 2` — còn đúng 1 tham số thì `${2:-}` không lỗi (nhờ `:-`)
+# nhưng `shift 2` THẤT BẠI và KHÔNG shift, nên `while [ $# -gt 0 ]` lặp mãi. Không có `set -e` nên
+# không ai dừng nó. Đo được ở audit F-302: `timeout 10 bash maintenance-sweep.sh --out` → rc=124.
+# 124 = timeout giết tiến trình. Bất kỳ mã nào khác 124 đều chấp nhận được ở đây (miễn là DỪNG).
+rc=0; timeout 8 bash "$SWEEP" --out >/dev/null 2>&1 || rc=$?
+[ "$rc" != "124" ] && ok "--out thiếu giá trị: dừng (rc=$rc), không treo" \
+                   || bad "--out thiếu giá trị: TREO VÔ HẠN (rc=124)"
+
 echo
 if [ "$fails" -eq 0 ]; then echo "OK — maintenance-sweep.sh đo đúng, bắt đúng lỗi cài sẵn, không báo oan repo sạch."; else echo "FAIL — $fails kiểm hỏng."; fi
 exit "$fails"

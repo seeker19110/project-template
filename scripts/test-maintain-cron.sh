@@ -182,6 +182,17 @@ out7e="$( ( cd "$WORK" && GITHUB_TOKEN=fake-tok MAINT_BIN_CURL="$TMP/curl" bash 
 [ "$rc" -eq 0 ] && ok "7e: HTTP 500 khi tạo PR vẫn không làm script thoát khác 0" || bad "7e: thoát $rc"
 printf '%s' "$out7e" | grep -q "mở PR thất bại (HTTP 500)" && ok "7e: log rõ HTTP 500" || bad "7e: thiếu log lỗi HTTP"
 
+
+echo "== Cờ THIẾU GIÁ TRỊ → báo lỗi, KHÔNG treo vô hạn =="
+# Khuôn `--x) VAR="${2:-}"; shift 2` treo mãi khi cờ là tham số CUỐI: `shift 2` thất bại, không
+# shift, `while [ $# -gt 0 ]` lặp vô hạn (audit F-302, đo được rc=124 dưới timeout). Nguy hiểm nhất
+# ở ĐÚNG script này vì nó chạy không giám sát trên cron: một dòng crontab gõ sót giá trị tạo tiến
+# trình treo tích luỹ mỗi tuần, và treo TRƯỚC bước lấy khoá nên khoá tiến trình không cứu được.
+for flag in --base --lock-dir --model --gh-token; do
+  rc=0; timeout 8 bash -c 'cd "$1" && bash scripts/maintain-cron.sh "$2"' _ "$WORK" "$flag" >/dev/null 2>&1 || rc=$?
+  [ "$rc" != "124" ] && ok "$flag thiếu giá trị: dừng (rc=$rc)" || bad "$flag thiếu giá trị: TREO VÔ HẠN"
+done
+
 echo
 if [ "$fails" -eq 0 ]; then echo "OK — maintain-cron.sh chỉ đẩy nhánh maint/auto-*, không đụng main, chặn đúng working tree bẩn + chạy chồng, tự mở/tránh trùng PR đúng qua GitHub REST API."; else echo "FAIL — $fails kiểm hỏng."; fi
 exit "$fails"
