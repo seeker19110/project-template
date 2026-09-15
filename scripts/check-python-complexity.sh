@@ -47,7 +47,9 @@ if ! "$PYTHON_CMD" -m radon cc --json "${PY_FILES[@]}" > "$RAW" 2>"$RAW.err"; th
 fi
 rm -f "$RAW.err"
 
-MAX="$MAX" "$PYTHON_CMD" - "$RAW" <<'PYEOF'
+# PYTHONIOENCODING: console Windows mặc định cp1252 → in tiếng Việt sẽ UnicodeEncodeError
+# (TRAPS.md bẫy 24 — khối reconfigure trong file .py không áp cho heredoc inline này).
+MAX="$MAX" PYTHONIOENCODING=utf-8 "$PYTHON_CMD" - "$RAW" <<'PYEOF'
 import json, os, sys
 
 max_cc = int(os.environ["MAX"])
