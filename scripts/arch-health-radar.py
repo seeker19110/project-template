@@ -16,6 +16,12 @@ import argparse
 import json
 import re
 
+# Console Windows mặc định dùng cp1252 → in tiếng Việt/emoji ra stdout sẽ chết với
+# UnicodeEncodeError. Ép UTF-8 để engine chạy được trên mọi nền (xem TRAPS.md).
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 EXCLUDE_DIRS = {".git", "node_modules", "venv", ".venv", "__pycache__", ".ai-telemetry", ".hermes", "dist", "build", "coverage"}

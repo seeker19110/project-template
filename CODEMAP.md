@@ -7,6 +7,8 @@
 | Muốn | Sửa | Rồi chạy |
 | --- | --- | --- |
 | Thêm slash command mới | `.claude/commands/<tên>.md` **+** khai TRIGGER trong `CLAUDE.md` §1 (mục tương ứng) | `scripts/check-docs-consistency.sh` (kiểm hai chiều lệnh ↔ CLAUDE.md) |
+| Thêm một `scripts/test-*.sh` mới | script đó **+** một bước gọi nó trong `.github/workflows/ci.yml` (test không cổng nào chạy = không tồn tại — TRAPS.md bẫy 10) | `scripts/check-ci-policy.sh` (CP-5) |
+| Thêm/sửa engine Python (`scripts/*.py`) | file đó, giữ khối `_stream.reconfigure(encoding="utf-8")` ở đầu (TRAPS.md bẫy 9) | `scripts/test-next-gen-engines.sh`, `scripts/test-telemetry-and-dispatch.sh` |
 | Sửa logic một trong 3 gate chính (`check-docs-consistency.sh`, `check-ci-policy.sh`, `check-progress-freshness.sh`) | Đúng script đó | `scripts/test-check-scripts.sh` (negative-test — PHẢI còn bắt được lỗi sau khi sửa, không chỉ hết crash; audit 2026-09-12 G-001) |
 | Đổi **quy tắc Feature gate / kiểm tiêu đề PR-commit** | `.github/workflows/pr-policy.yml` — soi CẢ tiêu đề PR LẪN tiêu đề từng commit (squash lấy tiêu đề commit khi PR chỉ có 1 commit) | chính job `metadata`; đổi luật phải sửa kèm `CLAUDE.md` §8 |
 | Thêm job cổng mới vào `ci.yml` | job mới **+** `needs:` của job `gate` **+** bản kê trong `docs/ops/repository-settings.md` (branch protection KHÔNG cần sửa — ADR-0003) | `scripts/check-ci-policy.sh` |

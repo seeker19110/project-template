@@ -162,6 +162,15 @@ perl -0pi -e "s/^    if: github\.event_name == 'push' && github\.ref == 'refs\/h
 rc="$(run_check "$d" check-ci-policy.sh)"
 [ "$rc" = "1" ] && ok "bắt được sổ SKIP_ALLOWED kê thừa một job không còn skip được (CP-5)" || bad "KHÔNG bắt được sổ kê thừa (rc=$rc)"
 
+d="$(setup_repo)"
+# CP-6: thêm một scripts/test-*.sh mà không nối vào ci.yml — đúng khuôn đã làm 2 suite engine
+# nằm đỏ im lặng qua nhiều PR sạch.
+printf '#!/usr/bin/env bash
+exit 0
+' > "$d/scripts/test-mo-coi.sh"
+rc="$(run_check "$d" check-ci-policy.sh)"
+[ "$rc" = "1" ] && ok "bắt được test-*.sh không được ci.yml gọi (CP-6)" || bad "KHÔNG bắt được test mồ côi (rc=$rc)"
+
 ## ============================================================
 ## 3. check-progress-freshness.sh
 ## ============================================================

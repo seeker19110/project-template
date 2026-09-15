@@ -21,6 +21,9 @@
 //         đích, CÙNG LÝ DO với CP-4: nó kiểm nội dung bước "Kết luận từ mọi job cổng" của job
 //         `gate`, mà `gate` là quy ước riêng của repo khung. NHƯNG bài học thì áp cho mọi dự án có
 //         job tổng hợp — xem LƯU Ý ngay dưới, mục (c).
+//   CP-6  mọi scripts/test-*.sh được ci.yml gọi                        → KHÔNG ÁP DỤNG cho dự án
+//         đích: dự án đích chạy test qua test runner (vitest/jest) chứ không qua `scripts/test-*.sh`,
+//         nên quy ước đặt tên này là của RIÊNG repo khung.
 // Thêm/bỏ một CP-* ở bản shell mà quên khai ở đây → `check-ci-policy.sh` mục 7 làm CI đỏ.
 //
 // LƯU Ý cho dự án đích đã tự thêm job tổng hợp (`quality`/`e2e` có `needs:`, chia mảnh E2E…):

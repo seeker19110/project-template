@@ -545,3 +545,87 @@ trường runner trước khi push. Từ khoá chỉ có ở gawk hay quên: `fu
 *Cổng chốt chặn:* ca 6 của `scripts/test-check-shell-complexity.sh` — khi máy CÓ `gawk`, chạy lại
 chính cổng đó dưới gawk và bắt buộc phải xanh. Máy không có gawk thì ca này in ghi chú "bỏ qua" chứ
 không giả vờ xanh; CI luôn có gawk nên nơi đó không bao giờ bỏ qua.
+
+## 24. Script Python in tiếng Việt/emoji → chết trên console Windows (cp1252)
+
+**Ngày/PR:** 2026-09-15, phát hiện khi người dùng hỏi "template này hoàn hảo chưa" và chạy thử toàn
+bộ self-test trên máy Windows thật.
+
+**Khuôn lỗi:** 4 engine Python (`spec-compiler`, `arch-health-radar`, `telemetry-log`,
+`subagent-dispatch`) in báo cáo tiếng Việt + emoji ra stdout. Trên Windows, `sys.stdout` mặc định
+dùng codec ANSI của hệ (cp1252 với locale Việt/Âu) → `UnicodeEncodeError` ngay dòng `print()` đầu
+tiên có dấu. Chỉ một ký tự `ạ` (`ạ`) là đủ chết; không cần emoji. Trên Linux CI (locale UTF-8)
+**không bao giờ lộ** — đúng kiểu bẫy chỉ nổ ở máy người dùng.
+
+Tổng quát: **stdout của Python không phải lúc nào cũng UTF-8** — mọi script CLI viết bằng tiếng
+Việt đều mang sẵn lỗi này, chỉ chưa chạy trên máy Windows nào.
+
+**Cách rà:** thêm/sửa một script Python có chữ tiếng Việt trong `print()` → chạy nó bằng Git Bash
+trên Windows thật (không chỉ WSL/Linux), hoặc ép thử: `PYTHONIOENCODING=cp1252 python scripts/x.py`.
+
+**Cổng chốt chặn:** khối `_stream.reconfigure(encoding="utf-8")` ở đầu cả 4 file `.py` +
+`scripts/test-next-gen-engines.sh` và `scripts/test-telemetry-and-dispatch.sh` chạy trong `ci.yml` — xem bẫy 25.
+
+## 25. Test có trong repo nhưng KHÔNG job nào gọi → đỏ nằm im qua nhiều PR "sạch"
+
+**Ngày/PR:** 2026-09-15, cùng lượt phát hiện bẫy 24.
+
+**Khuôn lỗi:** `scripts/test-next-gen-engines.sh` và `scripts/test-telemetry-and-dispatch.sh` được
+thêm cùng các engine mới (PR #89, #91) nhưng **không job nào trong `ci.yml` gọi chúng**. Repo nhìn
+như có test bao phủ; thực tế 3 ca đỏ (bẫy 24) đi qua nhiều PR merge sạch mà không ai thấy. Đây đúng
+khuôn hỏng-im-lặng của F-002 (hook tồn tại nhưng chưa ai chứng minh nó chặn), chỉ khác tầng.
+
+Tổng quát: **một test không có cổng nào chạy thì về thực chất là không tồn tại** — nó còn tệ hơn
+không có test, vì tạo cảm giác an toàn giả.
+
+**Cách rà:** thêm bất kỳ `scripts/test-*.sh` nào → `grep "$(basename "$t")" .github/workflows/ci.yml`.
+
+**Cổng chốt chặn:** CP-6 trong `scripts/check-ci-policy.sh` (mọi `scripts/test-*.sh` phải được
+`ci.yml` gọi) + negative test cho CP-6 trong `scripts/test-check-scripts.sh`. (PR #113 đã nối tay 2 suite vào `ci.yml` sau khi audit 2026-09-13 phát hiện — CP-6 là cổng máy chống tái phát, thay vì trông vào việc ai đó nhớ.)
+
+## 26. Hàng rào hook phụ thuộc `jq` nhưng `jq` chưa từng được khai là yêu cầu môi trường
+
+**Ngày/PR:** 2026-09-15, cùng lượt phát hiện bẫy 24.
+
+**Khuôn lỗi:** `pre-commit-gate.sh` và `block-dangerous-git.sh` đọc lệnh từ payload JSON bằng `jq`,
+và **cố ý fail-open** khi thiếu `jq` (fail-closed sẽ chặn oan vì không đọc nổi lệnh). Nhưng không
+tài liệu nào khai `jq` là yêu cầu — nên trên máy không có `jq`, toàn bộ hàng rào (chặn commit đỏ,
+chặn `push --force` lên `main`, chặn `reset --hard`) **im lặng biến mất** dù mọi file vẫn đúng chỗ.
+Tệ hơn: `test-hooks-gate.sh` không phát hiện thiếu `jq` mà kết luận thẳng "cổng chặn commit KHÔNG
+hoạt động như tài liệu mô tả" — báo cáo sai bản chất, đúng thứ `CLAUDE.md` §7 cấm.
+
+Tổng quát: **fail-open là lựa chọn đúng nhưng chỉ an toàn khi điều kiện kích hoạt được khai báo và
+kiểm được** — nếu không, nó là "không có hàng rào" đội lốt "có hàng rào".
+
+**Cách rà:** `command -v jq` trên máy đang dùng; hoặc chạy `bash scripts/test-hooks-gate.sh` và đọc
+dòng đầu.
+
+**Cổng chốt chặn:** mục "Yêu cầu môi trường" trong `README.md` (nêu rõ thiếu `jq` = mất hàng rào) +
+`test-hooks-gate.sh` giờ báo **BỎ QUA kèm cảnh báo** thay vì xanh giả/đỏ sai, và xây PATH không-jq
+theo cách chạy được cả trên Windows (không dựa vào `ln -s`).
+
+## 27. File vendor KHÔNG có đuôi rơi vào `* text=auto` → CRLF trên Windows làm chết cổng CC shell
+
+**Ngày/PR:** 2026-09-15, phát hiện khi chạy lại toàn bộ cổng trên máy Windows sau khi merge `main`.
+
+**Khuôn lỗi:** `.gitattributes` ghim `eol=lf` theo **đuôi file** (`*.sh`, `*.md`, `*.yml`, `*.json`,
+`*.ps1`). `vendor/shellmetrics/shellmetrics` **không có đuôi** nên rơi vào luật chung `* text=auto`
+→ Git đổi sang CRLF khi checkout trên Windows → SHA256 lệch `SHA256SUMS` → `check-shell-complexity.sh`
+từ chối chạy ("không đo bằng một công cụ không rõ nội dung"). Cổng tự bảo vệ đúng như thiết kế,
+nhưng hệ quả là **cổng CC shell chết hoàn toàn trên mọi máy Windows** — và vì CI chạy Linux nên
+không bao giờ lộ. `scripts/test-check-shell-complexity.sh` cũng đỏ theo, 7 ca.
+
+Tổng quát: **luật line-ending viết theo đuôi file luôn bỏ sót file không đuôi** — mà file không đuôi
+gần như luôn là binary/vendor, đúng loại tuyệt đối không được Git đụng vào.
+
+**Cách rà:** `git check-attr -a <file>` thấy `text: auto` trên thứ đáng lẽ bất khả xâm phạm;
+hoặc `file <path>` báo "with CRLF line terminators" trên file vendor.
+
+**LƯU Ý khi cập nhật:** sửa `.gitattributes` KHÔNG tự chữa bản sao đã CRLF-hoá trong cây làm
+việc sẵn có — luật mới chỉ áp lúc checkout. Sau khi kéo bản sửa về phải chạy `git checkout -- vendor`
+một lần (clone mới thì không cần). Cùng lý do, mọi `git reset --hard` về một commit TRƯỚC bản sửa
+sẽ làm hỏng lại file vendor — đã gặp thật ngay trong chính lượt sửa này.
+
+**Cổng chốt chặn:** `vendor/**  -text` trong `.gitattributes` (kèm `*.py`/`*.ts` `eol=lf` cùng lý do
+với `*.sh`). Ca 4-5 của `scripts/test-check-shell-complexity.sh` (sửa/khôi phục bản vendor) đã sẵn
+bắt được lệch checksum — thiếu mỗi việc file không bị Git làm lệch ngay từ lúc checkout.

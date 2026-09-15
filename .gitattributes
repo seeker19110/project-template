@@ -13,3 +13,12 @@
 # Script PowerShell: coi là văn bản, chuẩn hóa LF trong repo (PowerShell 5.1+ và pwsh 7
 # đều chạy tốt với LF, kể cả trên Windows) — tránh khác biệt CRLF gây nhiễu diff.
 *.ps1       text eol=lf
+
+# File vendor KHÔNG có đuôi (vd vendor/shellmetrics/shellmetrics) rơi vào `* text=auto` ở trên →
+# Git đổi sang CRLF khi checkout trên Windows, làm SHA256 lệch và cổng check-shell-complexity.sh
+# từ chối chạy ("checksum không khớp"). Vendor là byte nguyên bản của thượng nguồn: không đụng vào.
+vendor/**  -text
+
+# Engine Python + dropins TS: giữ LF như *.sh để checkout trên Windows không đổi nội dung.
+*.py        text eol=lf
+*.ts        text eol=lf
