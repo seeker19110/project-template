@@ -6,7 +6,30 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, PR #134 đã merge): 4 lỗi chỉ nổ trên Windows,
+- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, PR #136 + #137 đã merge): nới deny force-push
+  + dọn nốt lỗi cp1252 ở Python nội tuyến.** Hai việc nối tiếp #134, cả hai đều do CHẠY THẬT
+  trên máy Windows mới lộ.
+  **(a) PR #136 — `permissions`:** `deny` cũ chặn MỌI force-push kể cả trên nhánh do chính phiên
+  tạo, rộng hơn luật thật (`AGENTS.md`: cấm force-push **vào** `main`/`master`) — đã làm kẹt hai
+  lần khi cần `--amend` một commit merge sai tiêu đề (#125 phải đóng + dựng lại nhánh; #134 phải
+  nhờ người dùng gõ tay). Nay **ba lớp**: `deny` cho các cách viết nhắm thẳng `main`/`master`
+  (chặn cứng, không phụ thuộc `jq`) · `ask` cho mọi force-push còn lại (hỏi từng lần) · hook
+  `block-dangerous-git.sh` giữ nguyên làm lớp hiểu ngữ cảnh. **Giới hạn đã ghi trong
+  `models-and-automation.md`:** mẫu `deny` so khớp chuỗi lệnh nên `git push --force` TRỐNG (đang
+  đứng sẵn trên `main`) không khớp lớp 1 — rơi xuống lớp 2 và 3.
+  **(b) PR #137 — cp1252 vòng hai:** khối `reconfigure` của #134 chỉ cứu file `.py`; **Python nội
+  tuyến trong heredoc của `.sh`** không đi qua đó nên vẫn chết — 3 chỗ
+  (`check-python-complexity.sh`, `test-engine-characterization.sh`, `usage-estimate.sh`), sửa bằng
+  `PYTHONIOENCODING=utf-8`. Lỗi **bị che** suốt vì cổng CC Python thoát sớm hơn với "Thiếu radon".
+  Bài học ghi vào bẫy 24: **một lỗi thoát sớm có thể đang giấu một lỗi khác ngay sau nó** — dọn
+  xong điều kiện môi trường phải chạy LẠI (lần thứ hai trong cùng phiên: trước đó một
+  `reset --hard` làm hỏng lại file vendor đã sửa). Biết thêm: `python` và `python3` có thể là HAI
+  bản cài khác nhau trên cùng máy — `pip install` cho bản này không làm bản kia thấy.
+  **Mốc môi trường:** người dùng đã cài `jq` 1.8.2 + `radon` 6.0.1 + `coverage` 7.16.0 — lần đầu
+  máy dev Windows này chạy ĐỦ bộ cổng, `test-hooks-gate` đủ **21/21 ca** (không còn dòng BỎ QUA).
+  Còn MỞ có chủ ý: chưa có cổng máy bắt heredoc Python MỚI phải có `PYTHONIOENCODING` — tái phát
+  lần nữa thì làm cổng theo đúng lối CP-6.
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-15, PR #134 đã merge): 4 lỗi chỉ nổ trên Windows,
   phát hiện khi người dùng hỏi "template này hoàn hảo chưa" và chạy toàn bộ self-test trên máy thật**
   (3/8 suite đỏ lúc đó). (1) 4 engine Python in tiếng Việt/emoji ra stdout → `UnicodeEncodeError`
   trên console cp1252; chỉ một ký tự `ạ` là đủ — ép UTF-8 cho `stdout`/`stderr` ở đầu cả 4 file
@@ -177,7 +200,7 @@
   báo oan) nên nó KHÔNG chặn được PR quên bước 0, chỉ cảnh báo sau khi đã merge. Cân nhắc một cổng ở
   `pr-policy.yml` soi diff của PR thay đổi tài liệu khung mà không chạm `PROGRESS.md` — chưa làm, cần bàn
   vì dễ báo oan cho PR nhỏ.
-- Default-branch SHA đã đối chiếu: `d688df4` (`origin/main`, PR #134)
+- Default-branch SHA đã đối chiếu: `ff27855` (`origin/main`, PR #137)
 - Nhánh đang làm: `main` (không có việc dở)
 - Ngày cập nhật: 2026-09-15
 
