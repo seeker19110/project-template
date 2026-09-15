@@ -48,8 +48,14 @@ ALLOW_MISSING_PATH=(
   "app/sitemap.ts" "app/sw.ts" "components/theme-toggle.tsx" "e2e/smoke.spec.ts" \
   "i18n/request.ts" "lib/env.ts" "messages/en.json" "messages/vi.json" \
   ".github/workflows/lighthouse-ci.yml" "scripts/verify-dropins.sh"
-  # Sinh tại runtime bởi /maintain (maintenance-sweep.sh + agent maintainer), không đóng gói sẵn.
-  "docs/ops/MAINTENANCE-REPORT.md" "docs/ops/MAINTENANCE-PLAN.md" "docs/ops/MAINTENANCE-LOG.md"
+  # Sinh tại runtime bởi /maintain, không đóng gói sẵn. MAINTENANCE-PLAN.md và MAINTENANCE-LOG.md
+  # ĐÃ được gỡ khỏi danh sách (2026-09-15) vì nay là file thật có trong git — giữ entry cho file đã
+  # tồn tại sẽ khiến cổng IM LẶNG khi file bị xoá, đúng điều comment ở đầu danh sách này cảnh báo.
+  "docs/ops/MAINTENANCE-REPORT.md"
+  # File `.css` của dự án đích (audit F-201): cổng nay quét cả đuôi `css`/`py`, nên hai đường dẫn
+  # tokens này phải khai tường minh. Chúng là PATTERN cho dự án đích tự tạo, không thuộc repo khung
+  # — `quality-supplements-theme.md` ghi rõ "tự tạo ở gốc dự án đích".
+  "styles/theme.css" "app/globals.css"
 )
 
 is_in() { local needle="$1"; shift; for x in "$@"; do [ "$x" = "$needle" ] && return 0; done; return 1; }
@@ -61,9 +67,12 @@ grep_files() {
   git grep --untracked -l "$@" -- '*.md' '*.sh' '*.ps1' 2>/dev/null || true
 }
 
+# Đuôi `py` và `css` được thêm 2026-09-15 (audit F-201): trước đó cổng KHÔNG quét chúng, nên mọi
+# tham chiếu `scripts/*.py` trong tài liệu — tức 4 engine Python của khung — có thể mục âm thầm khi
+# file bị đổi tên/di chuyển. (Chiều ngược lại đã có: mục 6 bắt file .py tồn tại mà thiếu ở CODEMAP.)
 echo "== 1. Đường dẫn file tham chiếu trong backtick =="
 mapfile -t refs < <(
-  git grep --untracked -hoE '`[A-Za-z0-9_./-]+\.(md|sh|ps1|json|ts|tsx|yml|cjs|mjs)`' \
+  git grep --untracked -hoE '`[A-Za-z0-9_./-]+\.(md|sh|ps1|json|ts|tsx|yml|cjs|mjs|py|css)`' \
     -- '*.md' '*.sh' '*.ps1' 2>/dev/null \
   | tr -d '`' | sort -u
 )
