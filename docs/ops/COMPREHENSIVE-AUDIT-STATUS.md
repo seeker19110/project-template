@@ -248,6 +248,7 @@ vào đó: **mỗi mục một commit nguyên tử**, gom vào một PR.
 | 4 | F-104 | ✅ Xong | `7c11a19` | PF-1 ĐỎ ở ca hẹp (trễ ≥2 + nhánh `main` + tree sạch); 4 ca ranh giới; cập nhật dòng SHA `9351961` → `98ccd6f`. |
 | 4 | F-103 + A-3 | ✅ Xong | `ce5bf58` | Sửa số (12→13 lệnh, 8→11 agent); viết lại luật hub; **MỞ LẠI W-307** thay vì đóng; thêm `# cố ý KHÔNG -e` cho đủ 12 file. |
 | 4 | F-102 | ✅ Xong | `+ mục 9` | 8/8 engine nay có mặt (`grep -c` ≥1 cho từng cái); ID hết trùng; **thêm mục 9 vào `check-docs-consistency.sh`** đối chiếu agent+hook ↔ FEATURE-MAP + cấm ID trùng, kèm 2 negative test. |
+| 5 | T-2 | ✅ Xong | `bcde247` | Sweep nay chạy **5/5** cổng `check-*`. Tách "thiếu công cụ" (🟡, chưa kiểm chứng được) khỏi "vi phạm thật" (🔴). 8 ca test gồm ca đối chứng chống regex quá rộng. |
 
 ### Đính chính khuyến nghị của chính audit (F-101 phần c)
 
@@ -300,3 +301,15 @@ batch nào và **chưa được xử lý**:
 | F-207 | Trung | `subagent-dispatch.py` fail-open + `choices` hard-code + thiếu negative test (~1.5h). |
 | T-1, T-2 | Trung | Hợp nhất khuôn cổng; `maintenance-sweep` chỉ chạy 2/5 cổng. **T-2 đáng ưu tiên** vì nó là lý do đợt `/maintain` sáng nay báo sạch sai phạm vi. |
 | A-1, A-2, T-3, F-204, F-304, F-306..F-310 | Thấp/Trung | Chưa xếp batch. F-306 (copy-framework lồng thư mục lượt 3) và F-304 (pre-commit-gate không bỏ thân heredoc) đáng làm sớm nhất trong nhóm này. |
+
+### Nợ do chính đợt xử lý này sinh ra (không giấu)
+
+`arch-health-radar` tụt **100 → 99/100** vì `scripts/test-check-scripts.sh` nay **404 dòng** (trần
+400) sau các ca test tôi thêm ở batch 3/4. Radar ghi "cân nhắc tách". Đây là hệ quả trực tiếp của
+đợt xử lý này, không phải nợ có sẵn.
+
+**Chưa xử lý** vì tách file test theo cổng (`test-check-docs.sh` / `test-check-ci.sh` /
+`test-check-progress.sh`) kéo theo `ci.yml`, CP-6 của `check-ci-policy.sh`, và `copy-framework.sh` —
+rộng hơn hẳn phạm vi "sửa phát hiện audit", nên không tự ý mở rộng. Ghép chung với **A-2** (file
+`test-engine-characterization.sh` 450 dòng, cùng khuôn) thành một việc tách test riêng thì hợp lý
+hơn. Radar chỉ cảnh báo khi < 80 nên 99 không chặn gì.
