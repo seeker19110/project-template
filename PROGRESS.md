@@ -6,7 +6,32 @@
 
 ## Giai đoạn hiện tại
 
-- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, PR #130 đã merge): ADR-0007 — bỏ `opusplan` làm
+- Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, PR #134 đã merge): 4 lỗi chỉ nổ trên Windows,
+  phát hiện khi người dùng hỏi "template này hoàn hảo chưa" và chạy toàn bộ self-test trên máy thật**
+  (3/8 suite đỏ lúc đó). (1) 4 engine Python in tiếng Việt/emoji ra stdout → `UnicodeEncodeError`
+  trên console cp1252; chỉ một ký tự `ạ` là đủ — ép UTF-8 cho `stdout`/`stderr` ở đầu cả 4 file
+  (`TRAPS.md` bẫy 24). (2) `test-next-gen-engines.sh` + `test-telemetry-and-dispatch.sh` không job
+  nào gọi nên 3 ca đỏ đó đi qua nhiều PR sạch — PR #113 đã nối tay, PR này thêm **CP-6** vào
+  `check-ci-policy.sh` (mọi `scripts/test-*.sh` phải được `ci.yml` gọi) làm cổng máy chống tái phát,
+  kèm negative test và khai ở bản dropins theo W-302 (bẫy 25). (3) `jq` chưa từng được khai là yêu
+  cầu môi trường, mà hook cổng fail-open khi thiếu `jq` → máy không có `jq` **mất sạch hàng rào**
+  (commit cổng đỏ, `push --force` lên `main`, `reset --hard` đều không bị chặn) mà không dấu hiệu gì
+  — thêm mục "Yêu cầu môi trường" vào `README.md`, và `test-hooks-gate.sh` giờ báo **BỎ QUA kèm
+  cảnh báo** thay vì kết luận sai bản chất "cổng chặn commit KHÔNG hoạt động" (§7) — bẫy 26.
+  (4) Phát hiện thêm khi chạy lại cổng sau merge: `.gitattributes` ghim `eol=lf` theo ĐUÔI file nên
+  `vendor/shellmetrics/shellmetrics` (**không có đuôi**) rơi vào `* text=auto` → CRLF trên Windows →
+  SHA256 lệch → **cổng CC shell chết hoàn toàn trên mọi máy Windows** (CI chạy Linux nên không bao
+  giờ lộ; xác nhận bằng worktree `main` sạch cũng đỏ y hệt) — thêm `vendor/** -text` + `*.py`/`*.ts`
+  `eol=lf`, bẫy 27. **Lưu ý vận hành:** ai đã clone trước bản sửa phải chạy `git checkout -- vendor`
+  một lần — `.gitattributes` chỉ áp lúc checkout, không tự chữa bản sao đã hỏng.
+  **Lặp lại đúng vấn đề của PR #125** (xem mốc PR #128 dưới): commit merge giải xung đột có tiêu đề
+  "Merge remote-tracking branch..." làm cổng `metadata` đỏ, sửa cần `git push --force-with-lease` —
+  vẫn bị deny-list `Bash(git push --force*)` chặn. Lần này **không dựng lại nhánh**: `git commit --amend`
+  đổi tiêu đề sang `chore:` (giữ nguyên hai cha, kiểm `%p` ra hai SHA; kiểm UTF-8 bằng `od -c` để
+  tránh bẫy kèm của mục 22) rồi **người dùng tự chạy lệnh push** — rẻ hơn dựng lại nhánh và giữ được
+  số PR. Kiểm chứng trước merge: 16/16 suite xanh trên Windows (`test-hooks-gate` đủ 21 ca khi có
+  `jq`; `test-py-coverage` 96% ≥ sàn 95%; radon CC cao nhất 11 ≤ 12).
+- Giai đoạn trước đó: GĐ 8. **Mốc (2026-09-15, PR #130 đã merge): ADR-0007 — bỏ `opusplan` làm
   mặc định.** Người dùng xác nhận `/model opusplan` đã ngừng được CLI
   hỗ trợ. ADR-0007 đảo ngược **một phần** ADR-0006 (mục 2 — "mặc định vẫn là `opusplan`"), không
   sửa ADR-0006: thay bằng chính sách hai pha làm **thủ công** — lập kế hoạch việc lớn chuyển tay
@@ -152,7 +177,7 @@
   báo oan) nên nó KHÔNG chặn được PR quên bước 0, chỉ cảnh báo sau khi đã merge. Cân nhắc một cổng ở
   `pr-policy.yml` soi diff của PR thay đổi tài liệu khung mà không chạm `PROGRESS.md` — chưa làm, cần bàn
   vì dễ báo oan cho PR nhỏ.
-- Default-branch SHA đã đối chiếu: `d594299` (`origin/main`, PR #132)
+- Default-branch SHA đã đối chiếu: `d688df4` (`origin/main`, PR #134)
 - Nhánh đang làm: `main` (không có việc dở)
 - Ngày cập nhật: 2026-09-15
 
