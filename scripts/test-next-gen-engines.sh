@@ -51,6 +51,23 @@ mkdir -p "$scratch/docs/specs" "$scratch/tests/contracts" "$scratch/scripts"
 # nên ca đối chứng phải trỏ tới file có thật TRONG scratch, không phải trong repo.
 printf '#!/usr/bin/env bash\nexit 0\n' > "$scratch/scripts/file-co-that.sh"
 
+# Khi AC-2/AC-3 do, in NGAY thu can de chan doan. Truoc day ca lenh bien dich lan lenh unittest
+# deu bi nuot bang >/dev/null 2>&1, nen mot ca do chi noi "co gi do sai" — phai doan, va doan sai
+# hai luot lien (xem lich su PR them cong Windows).
+ac_diag() {
+  echo "     --- chan doan ---" >&2
+  echo "     scratch      = $scratch" >&2
+  echo "     PYTHON_CMD   = $PYTHON_CMD ($("$PYTHON_CMD" --version 2>&1))" >&2
+  echo "     spec-compiler stdout/stderr:" >&2
+  printf '%s
+' "$out_compile" | sed 's/^/       /' >&2
+  echo "     noi dung $scratch/tests/contracts:" >&2
+  ls -la "$scratch/tests/contracts" 2>&1 | sed 's/^/       /' >&2
+  echo "     unittest stdout/stderr:" >&2
+  printf '%s
+' "${out_ac2:-}" | sed 's/^/       /' >&2
+}
+
 # (a) spec đã Approved khai một đường dẫn KHÔNG tồn tại → contract test phải ĐỎ (AC-2)
 # Tên file thiếu được GHÉP LÚC CHẠY: nếu viết thẳng chuỗi đó trong backtick vào mã nguồn,
 # mục 1 của check-docs-consistency.sh sẽ báo "tham chiếu file không tồn tại" cho chính test này
@@ -71,14 +88,14 @@ cat > "$scratch/docs/specs/2099-01-01-ca-am.md" <<SPEC
 
 - \`$MISSING_PATH\`
 SPEC
-"$PYTHON_CMD" "$ROOT/scripts/spec-compiler.py" --spec "$scratch/docs/specs/2099-01-01-ca-am.md"   --out-dir "$scratch/tests/contracts" >/dev/null 2>&1
+out_compile="$("$PYTHON_CMD" "$ROOT/scripts/spec-compiler.py" --spec "$scratch/docs/specs/2099-01-01-ca-am.md" --out-dir "$scratch/tests/contracts" 2>&1)"
 out_ac2="$("$PYTHON_CMD" -m unittest discover -s "$scratch/tests/contracts" 2>&1)"
 if [ $? -eq 0 ]; then
-  bad "AC-2: contract test KHÔNG đỏ dù spec Approved trỏ tới file không tồn tại (assertion rỗng?)"
+  bad "AC-2: contract test KHÔNG đỏ dù spec Approved trỏ tới file không tồn tại (assertion rỗng?)"; ac_diag
 elif ! printf '%s' "$out_ac2" | grep -q "^Ran [1-9]"; then
   # Đỏ nhưng KHÔNG phải vì assertion — discover không chạy được test nào (ví dụ đường dẫn MSYS
   # trên Windows). Nếu không bắt ở đây thì ca này xanh oan và che mất chính lỗi đó.
-  bad "AC-2: đỏ nhưng SAI LÝ DO — unittest không chạy được test nào (discover hỏng?)"
+  bad "AC-2: đỏ nhưng SAI LÝ DO — unittest không chạy được test nào (discover hỏng?)"; ac_diag
 else
   ok "AC-2: contract test ĐỎ đúng lúc — spec Approved trỏ tới file không tồn tại"
 fi
@@ -86,11 +103,12 @@ fi
 # (b) đối chứng: cùng spec nhưng trỏ tới file CÓ THẬT → phải XANH (không đỏ oan) (AC-3)
 rm -f "$scratch/tests/contracts"/*.py
 sed -i "s|$MISSING_PATH|scripts/file-co-that.sh|" "$scratch/docs/specs/2099-01-01-ca-am.md"
-"$PYTHON_CMD" "$ROOT/scripts/spec-compiler.py" --spec "$scratch/docs/specs/2099-01-01-ca-am.md"   --out-dir "$scratch/tests/contracts" >/dev/null 2>&1
-if "$PYTHON_CMD" -m unittest discover -s "$scratch/tests/contracts" >/dev/null 2>&1; then
+out_compile="$("$PYTHON_CMD" "$ROOT/scripts/spec-compiler.py" --spec "$scratch/docs/specs/2099-01-01-ca-am.md" --out-dir "$scratch/tests/contracts" 2>&1)"
+out_ac2="$("$PYTHON_CMD" -m unittest discover -s "$scratch/tests/contracts" 2>&1)"
+if [ $? -eq 0 ]; then
   ok "AC-3: contract test XANH khi mọi đường dẫn tồn tại (không đỏ oan)"
 else
-  bad "AC-3: contract test đỏ oan dù mọi đường dẫn đều tồn tại"
+  bad "AC-3: contract test đỏ oan dù mọi đường dẫn đều tồn tại"; ac_diag
 fi
 
 echo "== 2. Architectural Health & Tech Debt Radar Engine =="
