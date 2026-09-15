@@ -20,12 +20,12 @@
 | 2 | Bảo mật | ✅ Xong | Cao 0 · Trung 0 · **Thấp 2** (F-001 eval tên biến động; F-002 ví dụ token inline trong comment crontab) | 2026-09-15 |
 | 3 | Chất lượng mã & chống lỗi logic | ⬜ | | |
 | 4 | Kiểm thử & coverage | ⬜ | | |
-| 5 | Hiệu năng | ⬜ | | |
-| 6 | Accessibility & UI/UX | ⬜ | | |
+| 5 | Hiệu năng | ✅ Xong | Cao 0 · **Trung 1** (F-205 thiếu `timeout-minutes`) · Thấp 1. Đo thật bằng `time`: mọi cổng < 1s, tổng script job `framework-lint` **45.4s**; không có quét O(n²), không có `git` trong vòng lặp nóng | 2026-09-15 |
+| 6 | Accessibility & UI/UX | ➖ Không áp dụng | Xác minh bằng lệnh (không đoán): `git ls-files | grep -iE "\.(tsx|jsx|html|css|scss|vue|svelte)$"` → **rỗng**; `styles/` không tồn tại. A11y dạng CLI **đạt**: trạng thái luôn mang bằng ký tự+chữ (🔴/🟡/✅/❌ + câu tiếng Việt), 0 escape ANSI trong engine Python ⇒ không có ca "chỉ dùng màu". 1 phát hiện phát sinh đã chuyển sang Nhóm 9 (F-201) | 2026-09-15 |
 | 7 | Dependency & chuỗi cung ứng | ✅ Xong | 0 phát hiện — **16/16** `uses:` ghim full SHA 40 ký tự (0 tag trôi); `dependabot.yml` phủ cả npm + github-actions; `vendor/shellmetrics` có README nguồn + phiên bản 0.5.0 + LICENSE MIT + SHA256SUMS; không có `curl \| bash`; `npx --no-install`; `pip install` ghim `==`. KHÔNG chạy `npm audit` (không có package.json — chạy sẽ vô nghĩa) | 2026-09-15 |
-| 8 | CI/CD & vận hành/observability | ⬜ | | |
+| 8 | CI/CD & vận hành/observability | ✅ Xong | **Cao 2** (F-101 đã ghi ở Nhóm 9 — cùng gốc; **F-202** `maintenance.yml` đóng nhầm issue) · Trung 1 (F-203 gitleaks không required) · Thấp 1 (F-204). Đã soi và **bác bỏ** các khuôn xanh giả khác | 2026-09-15 |
 | 9 | Tài liệu & đồng bộ | ✅ Xong | **Cao 2** (F-101 cổng JSON tắt im lặng; F-102 FEATURE-MAP thiếu 8 engine) · Trung 2 (F-103, F-104) | 2026-09-15 |
-| 10 | Dữ liệu & migration | ⬜ | | |
+| 10 | Dữ liệu & migration | ✅ Xong (phần CSDL ➖ không áp dụng) | CSDL/migration: xác minh `git ls-files | grep -iE "migration|schema|\.sql"` → **rỗng**. Phần dữ liệu JSON thật: **Trung 2** (F-206 `_verified_on` không có cổng; F-207 tiers JSON fail-open + drift + thiếu test). `_verified_on` cả 2 file đều **tươi** (2 ngày / 0 ngày) | 2026-09-15 |
 | 11 | Cấu hình môi trường & bí mật | ✅ Xong | Cao 0 · Trung 0 · **Thấp 2** (F-003 deny pattern `.claude/settings.json` không phủ thư mục con; F-004 `.gitignore` `.env*.local` không chặn `.env.production`) | 2026-09-15 |
 | 12 | Thống nhất chéo tính năng | ✅ Xong | Cao 0 · **Trung 2** (T-1 hai khuôn cổng đối lập; T-2 sweep chỉ chạy 2/5 cổng) · Thấp 1 (T-3) | 2026-09-15 |
 
@@ -106,3 +106,67 @@ Các tài liệu meta (`FEATURE-MAP.md` chốt 2026-09-14, `CONVENTIONS.md` ch�
 bao trùm (`maintenance-sweep.sh`, `check-docs-consistency.sh` chỉ quét `.md/.sh/.ps1`) **chưa theo kịp
 thế hệ sau**. Đây không phải 9 lỗi rời rạc mà là **một khoảng trễ có hệ thống**, và không cổng máy
 nào canh được nó — vì mọi cổng hiện có chỉ kiểm thứ *đã được khai báo*.
+
+## Phát hiện chi tiết — Nhóm 5 / 6 / 8 / 10 (quét 2026-09-15)
+
+| ID | Nhóm | Mức | Vị trí | Phát hiện (đã xác minh) | Rủi ro nếu để nguyên | Công sức |
+| --- | --- | --- | --- | --- | --- | --- |
+| **F-202** | 8 | **Cao** | `.github/workflows/maintenance.yml:36-42` + `:66-74` | Bước sweep chạy dưới `set +e`, ghi `rc=$?` vào `$GITHUB_OUTPUT` — nhưng **không ai đọc `rc`** (chỉ `:48` `outputs.red` và `:49` `outputs.yel`). Hai dòng `grep … \|\| echo 0` biến "không parse được số" thành `red=0, yel=0`. Nhánh `:66` `if (red === 0 && yel === 0)` khi đó **comment "🔴 0 · 🟡 0 — đóng issue" rồi `issues.update({state:'closed'})`**. Tức **sweep chết giữa chừng trông y hệt sweep sạch**, và còn chủ động xoá dấu vết. Job vẫn xanh | Đây là **kênh observability duy nhất chạy theo lịch** của repo. Hỏng ở đây = repo im lặng tin rằng mình sạch trong nhiều tuần, đúng lúc không ai đang mở phiên để kiểm | ~45 phút (đọc `rc` + bỏ `\|\| echo 0` + 1 ca test chứng minh sweep chết thì KHÔNG đóng issue) |
+| F-205 | 5 | Trung | `.github/workflows/ci.yml:225` | **1/13** job có `timeout-minutes` (`grep -rn timeout-minutes .github/workflows/ \| wc -l` = 1). Job `framework-lint` — dài nhất, có `apt-get install shellcheck`, 2 lần `pip install`, và `test-maintain-cron.sh` với vòng retry push + `sleep 5` — chạy ở timeout mặc định **360 phút** | Một lần treo mạng/apt hoặc retry loop không thoát đốt 6 giờ runner; `gate` có `needs:` nên treo theo ⇒ PR đứng im không rõ lý do | ~20 phút |
+| F-203 | 8 | Trung | `.github/rulesets/main.json` (`required_status_checks` = đúng 2 context: `gate`, `metadata`) | `gitleaks` và `dependency-review` **không phải required check**. Đây là **chủ ý đã khai** (`docs/ops/repository-settings.md:37-39`) nên không phải lỗi ẩn — nhưng `secret-scan.yml:3-5` tự mô tả là *"tự động hoá luật 'bí mật KHÔNG bao giờ vào Git'"*, và `CLAUDE.md` §3.5 xếp luật đó vào **bất biến phổ quát**. `gitleaks` đỏ hiện chỉ làm PR có một dấu ❌ mà **auto-merge vẫn chạy** | Một bí mật thật lọt vào `main` của chính bộ khung rồi được `copy-framework.sh` **nhân bản xuống mọi dự án đích**. Theo đúng chữ repo tự dùng: luật không có cổng là trang trí | ~30 phút. **Lưu ý:** chỉ nên bắt buộc `gitleaks`; `dependency-review` có `if:` nên ở repo khung luôn skip → bắt buộc nó sẽ tạo đúng bẫy "skipped = đạt" |
+| F-206 | 10 | Trung | `scripts/model-rates.json:3`, `scripts/model-capability-tiers.json:3` | `_verified_on` là trường **tự khai, không cổng nào cảnh báo khi nó mục**. `grep` toàn repo: chỉ có văn xuôi + một chỗ đọc thụ động (`telemetry-log.py:44` đọc rồi in, không so với hôm nay). `maintenance-sweep.sh` quét 6 mảng, **không mảng nào** kiểm độ tươi. Chính `model-rates.json:2` tự viết ra vấn đề: *"sai số ở đây KHÔNG làm đỏ CI — sẽ âm thầm sai mãi"* | Giá API / bảng model lệch nhiều tháng; ước tính chi phí sai âm thầm, và vì chỉ dùng để *ước tính* nên không có tín hiệu nào phát hiện. **Hiện tại cả 2 file đều tươi** (2 ngày / 0 ngày) — đây là bẫy chờ, không phải hỏng | ~45 phút (thêm mục 🟡 vào sweep, dùng hạ tầng đã có) |
+| F-207 | 10 | Trung | `scripts/subagent-dispatch.py:41-45`, `:162`, `:184` | Ba vấn đề, đã **chạy thử thật** trên bản sao cô lập: (1) fail-open có che giấu — **xoá hẳn file** và **đổi cấu trúc JSON** cho ra *y hệt* thông báo `tier 'standard' không có trong <đường dẫn>`, tức đổ lỗi sai chỗ cho tham số người dùng; (2) bỏ một trường → **traceback trần `KeyError: 'model_hint'`**; (3) danh sách tier nhân bản 3 nơi (argparse `choices=` hard-code, khoá JSON, văn xuôi `CLAUDE.md`) — thêm tier vào JSON là **vô hiệu**, argparse chặn trước khi file được mở. Bất đối xứng rõ: `model-rates.json` **có** negative test cho JSON hỏng (`test-py-coverage.sh:96-109`), file này **không có ca nào** — trong khi `CODEMAP.md:49` khai rằng cổng của nó là `test-telemetry-and-dispatch.sh` | Điều phối đa-model (ADR-0006) là đường dẫn **AI tự chạy**, không có người đọc lỗi tại chỗ — một `KeyError` trần hoặc thông báo đổ lỗi sai chỗ giữa phiên tự động tốn hẳn một vòng chẩn đoán | ~1.5 giờ |
+| F-201 | 9 | Thấp | `CLAUDE.md:38`, `:89`; gốc ở `scripts/check-docs-consistency.sh:66` | `CLAUDE.md` nhắc `styles/theme.css` như đường dẫn thật; file không tồn tại. Bản thân việc đó là **CỐ Ý** (`quality-supplements-theme.md:5`: *"tự tạo ở gốc dự án đích"*). **Nhưng cổng không biết điều đó** — nó thoát vì lý do khác hẳn: regex `:66` chỉ bắt đuôi `(md\|sh\|ps1\|json\|ts\|tsx\|yml\|cjs\|mjs)`, **không có `css` và không có `py`** | Bốn engine Python của khung có thể đổi tên/di chuyển và **mọi tham chiếu `scripts/*.py` trong tài liệu mục âm thầm** — cổng không bắt. Giảm nhẹ một phần: mục 6 của cùng script bắt chiều ngược lại | ~30 phút (thêm `css\|py` + kê vào `ALLOW_MISSING_PATH` kèm lý do) |
+| F-204 | 8 | Thấp | `docs/ops/incident-response.md` | Runbook **dùng được** (bảng SEV, 7 bước, mẫu post-mortem nhúng, template issue `incident.md` tồn tại thật) nhưng **chưa từng dùng** (`git ls-files \| grep -i postmortem` → rỗng). Với repo không có production thì đó là bình thường, KHÔNG phải nợ. Vấn đề thật: bước 3 giả định hạ tầng cụ thể (*"Vercel: Promote bản trước"*, *"backup/PITR"*, *"Sentry"*) — không áp được cho chính bộ khung, và không mục nào nói runbook này dành cho dự án đích | Thấp: lúc thật sự có sự cố, người đọc mất thời gian nhận ra runbook nói về hạ tầng mình không có | ~20 phút (một dòng khoanh phạm vi) |
+| F-208 | 5 | Thấp | `scripts/check-docs-consistency.sh:70-75` | `grep_files()` (một `git grep` toàn repo) chỉ chạy cho ref **không tồn tại** — hiện 49 ref, ≈0.25s. Là O(số ref gãy), không phải O(n²), nhưng **suy biến tuyến tính khi tài liệu gãy hàng loạt** (vd đổi tên một thư mục) — đúng lúc cổng cần chạy nhanh nhất | Rất thấp, thuần chi phí | ~15 phút (kiểm `ALLOW_MISSING_PATH` **trước** `grep_files`) |
+
+### Số đo hiệu năng thật (Nhóm 5)
+
+Mọi cổng "kiểm thuần" **dưới 1 giây**: `check-progress-freshness` 0.046s · `arch-health-radar` 0.069s ·
+`check-ci-policy` 0.200s · `check-docs-consistency` 0.770s · `check-shell-complexity` 0.792s.
+Script nặng nhất là `test-check-scripts.sh` **18.6s** — nặng vì nó **dựng repo git giả và chạy lại 3
+gate bên trong** (negative test), không phải vì thuật toán kém. **Tổng phần script của job
+`framework-lint`: 45.4s.** Không có quét O(n²), không có `git` gọi trong vòng lặp nóng.
+
+### Đã soi và BÁC BỎ (ghi lại để lượt sau không kiểm trùng)
+
+- **Khuôn xanh giả trong CI:** `grep -rn "continue-on-error"` → **rỗng**; `grep -rn '|| true'` → **rỗng**.
+  Job `gate` viết rất chặt: `if: always()` có; duyệt `toJSON(needs)` **giữ tên job** thay vì
+  `join(needs.*.result)`; `skipped` **chỉ** đạt khi có tên trong `SKIP_ALLOWED`; mọi result khác
+  (`failure`/`cancelled`/`timed_out`) rơi vào `*)` → `bad=1`. CP-5 so `SKIP_ALLOWED` **hai chiều**.
+- **Nghi ngờ đã bác bỏ:** `pr-policy.yml:23` `if (pr.draft) return;` — tưởng là lỗ cho PR draft
+  chuyển Ready mà không chạy lại Feature gate. Nhưng `:5` khai `types:` **có `ready_for_review`** ⇒
+  lỗ đã bịt. Không phải phát hiện.
+- **Observability của `maintain-cron.sh`: tốt hơn dự đoán** — log có timestamp UTC ISO-8601 ra stderr,
+  lock dir chống chạy chồng + tự dọn khi PID chết, retry push một lần sau 5s, exit code được log
+  tường minh chứ không nuốt, kênh báo cáo là PR tự mở (dùng đúng thông báo GitHub sẵn có).
+- **`model-rates.json` xử lý dữ liệu hỏng ĐÚNG chuẩn** — thiếu file/hỏng JSON → **dừng hẳn**; không
+  khớp khoá → `default` **kèm cảnh báo stderr**, không im lặng; có negative test thật; có trong
+  `jq empty`. Đây chính là khuôn mà `model-capability-tiers.json` nên sao chép (spec
+  `2026-09-15-da-model-da-nha-cung-cap.md:81` FR-4 **đã yêu cầu** "theo khuôn `model-rates.json`" —
+  phần `_verified_on`/`_source` đã làm, phần **cổng và test** thì chưa).
+
+### Đính chính của Tầng 1
+
+Subagent xếp F-202 mức **Trung**; tôi **nâng lên Cao**. Lý do: nó không chỉ bỏ sót tín hiệu mà
+**chủ động huỷ tín hiệu** — một lượt sweep chết sẽ đi đóng issue bảo trì đang mở kèm dòng chữ
+"🔴 0 · 🟡 0". Cộng với T-2 (sweep chỉ chạy 2/5 cổng), kênh bảo trì theo lịch đang **kém tin cậy hơn
+hẳn mức nó tự quảng cáo**, và đó là kênh duy nhất hoạt động khi không ai mở phiên.
+
+### Giới hạn của lượt quét này (không che)
+
+1. **Branch protection thật trên GitHub chưa kiểm được** — cần `GET /repos/.../rules/branches/...`
+   với token (job `protection-guard` trong Actions). Chỉ xác minh được **file khai báo khớp workflow**
+   (`check-ci-policy.sh` exit 0) và logic đối chiếu hai chiều viết đúng. Ruleset có đang
+   `enforcement: active` với `bypass_actors: []` hay không: **chưa biết**.
+2. **Thời lượng CI thật chưa đọc** — 45.4s là tổng script cục bộ trên Linux, **chưa gồm** checkout,
+   `apt-get install shellcheck`, 2 lần `pip install`, lượt `shellcheck`, và **toàn bộ job
+   `framework-lint-windows`**.
+3. **ShellCheck không cài trong sandbox** → không tự xác minh được "0 cảnh báo".
+4. **`test-copy-framework.sh` chạy thiếu nửa phạm vi** — không có `pwsh` nên bản `.ps1` không được
+   kiểm; 12.1s thấp hơn thời gian CI thật (nơi có `REQUIRE_PWSH=1`).
+5. **`framework-lint-windows` hoàn toàn không chạy được** ở đây ⇒ mọi kết luận về Windows là **chưa
+   kiểm chứng**.
+6. **Hiện tượng môi trường, KHÔNG phải phát hiện:** một lượt `check-python-complexity.sh` đầu phiên
+   đỏ vì thiếu `radon`, các lượt sau xanh — `radon` được cài **giữa phiên** bởi tiến trình ngoài.
+   Cổng ứng xử **đúng** (cố ý đỏ khi thiếu công cụ, có comment giải thích + negative test).
