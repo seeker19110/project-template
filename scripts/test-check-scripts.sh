@@ -87,6 +87,24 @@ rc="$(run_check "$d" check-docs-consistency.sh)"
 [ "$rc" = "1" ] && ok "bắt được nhãn effort đã rút lại sống lại (mục 5, G-003/G-004)" || bad "KHÔNG bắt được nhãn effort cũ sống lại (rc=$rc)"
 
 d="$(setup_repo)"
+# Mục 8: ký tự điều khiển vô hình trong *.md. Chèn BACKSPACE (0x08) — đúng ca đã gặp thật khi
+# một chuỗi Python thường chứa  sinh ra tài liệu (2026-09-15). Ký tự được DỰNG LÚC CHẠY bằng
+# printf, không viết thẳng vào source của test này: một ký tự điều khiển nằm trong chính file test
+# sẽ làm mục 8 đỏ oan trên repo thật (cùng bẫy đã mắc ở ca link gãy và ca nhãn effort phía trên).
+printf 'Dong co ky tu %svo hinh
+' "$(printf '')" >> "$d/README.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && ok "bắt được ký tự điều khiển vô hình trong *.md (mục 8)" || bad "KHÔNG bắt được ký tự điều khiển trong *.md (rc=$rc)"
+
+d="$(setup_repo)"
+# Đối chứng: TAB và CR là ký tự văn bản HỢP LỆ — chặn chúng là chặn oan (bảng Markdown dùng tab,
+# file checkout trên Windows có CR). Mục 8 phải bỏ qua cả hai.
+printf 'Cot1%sCot2%s
+' "$(printf '	')" "$(printf '')" >> "$d/README.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "0" ] && ok "KHÔNG chặn oan TAB/CR trong *.md (đối chứng mục 8)" || bad "chặn OAN tab/CR (rc=$rc)"
+
+d="$(setup_repo)"
 # Mục 6 (audit 2026-09-13, CAO-2): script mới mà quên khai trong CODEMAP.md phải làm ĐỎ.
 printf '#!/usr/bin/env bash\nexit 0\n' > "$d/scripts/script-moi-chua-khai.sh"
 rc="$(run_check "$d" check-docs-consistency.sh)"
