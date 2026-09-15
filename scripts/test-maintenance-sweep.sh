@@ -55,6 +55,10 @@ chk "🟡 thiếu dependabot.yml"             "🟡 | CI | thiếu .github/depen
 chk "lệnh deps KHAI BÁO được ưu tiên"     "OUTDATED-DECL-MARK"
 chk "🔴 audit khai báo đỏ → 🔴"           "🔴 | Dependency | audit báo lỗ hổng (exit 3)"
 chk "cổng khung vắng → n-a, không crash"  "docs-consistency: n-a"
+# T-2: mục tự đặt tên "Cổng khung" nên phải liệt kê ĐỦ 5 cổng check-*, không phải 2.
+for g in "ci-policy" "progress-freshness" "shell-complexity" "python-complexity"; do
+  chk "cổng '$g' có mặt trong mục 6"      "$g: "
+done
 
 echo "== 4. POSITIVE: repo tạm sạch → 0 🔴, --strict thoát 0 =="
 good_repo="$TMP/good"; mkdir -p "$good_repo/.github"
@@ -103,6 +107,40 @@ echo "== 6b. Cờ THIẾU GIÁ TRỊ → báo lỗi, KHÔNG treo vô hạn =="
 rc=0; timeout 8 bash "$SWEEP" --out >/dev/null 2>&1 || rc=$?
 [ "$rc" != "124" ] && ok "--out thiếu giá trị: dừng (rc=$rc), không treo" \
                    || bad "--out thiếu giá trị: TREO VÔ HẠN (rc=124)"
+
+
+echo "== 7. Cổng thiếu CÔNG CỤ → 🟡 'chưa kiểm chứng được', KHÔNG phải 🔴 và KHÔNG im lặng =="
+# Phân biệt hai ca mà bản trước trộn làm một (audit T-2):
+#   - cổng đỏ vì VI PHẠM THẬT      → 🔴, phải sửa code.
+#   - cổng KHÔNG CHẠY ĐƯỢC vì thiếu công cụ → 🟡, chưa kiểm chứng được. Im lặng bỏ qua ca này là
+#     vi phạm luật "fail-open phải NÓI RA"; báo 🔴 thì người vận hành đi sửa code đang đúng.
+tool_repo="$TMP/tool"; mkdir -p "$tool_repo/scripts" "$tool_repo/.github"
+(
+  cd "$tool_repo" && "${GIT[@]}" init -q -b main
+  printf '# PROGRESS\n' > PROGRESS.md
+  # Cổng giả lập ĐÚNG hành vi của check-python-complexity.sh khi vắng radon.
+  printf '#!/usr/bin/env bash\necho "::error::Thiếu radon — cài bằng: python3 -m pip install radon" >&2\nexit 1\n' \
+    > scripts/check-python-complexity.sh
+  # Cổng giả lập một VI PHẠM THẬT (không phải thiếu công cụ) để chắc chắn vẫn ra 🔴.
+  printf '#!/usr/bin/env bash\necho "::error::vi phạm thật nào đó" >&2\nexit 1\n' \
+    > scripts/check-ci-policy.sh
+  chmod +x scripts/check-python-complexity.sh scripts/check-ci-policy.sh
+  "${GIT[@]}" add -A && "${GIT[@]}" commit -qm init
+)
+CLAUDE_PROJECT_DIR="$tool_repo" bash "$SWEEP" --no-deps --out "$TMP/tool-report.md" >/dev/null 2>&1
+trep="$(cat "$TMP/tool-report.md" 2>/dev/null)"
+printf '%s' "$trep" | grep -q "python-complexity: ⚠️ KHÔNG chạy được" \
+  && ok "thiếu công cụ → báo ⚠️ 'KHÔNG chạy được', không nuốt im lặng" \
+  || bad "thiếu công cụ KHÔNG được nói ra trong mục 6"
+printf '%s' "$trep" | grep -q "🟡 | Cổng | python-complexity không chạy được" \
+  && ok "thiếu công cụ → mức 🟡 (chưa kiểm chứng được)" \
+  || bad "thiếu công cụ không ra 🟡"
+printf '%s' "$trep" | grep -q "🔴 | Cổng | python-complexity" \
+  && bad "thiếu công cụ bị báo 🔴 — người vận hành sẽ đi sửa code đang đúng" \
+  || ok "thiếu công cụ KHÔNG bị báo 🔴"
+printf '%s' "$trep" | grep -q "🔴 | Cổng | ci-policy đỏ" \
+  && ok "đối chứng: vi phạm THẬT vẫn ra 🔴 (không bị hạ nhầm xuống 🟡)" \
+  || bad "vi phạm thật không còn ra 🔴 — regex thiếu-công-cụ đang quá rộng"
 
 echo
 if [ "$fails" -eq 0 ]; then echo "OK — maintenance-sweep.sh đo đúng, bắt đúng lỗi cài sẵn, không báo oan repo sạch."; else echo "FAIL — $fails kiểm hỏng."; fi

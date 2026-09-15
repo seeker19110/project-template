@@ -275,26 +275,44 @@ sweep_ci() {
 }
 
 # ── 6. Cổng của khung + gate dự án ────────────────────────────────────────────
-run_gate_script() { # $1=script, $2=nhãn, $3..=tham số
-  local s="$1" label="$2"; shift 2
+# $3 = regex nhận dạng ca "cổng KHÔNG CHẠY ĐƯỢC vì thiếu công cụ" — KHÁC HẲN "cổng đỏ vì vi phạm
+# thật". Hai ca này không được trộn: vi phạm thật là 🔴 phải sửa; thiếu công cụ là 🟡 "chưa kiểm
+# chứng được", và im lặng bỏ qua thì vi phạm luật "fail-open phải NÓI RA" (docs/CONVENTIONS.md).
+# Regex phải HẸP và riêng cho từng cổng — KHÔNG dùng mẫu chung như 'Thiếu', vì thông điệp vi phạm
+# thật cũng chứa chữ đó (vd check-progress-freshness in "::error::Thiếu dòng 'Default-branch SHA…'").
+# Ca sai-checksum của shellmetrics CỐ Ý không nằm trong regex: đó là vấn đề chuỗi cung ứng thật, giữ 🔴.
+run_gate_script() { # $1=script, $2=nhãn, $3=regex-thiếu-công-cụ (rỗng nếu không có), $4..=tham số
+  local s="$1" label="$2" miss="$3"; shift 3
   [ -f "$s" ] || { line "- $label: n-a (không có \`$s\`)"; return; }
   local out rc; out="$(bash "$s" "$@" 2>&1)"; rc=$?
-  if [ "$rc" -eq 0 ]; then line "- $label: ✅"; else
-    line "- $label: ❌ (exit $rc)"; block <<<"$(printf '%s\n' "$out" | grep -E 'error|FAIL|❌' | head -n 8)"
-    red "Cổng" "$label đỏ" "chạy \`bash $s\` và sửa theo output"
+  if [ "$rc" -eq 0 ]; then line "- $label: ✅"; return; fi
+  if [ -n "$miss" ] && printf '%s' "$out" | grep -qE "$miss"; then
+    line "- $label: ⚠️ KHÔNG chạy được (thiếu công cụ) — chưa kiểm chứng được, không phải đã đạt"
+    yel "Cổng" "$label không chạy được vì thiếu công cụ" "cài công cụ rồi chạy lại \`bash $s\`"
+    return
   fi
+  line "- $label: ❌ (exit $rc)"; block <<<"$(printf '%s\n' "$out" | grep -E 'error|FAIL|❌' | head -n 8)"
+  red "Cổng" "$label đỏ" "chạy \`bash $s\` và sửa theo output"
 }
 sweep_gates() {
   sec "6. Cổng khung & gate dự án"
-  run_gate_script scripts/check-docs-consistency.sh "docs-consistency"
-  run_gate_script scripts/check-ci-policy.sh "ci-policy"
+  # Mục này tự đặt tên là "Cổng khung" nên PHẢI chạy đủ cổng khung. Trước 2026-09-15 nó chỉ chạy
+  # 2/5 cổng `check-*.sh` (audit T-2) — và báo cáo vẫn kết luận "cổng khung ✅". Hậu quả đo được:
+  # đợt /maintain 2026-09-15 báo 🔴 0 · 🟡 0 trong khi PROGRESS.md đã trễ 4 commit, vì đúng cổng bắt
+  # được điều đó (check-progress-freshness) không nằm trong lượt quét. Kết luận mạnh hơn bằng chứng
+  # là thứ CLAUDE.md §4 cấm.
+  run_gate_script scripts/check-docs-consistency.sh "docs-consistency" ""
+  run_gate_script scripts/check-ci-policy.sh "ci-policy" ""
+  run_gate_script scripts/check-progress-freshness.sh "progress-freshness" ""
+  run_gate_script scripts/check-shell-complexity.sh "shell-complexity" "Không tìm thấy vendor/shellmetrics"
+  run_gate_script scripts/check-python-complexity.sh "python-complexity" "Thiếu radon"
   if [ -f scripts/arch-health-radar.sh ]; then
     local score; score="$(bash scripts/arch-health-radar.sh --json 2>/dev/null | (has jq && jq -r '.health_score // empty' || grep -oE '"health_score":[[:space:]]*[0-9]+' | head -1 | grep -oE '[0-9]+') || true)"
     line "- arch-health-radar: ${score:-không đọc được}/100"
     [ -n "$score" ] && [ "$score" -lt 80 ] && yel "Cổng" "radar sức khoẻ $score/100" "chạy \`scripts/arch-health-radar.sh --scan\` xem mục kéo điểm"
   fi
   if [ "$RUN_GATE" -eq 1 ]; then
-    run_gate_script scripts/dev-task.sh "dev-task gate (build/type/lint/test)" gate
+    run_gate_script scripts/dev-task.sh "dev-task gate (build/type/lint/test)" "" gate
   else
     line "- dev-task gate: bỏ qua (thêm \`--gate\` để chạy)"
   fi
