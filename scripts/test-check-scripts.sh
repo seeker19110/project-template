@@ -185,6 +185,30 @@ else
   bad "không tìm thấy $vitest — ca mục 7 không chạy được"
 fi
 
+d="$(setup_repo)"
+# F-201: cổng quét cả đuôi .py — trước 2026-09-15 nó KHÔNG quét, nên tham chiếu tới 4 engine Python
+# của khung có thể mục âm thầm. Ghép chuỗi lúc chạy để chính mục 1 không bắt file test này.
+fake_py="scripts/engine-khong-ton-tai"; fake_py="${fake_py}.py"
+printf '\nEngine: `%s`\n' "$fake_py" >> "$d/README.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && ok "bắt được tham chiếu .py gãy (mục 1, đuôi mới)" \
+                || bad "KHÔNG bắt được .py gãy (rc=$rc) — engine Python đổi tên sẽ mục âm thầm"
+
+d="$(setup_repo)"
+fake_css="styles/khong-ton-tai"; fake_css="${fake_css}.css"
+printf '\nTokens: `%s`\n' "$fake_css" >> "$d/README.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "1" ] && ok "bắt được tham chiếu .css gãy (mục 1, đuôi mới)" \
+                || bad "KHÔNG bắt được .css gãy (rc=$rc)"
+
+d="$(setup_repo)"
+# Đối chứng KHÔNG chặn oan: styles/theme.css nằm trong ALLOW_MISSING_PATH (pattern cho dự án đích).
+allowed="styles/theme"; allowed="${allowed}.css"
+printf '\nDesign tokens: `%s`\n' "$allowed" >> "$d/README.md"
+rc="$(run_check "$d" check-docs-consistency.sh)"
+[ "$rc" = "0" ] && ok "KHÔNG chặn oan đường dẫn .css đã khai ở ALLOW_MISSING_PATH" \
+                || bad "chặn OAN styles/theme.css (rc=$rc) — allowlist mất tác dụng"
+
 echo "== 2. check-ci-policy.sh =="
 
 d="$(setup_repo)"
