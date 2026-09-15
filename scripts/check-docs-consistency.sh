@@ -266,6 +266,46 @@ else
   fi
 fi
 
+# ── 9. Agent + hook phải được docs/FEATURE-MAP.md khai (audit 2026-09-15, F-102). ──
+# VÌ SAO: FEATURE-MAP.md là "nguồn sự thật dự án CÓ NHỮNG GÌ", và Nhóm 12 của mọi đợt `/audit-full`
+# lấy chính nó làm căn cứ rà chéo. Đo được ở audit 2026-09-15: nó thiếu HẾT 8 engine/cổng
+# (`grep -c` ra 0 cho từng cái), khai 9 subagent khi thật có 11, 5 hook khi thật có 6, và cấp trùng
+# ID FT-21 cho hai mục khác nhau. Bản đồ thiếu ⇒ đợt audit sau bỏ sót đúng phần code có logic nhất.
+# Cổng cũ đã ràng LỆNH ↔ CLAUDE.md (mục 3), AGENT ↔ orchestration (mục 4) và SCRIPT ↔ CODEMAP
+# (mục 6) — nhưng KHÔNG cái nào ràng với FEATURE-MAP. Mục này nhân bản đúng khuôn mục 6.
+# CỐ Ý chỉ kiểm SỰ CÓ MẶT của tên file, không kiểm nội dung mô tả (cùng lý lẽ mục 6).
+echo "== 9. Agent + hook ↔ docs/FEATURE-MAP.md =="
+FMAP="docs/FEATURE-MAP.md"
+if [ ! -f "$FMAP" ]; then
+  echo "::error::Không tìm thấy $FMAP — không đối chiếu được năng lực ↔ bản đồ tính năng."
+  fail=1
+else
+  fmap_seen=0
+  for f in .claude/agents/*.md .claude/hooks/*.sh; do
+    [ -e "$f" ] || continue
+    fmap_seen=1
+    # So bằng THÂN tên (bỏ đuôi): FEATURE-MAP gọi agent bằng tên vai (`standard-worker`) và hook
+    # bằng tên file (`auto-format.sh`) — thân tên phủ được cả hai cách viết mà không ép ai đổi.
+    base="$(basename "$f")"; stem="${base%.*}"
+    if ! grep -qF "$stem" "$FMAP"; then
+      echo "::error file=$FMAP::'$base' tồn tại nhưng KHÔNG được $FMAP khai — bổ sung một dòng (bản đồ thiếu thì đợt audit sau bỏ sót nó)."
+      fail=1
+    fi
+  done
+  # Tự bảo vệ: glob không khớp gì nghĩa là phép đối chiếu không chạy — cổng rỗng luôn xanh là cổng hỏng.
+  if [ "$fmap_seen" -eq 0 ]; then
+    echo "::error::Không tìm thấy agent/hook nào để đối chiếu với $FMAP — phép kiểm KHÔNG chạy."
+    fail=1
+  fi
+  # ID FT-* không được cấp trùng (FT-21 từng bị cấp cho cả agent `maintainer` lẫn hook `auto-format`,
+  # làm mọi tham chiếu "FT-21" thành mơ hồ).
+  dup_ids="$(grep -oE '^\| FT-[0-9]+[a-z]?' "$FMAP" | sort | uniq -d || true)"
+  if [ -n "$dup_ids" ]; then
+    echo "::error file=$FMAP::ID FT-* bị cấp TRÙNG: $(printf '%s' "$dup_ids" | tr '\n' ' ')— mỗi năng lực một ID duy nhất."
+    fail=1
+  fi
+fi
+
 echo "== 8. Ký tự điều khiển vô hình trong *.md =="
 # VÌ SAO CẦN (2026-09-15, gặp thật khi rút gọn PROGRESS.md): một chuỗi Python thường chứa "\b"
 # KHÔNG phải hai ký tự literal mà là BACKSPACE (0x08). Khi sinh tài liệu bằng script, ký tự đó

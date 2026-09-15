@@ -24,8 +24,9 @@
 | FT-10 | Xử lý sự cố production | `/incident` | `docs/ops/incident-response.md` | ✅ | như trên |
 | FT-11 | Phỏng vấn dồn dập làm rõ yêu cầu | `/grill` | `CONTEXT.md` (dự án đích) | ✅ | như trên |
 | FT-12 | Chẩn đoán bug khó | `/debug` | `TRAPS.md` | ✅ | như trên |
+| FT-51 | Bảo trì định kỳ (quét → triage → kế hoạch chờ duyệt) | `/maintain` | `scripts/maintenance-sweep.sh`, `docs/ops/MAINTENANCE-*.md` | ✅ | `test-maintenance-sweep.sh` (job `framework-lint`) |
 
-## B. Subagent 3 tầng (9) — `.claude/agents/`
+## B. Subagent 3 tầng (11) — `.claude/agents/`
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
@@ -37,25 +38,31 @@
 | FT-18 | Hậu kiểm diff | `reviewer` (skill `code-review`) | diff | ✅ | ❌ không có |
 | FT-19 | Tra cứu read-only | `lookup` (Haiku) | codebase | ✅ | ❌ không có |
 | FT-20 | Xác minh phiên bản nguồn sống | `version-check` (Haiku) | registry/web | ✅ | ❌ không có |
+| FT-52 | Rà bảo mật một diff/PR (skill `security-review`) | `security-reviewer` (Sonnet) | diff, `docs/ops/` | ✅ | ❌ không có |
+| FT-53 | Chạy toàn bộ cổng kiểm thử, báo kết quả thô | `tester` | `scripts/dev-task.sh gate` | ✅ | ❌ không có |
 | FT-21 | Bảo trì toàn diện định kỳ (ngoài bảng route) | `maintainer` (Sonnet) qua `/maintain` hoặc `scripts/maintain-run.sh` (CLI subscription cục bộ, mọi nhà cung cấp) | `scripts/maintenance-sweep.sh` → `docs/ops/MAINTENANCE-REPORT.md`, `docs/ops/MAINTENANCE-PLAN.md`, `docs/ops/MAINTENANCE-LOG.md` | ✅ | `test-maintenance-sweep.sh` (negative+positive) + `test-maintain-run.sh` (stub CLI 5 harness) — job `framework-lint` + smoke dự án đích |
 | FT-22b | Bảo trì không giám sát (VPS/cron) — đẩy nhánh + tự mở PR (GitHub REST API) để duyệt, không tự merge | `scripts/maintain-cron.sh` | nhánh `maint/auto-<ngày>`, `docs/ops/MAINTENANCE-*.md`, PR trên GitHub | ✅ | `test-maintain-cron.sh` (bare-repo remote thật + curl giả) — job `framework-lint` + smoke dự án đích |
 
-## C. Hook tự động (5) — `.claude/hooks/`
+## C. Hook tự động (6) — `.claude/hooks/`
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
-| FT-21 | Auto-format sau mỗi lần ghi file | `auto-format.sh` (PostToolUse) | file vừa sửa, `dev-task.sh` | ✅ | ⚠️ chỉ kiểm **được copy** (`test-copy-framework.sh`), không kiểm chạy đúng |
+| FT-54 | Auto-format sau mỗi lần ghi file | `auto-format.sh` (PostToolUse) | file vừa sửa, `dev-task.sh` | ✅ | `test-hooks-gate.sh` mục 10b (2026-09-15, audit F-401) |
 | FT-22 | Cổng chặn commit đỏ | `pre-commit-gate.sh` (PreToolUse) | build/lint/test dự án đích | ✅ | như trên |
-| FT-23 | Nhắc giai đoạn đầu phiên | `session-guide.sh` (SessionStart) | `PROGRESS.md`, `CLAUDE.md` | ✅ | như trên |
-| FT-24 | Nạp trạng thái để "tiếp tục" | `session-resume.sh` (SessionStart) | `PROGRESS.md`, git log | ✅ | như trên |
-| FT-25 | Nhắc ngân sách quota | `usage-guard.sh` | `usage-estimate.sh`, `.claude/usage-budget.sh` | ⚠️ (F-014 đã chấp nhận rủi ro) | như trên |
+| FT-23 | Nhắc giai đoạn đầu phiên | `session-guide.sh` (SessionStart) | `PROGRESS.md`, `CLAUDE.md` | ✅ | `test-hooks-gate.sh` mục 11 (2026-09-15, audit F-401) |
+| FT-24 | Nạp trạng thái để "tiếp tục" | `session-resume.sh` (SessionStart) | `PROGRESS.md`, git log | ✅ | `test-hooks-gate.sh` mục 12 (2026-09-15, audit F-401) |
+| FT-25 | Nhắc ngân sách quota | `usage-guard.sh` | `usage-estimate.sh`, `.claude/usage-budget.sh` | ✅ | `test-hooks-gate.sh` mục 13 (2026-09-15, audit F-401) — 8 ca gồm negative test |
+| FT-55 | Chặn lệnh git nguy hiểm (force-push main, `reset --hard`, `--abort`) | `block-dangerous-git.sh` (PreToolUse) | lệnh Bash sắp chạy | ✅ | `test-hooks-gate.sh` mục 7–9; TRAPS 18 + 30 |
 
-## D. Cổng tự kiểm của CHÍNH repo khung (3 script) — `scripts/`
+## D. Cổng tự kiểm của CHÍNH repo khung (5 cổng `check-*` + 13 suite `test-*`) — `scripts/`
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
 | FT-26 | Kiểm tài liệu đồng bộ (link, tên cũ, lệnh ↔ CLAUDE.md) | `scripts/check-docs-consistency.sh` | mọi `*.md` | ✅ | job CI `docs-consistency`; có negative test |
 | FT-27 | Kiểm job CI ↔ required checks 2 chiều | `scripts/check-ci-policy.sh` | `ci.yml`, `pr-policy.yml`, `repository-settings.md` | ✅ | job CI `docs-consistency`; có negative test |
+| FT-56 | Kiểm `PROGRESS.md` còn khớp git thật (PF-1/2/3) | `scripts/check-progress-freshness.sh` | `PROGRESS.md`, git | ✅ | job CI `progress-freshness`; negative test trong `test-check-scripts.sh` |
+| FT-57 | Trần độ phức tạp vòng shell | `scripts/check-shell-complexity.sh` | mọi `*.sh` (trừ `vendor/`) qua `vendor/shellmetrics` | ✅ | `test-check-shell-complexity.sh` (job `framework-lint`) |
+| FT-58 | Trần độ phức tạp vòng Python | `scripts/check-python-complexity.sh` | 4 engine `*.py` qua `radon` | ✅ | `test-check-python-complexity.sh` (job `framework-lint`) |
 | FT-28 | Smoke test bộ copy khung | `scripts/test-copy-framework.sh` | `copy-framework.sh`/`copy-framework.ps1` | ✅ | job CI `copy-framework-smoke` |
 | FT-29 | *(gỡ 2026-09-12, ADR-0004 — scaffold Web đã xoá, không còn dropins Lớp 2 để kiểm chạy thật)* | — | — | ➖ | — |
 
@@ -66,7 +73,7 @@
 | FT-30 | Copy khung sang dự án đích (POSIX) | `copy-framework.sh` | Lớp 1 copy thẳng · file gốc `copy_if_absent` · Lớp 2 `stage` → `_framework-dropins/` · `FRAMEWORK-VERSION` | ✅ | `test-copy-framework.sh` |
 | FT-31 | Bản Windows | `copy-framework.ps1` | như trên | ✅ | `test-copy-framework.sh` (chỉ chạy khi có `pwsh` — máy local bỏ qua, CI ubuntu có) |
 
-## F. Tài liệu khung (Lớp 1) — 13 file `docs/framework/` + 7 file `docs/ops/`
+## F. Tài liệu khung (Lớp 1) — 23 file `docs/framework/` + 10 file `docs/ops/`
 
 | ID | Tính năng / luồng | Điểm vào | Dữ liệu đụng tới | Trạng thái | Test hiện có |
 |----|-------------------|----------|------------------|-----------|--------------|
@@ -98,6 +105,27 @@
 |----|-------------------|----------|------------------|-----------|--------------|
 | FT-44 | Cổng CI dự án đích (7 workflow tổng quát) | `.github/workflows/*` | ci (3 job tự kiểm khung), secret-scan, dependency-review, pr-policy, release, stale-pr-alert, maintenance (quét bảo trì tuần → 1 issue) | ✅ | `check-ci-policy.sh` + `ci-workflow-policy.test.ts` (dropins — cần Node ở dự án đích để chạy) |
 | FT-50 | Script tiện ích dự án đích | `scripts/dev-task.sh`, `scripts/usage-estimate.sh` | tự dò `package.json`/công cụ theo stack | ⚠️ (F-309 fallback grep, chấp nhận rủi ro) | `test-copy-framework.sh` (kiểm copy) |
+
+## I. Engine chạy được (4 engine Python + wrapper `.sh`) — `scripts/`
+
+> **Thiếu hẳn khỏi bản đồ này cho tới 2026-09-15** (audit F-102): `CLAUDE.md` §1 gọi chúng là
+> "Engine chạy được" — tức code có logic nhất của khung — mà file *nguồn sự thật "dự án CÓ NHỮNG
+> GÌ"* không biết chúng tồn tại. Mọi đợt audit sau lấy chính file này làm căn cứ cho Nhóm 12, nên
+> thiếu sót ở đây gây bỏ sót có hệ thống.
+>
+> Cả bốn dùng chung boilerplate khởi động `scripts/_python-exec.sh` (dò `python3`/`python`, tính
+> `ROOT`, `cygpath` cho Windows) — sửa file đó là đổi hành vi khởi động của CẢ BỐN.
+
+| ID | Năng lực | Điểm vào | Dữ liệu đụng tới | Trạng thái | Kiểm bởi |
+| --- | --- | --- | --- | --- | --- |
+| FT-59 | Biên dịch `docs/specs/*.md` thành contract test | `scripts/spec-compiler.sh` → `spec-compiler.py` | `docs/specs/`, test sinh ra | ✅ | `test-next-gen-engines.sh`, `test-engine-characterization.sh`, `test-py-coverage.sh` (sàn 95%) |
+| FT-60 | Quét nợ kỹ thuật / độ phức tạp / độ phủ spec (điểm sức khoẻ) | `scripts/arch-health-radar.sh` → `arch-health-radar.py` | toàn repo, `docs/specs/` | ✅ | như trên |
+| FT-61 | Nạp vai subagent theo nhãn `route:` cho mọi harness | `scripts/subagent-dispatch.sh` → `subagent-dispatch.py` | `.claude/agents/`, `scripts/model-capability-tiers.json` | ⚠️ fail-open có che giấu + `choices` hard-code (audit F-207, **chưa sửa**) | `test-telemetry-and-dispatch.sh` — **chưa có negative test cho JSON hỏng** |
+| FT-62 | Ghi thời gian/LOC/chi phí mỗi tác vụ AI | `scripts/telemetry-log.sh` → `telemetry-log.py` | `scripts/model-rates.json`, log telemetry | ✅ | `test-telemetry-and-dispatch.sh`, `test-py-coverage.sh`; có negative test cho JSON hỏng |
+
+**Nguồn dữ liệu của hai engine trên** (`scripts/model-rates.json`, `scripts/model-capability-tiers.json`):
+cả hai có `_verified_on` + `_source`, nhưng **không cổng nào cảnh báo khi trường đó mục** (audit
+F-206, chưa sửa). Cả hai nay đều nằm trong bước `jq empty` của `ci.yml` (audit F-101).
 
 ## Luồng chính (bắt buộc có test đi qua — đối chiếu Definition of Complete)
 
