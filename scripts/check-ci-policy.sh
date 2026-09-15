@@ -30,6 +30,13 @@
 # Chạy: bash scripts/check-ci-policy.sh
 set -euo pipefail
 
+# Phân giải đường dẫn TUYỆT ĐỐI của chính script TRƯỚC khi `cd` — mục 7 dưới đây đọc lại source của
+# chính nó để liệt kê các mục CP-*. Dùng `$0` sau `cd` thì khi script được gọi bằng đường dẫn tương
+# đối từ thư mục khác (vd `cd scripts && bash check-ci-policy.sh`), `grep` không tìm thấy file, vòng
+# `while` đọc rỗng, KHÔNG mục CP-* nào được đối chiếu — mà script vẫn in "bảng kiểm khớp hai bản" và
+# thoát 0. Cổng khẳng định một điều nó chưa hề kiểm (audit F-303, đo được).
+SELF="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+
 cd "$(git rev-parse --show-toplevel)"
 
 SETTINGS_FILE="docs/ops/repository-settings.md"
@@ -161,7 +168,15 @@ CP4_BOOTSTRAP_EXEMPT=()
 is_in() { local needle="$1"; shift; for x in "$@"; do [ "$x" = "$needle" ] && return 0; done; return 1; }
 echo "== Job của ci.yml có trong needs: của gate =="
 if grep -q "^  gate:" .github/workflows/ci.yml; then
-  needs_line="$(grep -A3 "^  gate:" .github/workflows/ci.yml | grep -m1 "needs:")"
+  # `|| true`: `grep -m1 "needs:"` không khớp trả 1, và `set -euo pipefail` giết script NGAY TẠI
+  # DÒNG GÁN — cổng đỏ mà KHÔNG in một dòng chẩn đoán nào, và CP-5/CP-6/CP-7 bên dưới cũng không
+  # chạy (một mục hỏng che mọi mục sau). Đo được ở audit F-305. Có `|| true` thì rơi vào nhánh
+  # báo lỗi tường minh ngay dưới.
+  needs_line="$(grep -A3 "^  gate:" .github/workflows/ci.yml | grep -m1 "needs:" || true)"
+  if [ -z "$needs_line" ]; then
+    echo "::error file=.github/workflows/ci.yml::Có job 'gate' nhưng không đọc được dòng 'needs:' của nó — cổng tổng hợp có thể đang không phụ thuộc job nào."
+    fail=1
+  fi
   # Tach thanh DANH SACH job roi so BANG DUNG tung ten. Ban cu grep ca dong voi ...:
   # "-" khong phai ky tu tu, nen `framework-lint` KHOP ben trong `framework-lint-windows`
   # => mot job bi go khoi needs: van duoc coi la co, chi vi job KHAC co ten bat dau giong.
@@ -256,7 +271,14 @@ if [ -f "$DROPIN_TEST" ]; then
       echo "::error file=$DROPIN_TEST::Kiểm '$cp' có trong scripts/check-ci-policy.sh nhưng KHÔNG được khai ở bản dropins — implement nó, hoặc ghi rõ '$cp: không áp dụng cho dự án đích: <lý do>' (W-302)."
       fail=1
     fi
-  done < <(grep -oE '^#   CP-[0-9]+' "$0" | sed 's/^#   //')
+  done < <(grep -oE '^#   CP-[0-9]+' "$SELF" | sed 's/^#   //')
+
+  # Tự bảo vệ: không đọc được mục CP-* nào nghĩa là phép đối chiếu KHÔNG chạy. Im lặng ở đây chính
+  # là cổng xanh giả — phải đỏ. (Cùng khuôn tự bảo vệ đã có ở các mục trên.)
+  if [ "$(grep -cE '^#   CP-[0-9]+' "$SELF" || true)" -eq 0 ]; then
+    echo "::error::Không đọc được mục CP-* nào từ '$SELF' — phép đối chiếu shell ↔ vitest KHÔNG chạy, không được coi là đạt."
+    fail=1
+  fi
 else
   echo "::error::Thiếu $DROPIN_TEST — dự án đích sẽ không có cổng kiểm CI nào."
   fail=1

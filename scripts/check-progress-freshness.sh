@@ -41,7 +41,11 @@ if [ -z "$sha_line" ]; then
   echo "::error file=$PROGRESS_FILE::Thiếu dòng 'Default-branch SHA đã đối chiếu:' ở mục 'Giai đoạn hiện tại' — không có gì để đối chiếu độ mới."
   fail=1
 else
-  recorded_sha="$(printf '%s' "$sha_line" | grep -oE '`[0-9a-f]{7,40}`' | head -1 | tr -d '\`')"
+  # `|| true`: grep không khớp trả 1 và `set -euo pipefail` giết script NGAY TẠI DÒNG GÁN, nên
+  # nhánh báo lỗi ngay dưới không bao giờ chạy — cổng đỏ mà không in một dòng chẩn đoán nào, và
+  # PF-2/PF-3 cũng không chạy. Cùng khuôn đã vá ở PF-3 (xem chú thích dòng tương ứng) — lần này vá
+  # nốt hai chỗ còn sót (audit F-305).
+  recorded_sha="$(printf '%s' "$sha_line" | grep -oE '`[0-9a-f]{7,40}`' | head -1 | tr -d '\`' || true)"
   if [ -z "$recorded_sha" ]; then
     echo "::error file=$PROGRESS_FILE::Không đọc được SHA trong dòng: $sha_line (cần dạng \`abc1234\`)."
     fail=1
@@ -67,7 +71,8 @@ branch_line="$(grep -m1 -E '^- Nhánh đang làm:' "$PROGRESS_FILE" || true)"
 if [ -z "$branch_line" ]; then
   echo "OK — không có dòng 'Nhánh đang làm' (không áp dụng)."
 else
-  branch="$(printf '%s' "$branch_line" | grep -oE '`[A-Za-z0-9._/-]+`' | head -1 | tr -d '\`')"
+  # `|| true`: xem chú thích ở PF-1 — không có nó thì cảnh báo ngay dưới không bao giờ in ra.
+  branch="$(printf '%s' "$branch_line" | grep -oE '`[A-Za-z0-9._/-]+`' | head -1 | tr -d '\`' || true)"
   if [ -z "$branch" ]; then
     echo "::warning file=$PROGRESS_FILE::Có dòng 'Nhánh đang làm' nhưng không đọc được tên nhánh trong dấu \`...\` — bỏ qua PF-2."
   elif [ "$branch" = "main" ]; then
