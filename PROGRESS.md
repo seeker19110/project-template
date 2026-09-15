@@ -6,6 +6,16 @@
 
 ## Giai đoạn hiện tại
 
+- Giai đoạn: GĐ 8. **Bảo trì định kỳ 2026-09-15 (`/maintain`, đợt sạch): 0 mục hành động.**
+  `maintenance-sweep.sh` mặc định ra 🔴 0 · 🟡 0 · ℹ️ 5; Tầng 1 chạy lại `--strict` để kiểm chứng.
+  Git sạch, 7 workflow ghim full SHA, không bí mật bị track, docs-consistency/ci-policy ✅,
+  arch-health-radar 100/100. Dependency `n-a` do repo khung cố ý không có dependency manager.
+  **Đính chính đáng giữ:** `--strict` ra 🟡 1 chứ không phải 0 — dòng đó là "1 file chưa commit",
+  và file đó chính là `docs/ops/MAINTENANCE-PLAN.md` mà lượt quét vừa sinh ra. Lại một thể hiện nữa của
+  khuôn "bộ dò tự khớp thứ nó đang soi" (xem mốc PR #141 ngay dưới) — không đếm chính xác là lần
+  thứ mấy. Chưa có cổng nào chặn khuôn đó một cách tổng quát, mới chỉ xử lý từng ca.
+  Nhật ký đợt: `docs/ops/MAINTENANCE-LOG.md` (file mới, một dòng/đợt, CÓ commit).
+
 - Giai đoạn: GĐ 8. **Mốc gần nhất (2026-09-15, PR #141 đã merge): cổng chặn ký tự điều khiển vô
   hình trong `*.md` (mục 8 của `check-docs-consistency.sh`).** Gặp thật cùng ngày: một chuỗi Python
   thường chứa ký hiệu thoát `\` + `b` là BACKSPACE (0x08) chứ không phải hai ký tự literal, nên
