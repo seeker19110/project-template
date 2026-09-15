@@ -12,7 +12,7 @@
 - Base: `98ccd6f` (`origin/main`, sau PR #143)
 - Hồ sơ dự án áp dụng (KHUNG-3 PHẦN C): **C5 CLI/thư viện** (tiệm cận) — tập script shell/Python
   + tài liệu, không runtime, không UI, không CSDL
-- Giai đoạn: **GIAI ĐOẠN 1 (chỉ quét & đo, KHÔNG sửa gì)**
+- Giai đoạn: **GIAI ĐOẠN 2 (xử lý)** — người dùng duyệt TOÀN BỘ 4 batch ngày 2026-09-15
 
 | # | Nhóm | Trạng thái | Tóm tắt phát hiện (số lượng theo mức độ) | Cập nhật lần cuối |
 |---|------|-----------|-------------------------------------------|---------------------|
@@ -224,3 +224,33 @@ mục 8 dựng mẫu bằng `printf` lúc chạy — **đúng và có ghi lý do
 3. **Ca `gawk` bị bỏ qua** (máy chỉ có mawk) ⇒ chưa chứng minh cổng CC shell chạy được dưới gawk.
 4. Subagent **đã cài `radon` + `coverage`** vào môi trường Python của phiên để đo được F-402 và độ phủ
    thật. Không đụng file nào trong repo — đây là thay đổi môi trường duy nhất.
+
+## GIAI ĐOẠN 2 — tiến độ xử lý
+
+Người dùng duyệt **toàn bộ 4 batch** theo thứ tự đã đề xuất (2026-09-15).
+
+**Ràng buộc đã nêu với người dùng:** phiên này chỉ được push lên nhánh
+`claude/kind-darwin-a8v4uy`, nên không tách được mỗi mục thành một PR riêng như §8 mong muốn. Thay
+vào đó: **mỗi mục một commit nguyên tử**, gom vào một PR.
+
+| Batch | ID | Trạng thái | Commit | Bằng chứng |
+| --- | --- | --- | --- | --- |
+| 1–2 | F-301 | ✅ Xong | `901a3c1` | Test ĐỎ trước (`❌ KHÔNG chặn: … heredoc <<- … exit 0, kỳ vọng 2`) → sau khi sửa 24/24 xanh; xác minh trực tiếp `rc=2`. TRAPS mục 30. |
+| 1–2 | F-303 | ✅ Xong | `83c04e4` | Trước: gọi từ `scripts/` in `grep: … No such file` rồi ngay dưới `OK — bảng kiểm khớp hai bản`, rc=0. Sau: không còn lỗi, cổng thật sự đọc được CP-*. |
+| 1–2 | F-305 | ✅ Xong | `83c04e4` | Sandbox (`git archive HEAD` + xoá dòng `needs:` của gate): trước chết im lặng; sau in `::error::Có job 'gate' nhưng không đọc được dòng 'needs:'` **và vẫn chạy tiếp CP-5/6/7**, rc=1. |
+| 1–2 | F-101 | ✅ Xong | `859052e` | 6/6 file JSON bắt buộc tồn tại + `jq empty` xanh. Bổ sung 3 file danh sách cũ bỏ sót. |
+| 1–2 | F-202 | ✅ Xong | `b80a111` | Đọc `rc` và thoát nếu ≠ 0; bỏ `\|\| echo 0`; thiếu dòng tổng ⇒ đỏ. |
+
+### Đính chính khuyến nghị của chính audit (F-101 phần c)
+
+Audit đề xuất "mở rộng `check-docs-consistency.sh` thêm `'*.yml'`" để bắt đường dẫn chết trong
+workflow. Kiểm lại: đường dẫn hỏng nằm **trần trong vòng lặp shell, không trong backtick**
+(`grep -c '\`.claude/settings-shared-opusplan.json\`'` ra **0**), mà mục 1 chỉ bắt đường dẫn
+**trong backtick** ⇒ mở rộng sang `.yml` **sẽ không bắt được ca này**. Không làm phần (c); thứ
+thật sự bịt lỗ là bỏ fail-open, đã làm.
+
+### Ghi nhận khác
+
+`test-copy-framework.sh` **treo** khi stdin không đóng (stub `hermes` chờ nhập); với `</dev/null`
+thì rc=0. Không liên quan thay đổi nào của batch này. Chưa lập thành phát hiện vì trong CI stdin
+đã đóng sẵn — ghi lại để lượt sau biết.

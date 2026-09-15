@@ -6,6 +6,19 @@
 
 ## Giai đoạn hiện tại
 
+- Giai đoạn: GĐ 8. **Audit toàn diện RESET 2026-09-15 (`/audit-full`, 12/12 nhóm) → GIAI ĐOẠN 2
+  đang chạy.** Tổng: **Cao 5 · Trung 14 · Thấp 10**. Batch 1–2 (5 mục) đã xử lý xong.
+  **Bốn trong năm mục Cao cùng một khuôn: cổng tự tắt mà vẫn báo xanh** — không cái nào làm CI đỏ.
+  F-301 hàng rào `block-dangerous-git` bị vượt bằng heredoc `<<-` đóng bằng dòng thụt TAB (đo được
+  rc=0 thay vì 2) · F-202 `maintenance.yml` đóng nhầm issue khi sweep chết vì `rc` ghi ra rồi không
+  ai đọc · F-101 cổng `jq` trỏ file đã đổi tên từ ADR-0007, `if [ -f ]` nuốt im lặng nên
+  `settings-shared-default.json` **chưa từng được kiểm** · F-303 `check-ci-policy.sh` in "bảng kiểm
+  khớp hai bản" + rc=0 ngay sau khi `grep` chết.
+  **Đính chính đáng giữ:** đợt `/maintain` cùng ngày báo "cổng khung ✅" là **hẹp hơn nhãn đã dán** —
+  `maintenance-sweep.sh` chỉ chạy 2/5 cổng `check-*.sh` (T-2), thiếu đúng cổng bắt được F-104.
+  Sweep chạy đúng thứ nó được lập trình; sai ở chỗ báo cáo gọi 2/5 là "cổng khung".
+  Trạng thái chi tiết + 29 phát hiện: `docs/ops/COMPREHENSIVE-AUDIT-STATUS.md`.
+
 - Giai đoạn: GĐ 8. **Bảo trì định kỳ 2026-09-15 (`/maintain`, đợt sạch): 0 mục hành động.**
   `maintenance-sweep.sh` mặc định ra 🔴 0 · 🟡 0 · ℹ️ 5; Tầng 1 chạy lại `--strict` để kiểm chứng.
   Git sạch, 7 workflow ghim full SHA, không bí mật bị track, docs-consistency/ci-policy ✅,
