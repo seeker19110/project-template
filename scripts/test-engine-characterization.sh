@@ -24,7 +24,9 @@ cd "$ROOT" || exit 1
 PYTHON_CMD="python3"
 command -v python3 >/dev/null 2>&1 || PYTHON_CMD="python"
 
-"$PYTHON_CMD" - "$ROOT" <<'PYEOF'
+# PYTHONIOENCODING: console Windows mặc định cp1252 → in tiếng Việt sẽ UnicodeEncodeError
+# (TRAPS.md bẫy 24 — khối reconfigure trong file .py không áp cho heredoc inline này).
+PYTHONIOENCODING=utf-8 "$PYTHON_CMD" - "$ROOT" <<'PYEOF'
 import importlib.util
 import io
 import json

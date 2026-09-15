@@ -563,7 +563,21 @@ Việt đều mang sẵn lỗi này, chỉ chưa chạy trên máy Windows nào.
 **Cách rà:** thêm/sửa một script Python có chữ tiếng Việt trong `print()` → chạy nó bằng Git Bash
 trên Windows thật (không chỉ WSL/Linux), hoặc ép thử: `PYTHONIOENCODING=cp1252 python scripts/x.py`.
 
-**Cổng chốt chặn:** khối `_stream.reconfigure(encoding="utf-8")` ở đầu cả 4 file `.py` +
+**TÁI PHÁT (2026-09-15, cùng ngày, PR riêng):** khối `reconfigure` chỉ cứu được file `.py` —
+**Python nội tuyến trong heredoc của script `.sh` thì không**, vì nó không đi qua file nào có khối đó.
+Ba chỗ: `check-python-complexity.sh`, `test-engine-characterization.sh`, `usage-estimate.sh`. Lỗi
+**bị che** suốt vì cổng CC Python thoát sớm hơn với "Thiếu radon" — chỉ lộ ra sau khi cài radon
+đúng interpreter mà script chọn. Bài học: **một lỗi thoát sớm có thể đang giấu một lỗi khác ngay sau
+nó** — sửa xong điều kiện môi trường phải chạy LẠI, đừng cho là xong. Cách sửa cho heredoc:
+đặt `PYTHONIOENCODING=utf-8` ngay trước lệnh gọi interpreter.
+
+**Bẫy kèm — nhiều bản Python trên cùng máy:** `python` và `python3` có thể là HAI bản cài khác nhau
+(ví dụ `C:\Python314` và `...\pythoncore-3.14-64`). `pip install radon` cho bản này không làm bản kia
+thấy — cổng báo "Thiếu radon" dù vừa cài xong. *Cách rà:* `command -v python python3` rồi
+`python3 -m radon --version` đúng cái mà script sẽ chọn (script ưu tiên `python3`).
+
+**Cổng chốt chặn:** khối `_stream.reconfigure(encoding="utf-8")` ở đầu cả 4 file `.py`,
+`PYTHONIOENCODING=utf-8` ở 3 chỗ heredoc nói trên, +
 `scripts/test-next-gen-engines.sh` và `scripts/test-telemetry-and-dispatch.sh` chạy trong `ci.yml` — xem bẫy 25.
 
 ## 25. Test có trong repo nhưng KHÔNG job nào gọi → đỏ nằm im qua nhiều PR "sạch"

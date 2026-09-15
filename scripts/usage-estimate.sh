@@ -27,7 +27,9 @@ BUDGET_OPUS=0; BUDGET_SONNET=0; BUDGET_HAIKU=0; BUDGET_FABLE=0
 if [ -f "$BUDGET_FILE" ]; then . "$BUDGET_FILE"; fi
 export CACHE_READ_WEIGHT WINDDOWN_THRESHOLD BUDGET_OPUS BUDGET_SONNET BUDGET_HAIKU BUDGET_FABLE
 
-python3 - "$TRANSCRIPT" <<'PY'
+# PYTHONIOENCODING: console Windows mặc định cp1252 → in tiếng Việt sẽ UnicodeEncodeError
+# (TRAPS.md bẫy 24 — khối reconfigure trong file .py không áp cho heredoc inline này).
+PYTHONIOENCODING=utf-8 python3 - "$TRANSCRIPT" <<'PY'
 import json, sys, os
 from datetime import datetime, timezone, timedelta
 path = sys.argv[1]
